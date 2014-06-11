@@ -1,4 +1,4 @@
-# Doorkeeper::OpenIdConnect
+# Doorkeeper::OpenidConnect
 
 TODO: Write a gem description
 

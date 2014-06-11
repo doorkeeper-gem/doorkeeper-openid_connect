@@ -1,17 +1,16 @@
 # coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+$:.push File.expand_path("../lib", __FILE__)
 require 'doorkeeper/openid_connect/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "doorkeeper-openid_connect"
-  spec.version       = Doorkeeper::OpenIdConnect::VERSION
-  spec.authors       = ["Sam Dengler"]
+  spec.version       = Doorkeeper::OpenidConnect::VERSION
+  spec.authors       = ["sdengler"]
   spec.email         = ["sam.dengler@playonsports.com"]
-  spec.summary       = "OpenID Connect Extension to Doorkeeper"
-  spec.description   = "OpenID Connect Extension to Doorkeeper"
   spec.homepage      = "https://github.com/doorkeeper-gem/doorkeeper/doorkeeper-openid_connect"
-  spec.license       = "MIT"
+  spec.summary       = %q{OpenID Connect extension to Doorkeeper.}
+  spec.description   = %q{OpenID Connect extension to Doorkeeper.}
+  spec.license       = %q{MIT}
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
