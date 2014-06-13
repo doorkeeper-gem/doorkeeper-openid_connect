@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 # Define Rails version
 gem 'rails', ENV['rails']
 
-gem 'doorkeeper'
+gem 'doorkeeper', path: '/Users/sdengler/src/doorkeeper'
 
 gem 'pry'
 gem 'sqlite3'
