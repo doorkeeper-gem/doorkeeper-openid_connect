@@ -1,15 +1,28 @@
 require 'doorkeeper/openid_connect/version'
 require 'doorkeeper/openid_connect/engine'
+require 'doorkeeper/openid_connect/config'
 
 require 'doorkeeper/openid_connect/rails/routes'
 
 module Doorkeeper
+  module OpenidConnect
+    def self.configured?
+      @config.present?
+    end
+
+    def self.installed?
+      configured?
+    end
+  end
+end
+
+module Doorkeeper
   module OAuth
     class PasswordAccessTokenRequest
-
       private
 
       def after_successful_response
+        puts Doorkeeper::OpenidConnect.configuration.jws_key
         @response.id_token = 'foo'
       end
     end

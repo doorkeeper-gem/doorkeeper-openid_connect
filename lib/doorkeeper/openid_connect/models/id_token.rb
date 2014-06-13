@@ -2,7 +2,8 @@ module Doorkeeper
   module OpenidConnect
     module Models
       class IdToken
-        attr_accessor :claims
+        include ActiveModel::Validations
+
       end
     end
   end
