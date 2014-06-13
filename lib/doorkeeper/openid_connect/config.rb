@@ -93,11 +93,7 @@ module Doorkeeper
 
       extend Option
 
-      option :jws_key,
-             default: (lambda do |routes|
-               warn(I18n.translate('doorkeeper.openid_connect.errors.messages.jws_key_not_configured'))
-               nil
-             end)
+      option :jws_key, default: nil
     end
   end
 end

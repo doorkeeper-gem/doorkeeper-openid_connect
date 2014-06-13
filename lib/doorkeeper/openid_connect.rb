@@ -22,7 +22,7 @@ module Doorkeeper
       private
 
       def after_successful_response
-        puts Doorkeeper::OpenidConnect.configuration.jws_key
+        puts "*** #{Doorkeeper::OpenidConnect.configuration.jws_key} ***"
         @response.id_token = 'foo'
       end
     end
