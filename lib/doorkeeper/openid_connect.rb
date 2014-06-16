@@ -2,6 +2,8 @@ require 'doorkeeper/openid_connect/version'
 require 'doorkeeper/openid_connect/engine'
 require 'doorkeeper/openid_connect/config'
 
+require 'doorkeeper/openid_connect/models/id_token'
+
 require 'doorkeeper/openid_connect/rails/routes'
 
 module Doorkeeper
@@ -22,10 +24,7 @@ module Doorkeeper
       private
 
       def after_successful_response
-        puts "*** #{Doorkeeper::OpenidConnect.configuration.issuer} ***"
-        subject = instance_eval(&Doorkeeper::OpenidConnect.configuration.subject_method)
-        id_token = IdToken.new(subject: subject)
-        # @response.id_token = id_token.to_jws_token
+        id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token, resource_owner)
         @response.id_token = id_token
       end
     end

@@ -110,21 +110,15 @@ module Doorkeeper
       extend Option
 
       option :subject,
-             defailt: (lambda do |routes|
+             default: (lambda do |resource_owner|
                logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_configured'))
                nil
              end)
 
       option :jws_private_key, default: nil
-      option :jws_public, default: nil
+      option :jws_public_key, default: nil
       option :issuer, default: nil
       option :expiration, default: 1.minute
-
-      attr_reader :issuer
-
-      def subject_method
-        @subject
-      end
 
     end
   end

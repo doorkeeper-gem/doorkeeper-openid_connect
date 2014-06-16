@@ -14,3 +14,5 @@ en:
 
           #configuration error messages
           subject_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.subject missing configuration.'
+          jwt_private_key_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.jwt_private_key missing configuration.'
+          jwt_public_key_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.jwt_public_key missing configuration.'
