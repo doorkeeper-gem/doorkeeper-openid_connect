@@ -1,3 +1,5 @@
+require 'sandal'
+
 module Doorkeeper
   module OpenidConnect
     module Models
@@ -10,7 +12,7 @@ module Doorkeeper
           @issued_at = Time.now
         end
 
-        def as_json(options = {})
+        def claims
           {
             iss: issuer,
             sub: subject,
@@ -18,6 +20,17 @@ module Doorkeeper
             exp: expiration,
             iat: issued_at
           }
+        end
+
+        def as_json(options = {})
+          claims
+        end
+
+        def as_jws_token
+          signer = Sandal::Sig::RS256.new(Doorkeeper::OpenidConnect.configuration.jws_private_key)
+          Sandal.encode_token(claims, signer, {
+            kid: Doorkeeper::OpenidConnect.configuration.jws_public_key
+          })
         end
 
         private
