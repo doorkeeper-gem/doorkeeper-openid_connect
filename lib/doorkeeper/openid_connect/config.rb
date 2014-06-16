@@ -25,8 +25,24 @@ module Doorkeeper
           @config
         end
 
-        def jws_key(*methods)
-          @config.instance_variable_set('@jws_key', methods)
+        def jws_private_key(jws_private_key)
+          @config.instance_variable_set('@jws_private_key', jws_private_key)
+        end
+
+        def jws_public_key(jws_public_key)
+          @config.instance_variable_set('@jws_public_key', jws_public_key)
+        end
+
+        def issuer(issuer)
+          @config.instance_variable_set('@issuer', issuer)
+        end
+
+        def subject(*method)
+          @config.instance_variable_set('@subject', *method)
+        end
+
+        def expiration(expiration)
+          @config.instance_variable_set('@expiration', expiration)
         end
       end
 
@@ -93,7 +109,23 @@ module Doorkeeper
 
       extend Option
 
-      option :jws_key, default: nil
+      option :subject,
+             defailt: (lambda do |routes|
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_configured'))
+               nil
+             end)
+
+      option :jws_private_key, default: nil
+      option :jws_public, default: nil
+      option :issuer, default: nil
+      option :expiration, default: 1.minute
+
+      attr_reader :issuer
+
+      def subject_method
+        @subject
+      end
+
     end
   end
 end

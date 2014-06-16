@@ -22,11 +22,11 @@ module Doorkeeper
       private
 
       def after_successful_response
-        puts "*** #{Doorkeeper::OpenidConnect.configuration.jws_key} ***"
-        # subject = User.find(doorkeeper_token.resource_owner_id).key
-        # id_token = IdToken.new(subject)
+        puts "*** #{Doorkeeper::OpenidConnect.configuration.issuer} ***"
+        subject = instance_eval(&Doorkeeper::OpenidConnect.configuration.subject_method)
+        id_token = IdToken.new(subject: subject)
         # @response.id_token = id_token.to_jws_token
-        @response.id_token = 'foo'
+        @response.id_token = id_token
       end
     end
   end
