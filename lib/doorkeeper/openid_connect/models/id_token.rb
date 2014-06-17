@@ -6,9 +6,9 @@ module Doorkeeper
       class IdToken
         include ActiveModel::Validations
 
-        def initialize(access_token, resource_owner)
+        def initialize(access_token)
           @access_token = access_token
-          @resource_owner = resource_owner
+          @resource_owner = access_token.instance_eval(&Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token)
           @issued_at = Time.now
         end
 
@@ -26,6 +26,8 @@ module Doorkeeper
           claims
         end
 
+        # TODO make signature strategy configurable with keys?
+        # TODO move this out of the model
         def as_jws_token
           signer = Sandal::Sig::RS256.new(Doorkeeper::OpenidConnect.configuration.jws_private_key)
           Sandal.encode_token(claims, signer, {
@@ -40,8 +42,7 @@ module Doorkeeper
         end
 
         def subject
-          subject = @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.subject)
-          subject.to_s
+          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.subject).to_s
         end
 
         def audience

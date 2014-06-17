@@ -37,12 +37,24 @@ module Doorkeeper
           @config.instance_variable_set('@issuer', issuer)
         end
 
+        def expiration(expiration)
+          @config.instance_variable_set('@expiration', expiration)
+        end
+
+        def resource_owner_from_access_token(*method)
+          @config.instance_variable_set('@resource_owner_from_access_token', *method)
+        end
+
         def subject(*method)
           @config.instance_variable_set('@subject', *method)
         end
 
-        def expiration(expiration)
-          @config.instance_variable_set('@expiration', expiration)
+        def email(*method)
+          @config.instance_variable_set('@email', *method)
+        end
+
+        def assignments(*method)
+          @config.instance_variable_set('@assignments', *method)
         end
       end
 
@@ -109,9 +121,27 @@ module Doorkeeper
 
       extend Option
 
+      option :resource_owner_from_access_token,
+             default: (lambda do |access_token|
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_configured'))
+               nil
+             end)
+
       option :subject,
              default: (lambda do |resource_owner|
                logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_configured'))
+               nil
+             end)
+
+      option :email,
+             default: (lambda do |resource_owner|
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.email_configured'))
+               nil
+             end)
+
+      option :assignments,
+             default: (lambda do |resource_owner|
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.assignments_configured'))
                nil
              end)
 

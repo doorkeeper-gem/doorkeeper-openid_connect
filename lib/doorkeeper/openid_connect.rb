@@ -3,6 +3,7 @@ require 'doorkeeper/openid_connect/engine'
 require 'doorkeeper/openid_connect/config'
 
 require 'doorkeeper/openid_connect/models/id_token'
+require 'doorkeeper/openid_connect/models/user_info'
 
 require 'doorkeeper/openid_connect/rails/routes'
 
@@ -24,7 +25,7 @@ module Doorkeeper
       private
 
       def after_successful_response
-        id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token, resource_owner)
+        id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token)
         @response.id_token = id_token
       end
     end

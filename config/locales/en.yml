@@ -13,6 +13,9 @@ en:
           temporarily_unavailable: 'The authorization server is currently unable to handle the request due to a temporary overloading or maintenance of the server.'
 
           #configuration error messages
+          resource_owner_from_access_token_configured: 'Failure due to Doorkeeper::OpenidConnect.configure.resource_owner_from_access_token missing configuration.'
           subject_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.subject missing configuration.'
           jwt_private_key_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.jwt_private_key missing configuration.'
           jwt_public_key_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.jwt_public_key missing configuration.'
+          email_configured: 'UserInfo generation failed due to Doorkeeper::OpenidConnect.configure.email missing configuration.'
+          assignments_configured: 'UserInfo generation failed due to Doorkeeper::OpenidConnect.configure.assignments missing configuration.'
