@@ -34,6 +34,19 @@ end
 
 module Doorkeeper
   module OAuth
+    class AuthorizationCodeRequest
+      private
+
+      def after_successful_response
+        id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token)
+        @response.id_token = id_token
+      end
+    end
+  end
+end
+
+module Doorkeeper
+  module OAuth
     class TokenResponse
       attr_accessor :id_token
       alias_method :original_body, :body
