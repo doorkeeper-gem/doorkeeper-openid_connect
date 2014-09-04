@@ -18,7 +18,8 @@ module Doorkeeper
             sub: subject,
             aud: audience,
             exp: expiration,
-            iat: issued_at
+            iat: issued_at,
+            nonce: nonce
           }
         end
 
@@ -55,6 +56,10 @@ module Doorkeeper
 
         def issued_at
           @issued_at.utc.to_i
+        end
+
+        def nonce
+          @resource_owner.nonce if @resource_owner.respond_to?(:nonce)
         end
       end
     end
