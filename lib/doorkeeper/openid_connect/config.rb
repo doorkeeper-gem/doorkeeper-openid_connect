@@ -56,6 +56,10 @@ module Doorkeeper
         def assignments(*method)
           @config.instance_variable_set('@assignments', *method)
         end
+
+        def additional_claims(*method)
+          @config.instance_variable_set('@additional_claims', *method)
+        end
       end
 
       module Option
@@ -145,11 +149,16 @@ module Doorkeeper
                nil
              end)
 
+      option :additional_claims,
+              default: (lambda do |resource_owner|
+                logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.additional_claims_configured'))
+                {}
+              end)
+
       option :jws_private_key, default: nil
       option :jws_public_key, default: nil
       option :issuer, default: nil
       option :expiration, default: 1.minute
-
     end
   end
 end
