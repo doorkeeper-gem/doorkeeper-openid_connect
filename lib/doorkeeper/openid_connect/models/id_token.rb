@@ -19,7 +19,7 @@ module Doorkeeper
             aud: audience,
             exp: expiration,
             iat: issued_at
-          }
+          }.merge(additional_claims)
         end
 
         def as_json(options = {})
@@ -55,6 +55,10 @@ module Doorkeeper
 
         def issued_at
           @issued_at.utc.to_i
+        end
+
+        def additional_claims
+          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.additional_claims)
         end
       end
     end

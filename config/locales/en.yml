@@ -19,3 +19,4 @@ en:
           jwt_public_key_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.jwt_public_key missing configuration.'
           email_configured: 'UserInfo generation failed due to Doorkeeper::OpenidConnect.configure.email missing configuration.'
           assignments_configured: 'UserInfo generation failed due to Doorkeeper::OpenidConnect.configure.assignments missing configuration.'
+          additional_claims_configured: 'UserInfo generation failed due to Doorkeeper::OpenidConnect.configure.assignments missing configuration.'
