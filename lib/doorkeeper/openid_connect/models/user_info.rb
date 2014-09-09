@@ -13,7 +13,7 @@ module Doorkeeper
             sub: subject,
             email: email,
             assignments: assignments
-          }
+          }.merge(additional_claims)
         end
 
         def as_json(options = {})
@@ -32,6 +32,10 @@ module Doorkeeper
 
         def assignments
           @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.assignments)
+        end
+
+        def additional_claims
+          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.additional_claims)
         end
       end
     end
