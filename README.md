@@ -7,11 +7,4 @@ Adapter for [gollum](https://github.com/gollum/gollum) to use [Rugged](https://g
 
 ## CONTRIBUTING
 
-Make sure the [git adapter specs](https://github.com/gollum/adapter_specs) pass by running `rake`, but also make sure that the [gollum-lib](https://github.com/gollum/gollum-lib) specs pass when using your branch of this adapter as a backend:
-* Clone the latest version of gollum-lib.
-* Change gollum-lib's Gemfile so as to use your local version of this adapter, i.e.:
-```diff
--gem 'gollum-grit_adapter'
-+gem 'gollum-rugged', :path => "/path/to/your/gollum-lib_rugged_adapter"
-```
-* Run the gollum-lib specs and see if they pass.
+You can contribute by helping to ensure that the [git adapter specs](https://github.com/gollum/adapter_specs) pass (run `bundle exec rake`). In the future, we also need to make sure that the [gollum-lib](https://github.com/gollum/gollum-lib) specs pass when using this adapter as a backend.
