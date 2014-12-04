@@ -31,6 +31,10 @@ module Gollum
         offset / 60,
         offset.abs % 60]
       end
+
+      def to_h
+        {:name => @name, :email => @email}
+      end
       
     end
     
@@ -77,7 +81,9 @@ module Gollum
       end
       alias_method :sha, :id
       alias_method :to_s, :id
-      
+
+      attr_reader :commit
+
       def author
         @author ||= Gollum::Git::Actor.new(@commit.author[:name], @commit.author[:email])
       end
@@ -159,19 +165,31 @@ module Gollum
       end
       
       def add(path, data)
-        blob = @rugged_repo.write("data", :blob)
+        blob = @rugged_repo.write(data, :blob)
         @index.add(:path => path, :oid => blob, :mode => 0100644)
         update_treemap(path, data)
         data
       end
+
+      def index
+        @index
+      end
       
-      def commit(message, parents = nil, actor = nil, last_tree = nil, head = 'master')
-        # @index.commit(message, parents, actor, last_tree, head)
-        # rugged index does not have commit method
+      def commit(message, parents = nil, actor = nil, last_tree = nil, head = 'refs/heads/master')
+        commit_options = {}
+        head = "refs/heads/#{head}" unless head =~ /^refs\/heads\//
+        parents.map!{|parent| parent.commit} if parents
+        parents = [@rugged_repo.references[head].target].compact unless parents
+        parents = [] unless parents
+        commit_options[:tree] = @index.write_tree
+        commit_options[:author] = actor.to_h
+        commit_options[:message] = message
+        commit_options[:parents] = parents
+        commit_options[:update_ref] = head
+        Rugged::Commit.create(@rugged_repo, commit_options)
       end
       
       def tree
-        puts "TREEMAP: #{@treemap}"
         @treemap
       end
       
@@ -179,7 +197,7 @@ module Gollum
         current_tree = @rugged_repo.lookup(id)
         current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
         @index.read_tree(current_tree)
-        @current_tree = Gollum::Git::Tree.new(current_tree)
+        @current_tree = Gollum::Git::Tree.new(current_tree.oid)
       end
       
       def current_tree
@@ -189,13 +207,20 @@ module Gollum
       private
 
       def update_treemap(path, data)
-        path_parts = path.split(::File::SEPARATOR)
-          i = 0
-          @treemap = path_parts.inject(@treemap) do |map, path_element|
-            i = i + 1
-            map[path_element] = i == path_parts.size ? data : Hash.new if (map[path_element] == nil || data == false)
-            map
-          end
+        # From RJGit::Plumbing::Index
+        path = path[1..-1] if path[0] == ::File::SEPARATOR
+        path = path.split(::File::SEPARATOR)
+        last = path.pop
+    
+        current = @treemap
+    
+        path.each do |dir|
+          current[dir] ||= {}
+          node = current[dir]
+          current = node
+        end
+    
+        current[last] = data
         @treemap
       end
 
