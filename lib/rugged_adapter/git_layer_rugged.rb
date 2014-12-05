@@ -2,6 +2,7 @@
 
 require 'rugged'
 require 'ostruct'
+require 'mime-types'
 
 module Gollum
 
@@ -12,6 +13,8 @@ module Gollum
   end
 
   module Git
+
+    DEFAULT_MIME_TYPE = "text/plain"
     
     class Actor
       
@@ -65,6 +68,11 @@ module Gollum
       
       def is_symlink
         @mode == 0120000
+      end
+
+      def mime_type
+        guesses = MIME::Types.type_for(self.name) rescue []
+        guesses.first ? guesses.first.simplified : DEFAULT_MIME_TYPE
       end
 
       def symlink_target(base_path = nil)
@@ -151,6 +159,14 @@ module Gollum
         index.write
         File.unlink File.join(repo.workdir, path)
       end
+
+      def cat_file(options, sha)
+        @repo.lookup(sha).read_raw
+      end
+
+      def apply_patch(head_sha = 'HEAD', patch=nil)
+        true # Rewrite gollum-lib's revert so that it doesn't require a direct equivalent of Grit's apply_patch
+      end
       
       def checkout(path, ref = 'HEAD', options = {})
         path = path.nil? ? path : [path]
@@ -162,18 +178,52 @@ module Gollum
           @repo.checkout_tree(sha_from_ref(ref), options)
         end
       end
-      
-      def ls_files(query, options = {})
-        ref = options[:ref] ? options[:ref] : "HEAD"
-        # implement ls_files
+
+      def log(commit = 'refs/heads/master', path = nil, options = {})
+        default_options = {
+          :limit => options[:max_count] ? options[:max_count] : 10,
+          :offset => options[:skip] ? options[:skip] : 0,
+          :path => path,
+          :follow => false,
+          :skip_merges => false
+        }
+        options = default_options.merge(options)
+        options[:limit] ||= 0
+        options[:offset] ||= 0
+        sha = sha_from_ref(commit)
+        begin
+          build_log(sha, options)
+        rescue Rugged::OdbError, Rugged::InvalidError, Rugged::ReferenceError
+        # Return an empty array if the ref wasn't found
+          []
+        end
+      end
+
+      def versions_for_path(path = nil, ref = nil, options = nil)
+        options.delete :max_count
+        options.delete :skip
+        log(path, ref, options)
       end
       
-      def apply_patch(sha, patch)
+      def ls_files(query, options = {})
+        ref = "refs/heads/#{ref}" if options[:ref] && !(ref =~ /^refs\/heads\//)
+        ref = "HEAD" if ref.nil?
+        match = query.match(/^(\*)(.*)(\*)$/)
+        query = match.nil? ? query : match[2]
+        results = []
+        commit = @repo.references[ref].target
+        commit = commit.is_a?(Rugged::Reference) ? commit.target.tree : commit.tree
+        commit.walk_blobs do |root, blob|
+          results << "#{root}#{blob[:name]}" if blob[:name] =~ /#{query}/
+        end
+        results
       end
 
       def lookup(id)
         @repo.lookup(id)
       end
+
+      private
 
       def sha_from_ref(ref)
         sha = @repo.rev_parse_oid(ref)
@@ -184,7 +234,41 @@ module Gollum
         sha_from_ref(object.target.oid)
         end
       end
-      
+
+      private
+
+     # Return an array of log commits, given an SHA hash and a hash of
+      # options. From Gitlab::Git
+      def build_log(sha, options)
+        # Instantiate a Walker and add the SHA hash
+        walker = Rugged::Walker.new(@repo)
+        walker.push(sha)
+        commits = []
+        skipped = 0
+        current_path = options[:path]
+        current_path = nil if current_path == ''
+        limit = options[:limit].to_i
+        offset = options[:offset].to_i
+        skip_merges = options[:skip_merges]
+        walker.sorting(Rugged::SORT_DATE)
+        walker.each do |c|
+        break if limit > 0 && commits.length >= limit
+        if skip_merges
+        # Skip merge commits
+        next if c.parents.length > 1
+        end
+        if !current_path ||
+        commit_touches_path?(c, current_path, options[:follow], walker)
+        # This is a commit we care about, unless we haven't skipped enough
+        # yet
+        skipped += 1
+        commits.push(Gollum::Git::Commit.new(c)) if skipped > offset
+        end
+        end
+        walker.reset
+        commits
+      end
+     
     end
     
     class Index
@@ -343,24 +427,8 @@ module Gollum
         @repo.diff(sha1, sha2, opts)
       end
       
-      def log(commit = 'master', path = nil, options = {})
-        default_options = {
-          :limit => 10,
-          :offset => 0,
-          :path => path,
-          :follow => false,
-          :skip_merges => false
-        }
-        options = default_options.merge(options)
-        options[:limit] ||= 0
-        options[:offset] ||= 0
-        sha = git.sha_from_ref(commit)
-        begin
-          build_log(sha, options)
-        rescue Rugged::OdbError, Rugged::InvalidError, Rugged::ReferenceError
-        # Return an empty array if the ref wasn't found
-          []
-        end
+      def log(commit = 'refs/heads/master', path = nil, options = {})
+        git.log(commit, path, options)
       end
       
       def lstree(sha, options = {})
@@ -373,43 +441,8 @@ module Gollum
       def update_ref(ref, commit_sha)
         @repo.references(ref).set_target(commit_sha)
       end
-
-      private
-
-      # Return an array of log commits, given an SHA hash and a hash of
-      # options.
-      def build_log(sha, options)
-        # Instantiate a Walker and add the SHA hash
-        walker = Rugged::Walker.new(@repo)
-        walker.push(sha)
-        commits = []
-        skipped = 0
-        current_path = options[:path]
-        current_path = nil if current_path == ''
-        limit = options[:limit].to_i
-        offset = options[:offset].to_i
-        skip_merges = options[:skip_merges]
-        walker.sorting(Rugged::SORT_DATE)
-        walker.each do |c|
-        break if limit > 0 && commits.length >= limit
-        if skip_merges
-        # Skip merge commits
-        next if c.parents.length > 1
-        end
-        if !current_path ||
-        commit_touches_path?(c, current_path, options[:follow], walker)
-        # This is a commit we care about, unless we haven't skipped enough
-        # yet
-        skipped += 1
-        commits.push(Gollum::Git::Commit.new(c)) if skipped > offset
-        end
-        end
-        walker.reset
-        commits
-      end
-     
     end
-    
+
     class Tree
       
       def initialize(tree)
