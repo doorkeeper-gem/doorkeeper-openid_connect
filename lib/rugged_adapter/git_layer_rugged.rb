@@ -1,6 +1,7 @@
 # ~*~ encoding: utf-8 ~*~
 
 require 'rugged'
+require 'ostruct'
 
 module Gollum
 
@@ -99,6 +100,28 @@ module Gollum
       def tree
         Gollum::Git::Tree.new(@commit.tree)
       end
+
+      def stats
+        @stats ||= build_stats
+      end
+
+      private
+
+      def build_stats
+        additions = 0
+        deletions = 0
+        total = 0
+        files = []
+        diff = @commit.diff.each_patch do |patch|
+          new_additions = patch.stat[0]
+          new_deletions = patch.stat[1]
+          additions += new_additions
+          deletions += new_deletions
+          total += patch.changes
+          files << [patch.delta.new_file[:path], new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
+        end
+        OpenStruct.new(:additions => additions, :deletions => deletions, :files => files, :id => id, :total => total)
+      end
       
     end
     
@@ -124,20 +147,20 @@ module Gollum
       end
       
       def rm(path, options = {})
+        index = @repo.index
+        index.write
+        File.unlink File.join(repo.workdir, path)
       end
       
-      def checkout(path, ref, options = {})
+      def checkout(path, ref = 'HEAD', options = {})
+        path = path.nil? ? path : [path]
+        options = options.merge({:paths => path, :strategy => :safe_create})
         if ref == 'HEAD'
-          @repo.checkout_head(:paths => [path])
-        elsif path == 'nil'
-          @repo.checkout(ref)
+          @repo.checkout_head(options)
         else
-          raise "Rugged cannot checkout specific paths for a ref other than HEAD."
+          ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
+          @repo.checkout_tree(sha_from_ref(ref), options)
         end
-      end
-
-      def lookup(sha)
-        @repo.lookup(sha)
       end
       
       def ls_files(query, options = {})
@@ -146,6 +169,20 @@ module Gollum
       end
       
       def apply_patch(sha, patch)
+      end
+
+      def lookup(id)
+        @repo.lookup(id)
+      end
+
+      def sha_from_ref(ref)
+        sha = @repo.rev_parse_oid(ref)
+        object = @repo.lookup(sha)
+        if object.kind_of?(Rugged::Commit)
+        sha
+        elsif object.respond_to?(:target)
+        sha_from_ref(object.target.oid)
+        end
       end
       
     end
@@ -197,7 +234,7 @@ module Gollum
         current_tree = @rugged_repo.lookup(id)
         current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
         @index.read_tree(current_tree)
-        @current_tree = Gollum::Git::Tree.new(current_tree.oid)
+        @current_tree = Gollum::Git::Tree.new(current_tree)
       end
       
       def current_tree
@@ -317,7 +354,7 @@ module Gollum
         options = default_options.merge(options)
         options[:limit] ||= 0
         options[:offset] ||= 0
-        sha = sha_from_ref(commit)
+        sha = git.sha_from_ref(commit)
         begin
           build_log(sha, options)
         rescue Rugged::OdbError, Rugged::InvalidError, Rugged::ReferenceError
@@ -338,17 +375,6 @@ module Gollum
       end
 
       private
-
-      def sha_from_ref(ref)
-        sha = @repo.rev_parse_oid(ref)
-        object = @repo.lookup(sha)
-        if object.kind_of?(Rugged::Commit)
-        sha
-        elsif object.respond_to?(:target)
-        sha_from_ref(object.target.oid)
-        end
-      end
-
 
       # Return an array of log commits, given an SHA hash and a hash of
       # options.
