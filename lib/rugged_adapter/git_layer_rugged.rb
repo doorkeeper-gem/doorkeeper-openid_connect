@@ -15,6 +15,7 @@ module Gollum
   module Git
 
     DEFAULT_MIME_TYPE = "text/plain"
+    class NoSuchShaFound < StandardError; end
     
     class Actor
       
@@ -380,7 +381,7 @@ module Gollum
       end
       
       def self.init_bare(path)
-        Grit::Repo.init_bare(path, true)
+        Rugged::Repository.init(path, true)
         self.new(path, :is_bare => true)
       end
       
