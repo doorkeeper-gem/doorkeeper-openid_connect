@@ -20,6 +20,10 @@ module Gollum
     class Actor
       
       attr_accessor :name, :email
+
+      def self.default_actor
+        self.new("Gollum", "Gollum@wiki")
+      end
       
       def initialize(name, email)
         @name = name
@@ -142,7 +146,7 @@ module Gollum
       end
       
       def exist?
-        ::File.exists?(repo.path)
+        ::File.exists?(@repo.path)
       end
       
       def grep(query, options={})
@@ -158,7 +162,7 @@ module Gollum
       def rm(path, options = {})
         index = @repo.index
         index.write
-        File.unlink File.join(repo.workdir, path)
+        ::File.unlink ::File.join(@repo.workdir, path)
       end
 
       def cat_file(options, sha)
@@ -180,7 +184,7 @@ module Gollum
         end
       end
 
-      def log(commit = 'refs/heads/master', path = nil, options = {})
+      def log(ref = 'refs/heads/master', path = nil, options = {})
         default_options = {
           :limit => options[:max_count] ? options[:max_count] : 10,
           :offset => options[:skip] ? options[:skip] : 0,
@@ -191,7 +195,7 @@ module Gollum
         options = default_options.merge(options)
         options[:limit] ||= 0
         options[:offset] ||= 0
-        sha = sha_from_ref(commit)
+        sha = sha_from_ref(ref)
         begin
           build_log(sha, options)
         rescue Rugged::OdbError, Rugged::InvalidError, Rugged::ReferenceError
@@ -207,7 +211,7 @@ module Gollum
       end
       
       def ls_files(query, options = {})
-        ref = "refs/heads/#{ref}" if options[:ref] && !(ref =~ /^refs\/heads\//)
+        ref = "refs/heads/#{options[:ref]}" if options[:ref] && !(ref =~ /^refs\/heads\//)
         ref = "HEAD" if ref.nil?
         match = query.match(/^(\*)(.*)(\*)$/)
         query = match.nil? ? query : match[2]
@@ -224,17 +228,36 @@ module Gollum
         @repo.lookup(id)
       end
 
-      def sha_from_ref(ref)
-        sha = @repo.rev_parse_oid(ref)
-        object = @repo.lookup(sha)
-        if object.kind_of?(Rugged::Commit)
-        sha
-        elsif object.respond_to?(:target)
-        sha_from_ref(object.target.oid)
+      def sha_or_commit_from_ref(ref, request_kind = nil)
+        if sha?(ref)
+          sha = ref
+        else
+          ref = "refs/heads/#{ref}" if !ref.nil? && !(ref =~ /^refs\/heads\//)
+            begin
+              sha = @repo.rev_parse_oid(ref)
+            rescue Rugged::ReferenceError, Rugged::InvalidError
+              return nil
+            end
         end
+        object = @repo.lookup(sha)
+        if object.kind_of?(Rugged::Commit) then
+          return Gollum::Git::Commit.new(object) if request_kind == :commit
+          sha
+        elsif object.respond_to?(:target)
+          sha_from_ref(object.target.oid, request_kind)
+        end
+      end
+      alias_method :sha_from_ref, :sha_or_commit_from_ref
+      
+      def commit_from_ref(ref)
+        sha_or_commit_from_ref(ref, :commit)
       end
 
       private
+
+      def sha?(str)
+        !!(str =~ /^[0-9a-f]{40}$/)
+      end
 
      # Return an array of log commits, given an SHA hash and a hash of
       # options. From Gitlab::Git
@@ -298,15 +321,19 @@ module Gollum
       def commit(message, parents = nil, actor = nil, last_tree = nil, head = 'refs/heads/master')
         commit_options = {}
         head = "refs/heads/#{head}" unless head =~ /^refs\/heads\//
-        parents.map!{|parent| parent.commit} if parents
-        parents = [@rugged_repo.references[head].target].compact unless parents
-        parents = [] unless parents
+        parents = get_parents(parents, head) || []
+        actor = Gollum::Git::Actor.default_actor if actor.nil?
         commit_options[:tree] = @index.write_tree
         commit_options[:author] = actor.to_h
-        commit_options[:message] = message
+        commit_options[:message] = message.to_s
         commit_options[:parents] = parents
         commit_options[:update_ref] = head
-        Rugged::Commit.create(@rugged_repo, commit_options)
+        begin
+        commit = Rugged::Commit.create(@rugged_repo, commit_options)
+      rescue
+        binding.pry
+      end
+      commit
       end
       
       def tree
@@ -325,6 +352,16 @@ module Gollum
       end
 
       private
+
+      def get_parents(parents, head)
+        if parents
+          parents.map!{|parent| parent.commit} if parents
+        elsif ref = @rugged_repo.references[head]
+          ref = ref.target
+          ref = ref.target if ref.respond_to?(:target)
+          [ref]
+        end
+      end
 
       def update_treemap(path, data)
         # From RJGit::Plumbing::Index
@@ -374,7 +411,7 @@ module Gollum
       end
       
       def self.init(path)
-        Rugged::Repopository.init_at(path, false)
+        Rugged::Repository.init_at(path, false)
         self.new(path, :is_bare => false)
       end
       
@@ -396,14 +433,7 @@ module Gollum
       end
       
       def commit(id)
-        begin
-          sha = git.sha_from_ref(id)
-          commit = @repo.lookup(sha)
-        rescue Rugged::ReferenceError
-           return nil
-        end
-        return nil if commit.nil?
-        Gollum::Git::Commit.new(commit)
+        git.commit_from_ref(id)
       end
       
       def commits(start = 'refs/heads/master', max_count = 10, skip = 0)
@@ -420,7 +450,7 @@ module Gollum
 
       def diff(sha1, sha2, path = nil)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts)
+        @repo.diff(sha1, sha2, opts).patches.map {|patch| OpenStruct.new(:diff => patch.to_s)}
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
@@ -430,7 +460,10 @@ module Gollum
       def lstree(sha, options = {})
         results = []
         @repo.lookup(sha).tree.walk(:postorder) do |root, entry|
-          entry[:sha] =  entry[:oid]
+          entry[:sha] = entry[:oid]
+          entry[:mode] = entry[:filemode].to_s(8)
+          entry[:type] = entry[:type].to_s
+          entry[:path] = "#{root}#{entry[:name]}" 
           results << entry
         end
         results
@@ -441,7 +474,8 @@ module Gollum
       end
       
       def update_ref(ref, commit_sha)
-        @repo.references(ref).set_target(commit_sha)
+        ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
+        @repo.references[ref].set_target(commit_sha)
       end
     end
 
@@ -464,7 +498,14 @@ module Gollum
       end
       
       def /(file)
-        @tree.path(file) 
+        begin
+        obj = @tree.path(file)
+        rescue Rugged::TreeError
+          return nil
+        end
+        return nil if obj.nil?
+        obj = @tree.owner.lookup(obj[:oid])
+        obj.is_a?(Rugged::Tree) ? Gollum::Git::Tree.new(obj) : Gollum::Git::Blob.new(obj)
       end
       
       def blobs
