@@ -224,8 +224,6 @@ module Gollum
         @repo.lookup(id)
       end
 
-      private
-
       def sha_from_ref(ref)
         sha = @repo.rev_parse_oid(ref)
         object = @repo.lookup(sha)
@@ -381,7 +379,7 @@ module Gollum
       end
       
       def self.init_bare(path)
-        Rugged::Repository.init(path, true)
+        Rugged::Repository.init_at(path, true)
         self.new(path, :is_bare => true)
       end
       
@@ -398,21 +396,18 @@ module Gollum
       end
       
       def commit(id)
-        commit = @repo.lookup(id)
+        begin
+          sha = git.sha_from_ref(id)
+          commit = @repo.lookup(sha)
+        rescue Rugged::ReferenceError
+           return nil
+        end
         return nil if commit.nil?
         Gollum::Git::Commit.new(commit)
       end
       
       def commits(start = 'refs/heads/master', max_count = 10, skip = 0)
-        walker = Rugged::Walker.new(@repo)
-        sha = @repo.references[start].target_id
-        walker.push(sha)
-        commits = []
-        walker.each do |commit|
-          next if commits.size > max_count
-          commits << Gollum::Git::Commit.new(commit)
-        end
-        commits
+        git.log(start, nil, :max_count => max_count, :skip => skip)
       end
       
       def head
@@ -433,6 +428,12 @@ module Gollum
       end
       
       def lstree(sha, options = {})
+        results = []
+        @repo.lookup(sha).tree.walk(:postorder) do |root, entry|
+          entry[:sha] =  entry[:oid]
+          results << entry
+        end
+        results
       end
       
       def path
