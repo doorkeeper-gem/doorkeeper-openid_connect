@@ -170,7 +170,7 @@ module Gollum
       end
 
       def apply_patch(head_sha = 'HEAD', patch=nil)
-        true # Rewrite gollum-lib's revert so that it doesn't require a direct equivalent of Grit's apply_patch
+        false # Rewrite gollum-lib's revert so that it doesn't require a direct equivalent of Grit's apply_patch
       end
       
       def checkout(path, ref = 'HEAD', options = {})
@@ -204,10 +204,10 @@ module Gollum
         end
       end
 
-      def versions_for_path(path = nil, ref = nil, options = nil)
+      def versions_for_path(path = nil, ref = nil, options = {})
         options.delete :max_count
         options.delete :skip
-        log(path, ref, options)
+        log(ref, path, options)
       end
       
       def ls_files(query, options = {})
@@ -228,23 +228,25 @@ module Gollum
         @repo.lookup(id)
       end
 
-      def sha_or_commit_from_ref(ref, request_kind = nil)
-        if sha?(ref)
-          sha = ref
-        else
-          ref = "refs/heads/#{ref}" if !ref.nil? && !(ref =~ /^refs\/heads\//)
-            begin
-              sha = @repo.rev_parse_oid(ref)
-            rescue Rugged::ReferenceError, Rugged::InvalidError
-              return nil
-            end
+      def ref_to_sha(query)
+        return query if sha?(query)
+        query = "refs/heads/#{query}" if !query.nil? && !(query =~ /^refs\/heads\//) && !(query == "HEAD")
+        begin
+          return @repo.rev_parse_oid(query)
+        rescue Rugged::ReferenceError, Rugged::InvalidError
+          return nil
         end
+      end
+
+      def sha_or_commit_from_ref(ref, request_kind = nil)
+        sha = ref_to_sha(ref)
+        return nil if sha.nil?
         object = @repo.lookup(sha)
         if object.kind_of?(Rugged::Commit) then
           return Gollum::Git::Commit.new(object) if request_kind == :commit
           sha
         elsif object.respond_to?(:target)
-          sha_from_ref(object.target.oid, request_kind)
+          sha_or_commit_from_ref(object.target.oid, request_kind)
         end
       end
       alias_method :sha_from_ref, :sha_or_commit_from_ref
@@ -259,7 +261,7 @@ module Gollum
         !!(str =~ /^[0-9a-f]{40}$/)
       end
 
-     # Return an array of log commits, given an SHA hash and a hash of
+      # Return an array of log commits, given an SHA hash and a hash of
       # options. From Gitlab::Git
       def build_log(sha, options)
         # Instantiate a Walker and add the SHA hash
@@ -273,24 +275,104 @@ module Gollum
         offset = options[:offset].to_i
         skip_merges = options[:skip_merges]
         walker.sorting(Rugged::SORT_DATE)
-        walker.each do |c|
-        break if limit > 0 && commits.length >= limit
-        if skip_merges
-        # Skip merge commits
-        next if c.parents.length > 1
-        end
-        if !current_path ||
-        commit_touches_path?(c, current_path, options[:follow], walker)
-        # This is a commit we care about, unless we haven't skipped enough
-        # yet
-        skipped += 1
-        commits.push(Gollum::Git::Commit.new(c)) if skipped > offset
-        end
-        end
+
+          walker.each do |c|
+            break if limit > 0 && commits.length >= limit
+              if skip_merges
+                # Skip merge commits
+                next if c.parents.length > 1
+              end
+
+              if !current_path ||
+                commit_touches_path?(c, current_path, options[:follow], walker)
+                # This is a commit we care about, unless we haven't skipped enough
+                # yet
+                skipped += 1
+                commits.push(Gollum::Git::Commit.new(c)) if skipped > offset
+              end
+          end
         walker.reset
         commits
       end
-     
+
+      # Returns true if +commit+ introduced changes to +path+, using commit
+      # trees to make that determination. Uses the history simplification
+      # rules that `git log` uses by default, where a commit is omitted if it
+      # is TREESAME to any parent.
+      #
+      # If the +follow+ option is true and the file specified by +path+ was
+      # renamed, then the path value is set to the old path.
+      def commit_touches_path?(commit, path, follow, walker)
+        entry = tree_entry(commit, path)
+
+          if commit.parents.empty?
+            # This is the root commit, return true if it has +path+ in its tree
+            return entry != nil
+          end
+
+        num_treesame = 0
+        commit.parents.each do |parent|
+          parent_entry = tree_entry(parent, path)
+
+          # Only follow the first TREESAME parent for merge commits
+          if num_treesame > 0
+            walker.hide(parent)
+            next
+          end
+
+          if entry.nil? && parent_entry.nil?
+            num_treesame += 1
+          elsif entry && parent_entry && entry[:oid] == parent_entry[:oid]
+            num_treesame += 1
+          end
+        end
+
+        case num_treesame
+          when 0
+            detect_rename(commit, commit.parents.first, path) if follow
+            true
+          else false
+        end
+      end
+
+      # Find the entry for +path+ in the tree for +commit+
+      def tree_entry(commit, path)
+        pathname = Pathname.new(path)
+        tmp_entry = nil
+
+        pathname.each_filename do |dir|
+          if tmp_entry.nil?
+            tmp_entry = commit.tree[dir]
+          else
+            tmp_entry = rugged.lookup(tmp_entry[:oid])[dir]
+          end
+        end
+        tmp_entry
+      end
+
+      # Compare +commit+ and +parent+ for +path+. If +path+ is a file and was
+      # renamed in +commit+, then set +path+ to the old filename.
+      def detect_rename(commit, parent, path)
+        diff = parent.diff(commit, paths: [path], disable_pathspec_match: true)
+
+        # If +path+ is a filename, not a directory, then we should only have
+        # one delta. We don't need to follow renames for directories.
+        return nil if diff.each_delta.count > 1
+        
+        delta = diff.each_delta.first
+        if delta.added?
+          full_diff = parent.diff(commit)
+          full_diff.find_similar!
+
+          full_diff.each_delta do |full_delta|
+            if full_delta.renamed? && path == full_delta.new_file[:path]
+              # Look for the old path in ancestors
+              path.replace(full_delta.old_file[:path])
+            end
+          end
+        end
+      end
+ 
     end
     
     class Index
@@ -328,12 +410,7 @@ module Gollum
         commit_options[:message] = message.to_s
         commit_options[:parents] = parents
         commit_options[:update_ref] = head
-        begin
-        commit = Rugged::Commit.create(@rugged_repo, commit_options)
-      rescue
-        binding.pry
-      end
-      commit
+        Rugged::Commit.create(@rugged_repo, commit_options)
       end
       
       def tree
@@ -341,6 +418,7 @@ module Gollum
       end
       
       def read_tree(id)
+        id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
         current_tree = @rugged_repo.lookup(id)
         current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
         @index.read_tree(current_tree)
@@ -475,7 +553,12 @@ module Gollum
       
       def update_ref(ref, commit_sha)
         ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
-        @repo.references[ref].set_target(commit_sha)
+        if _ref = @repo.references[ref]
+          @repo.references.update(_ref, commit_sha)
+        else
+          @repo.create_branch(ref, commit_sha)
+          @repo.checkout(ref, :strategy => :safe_create) unless @repo.bare?
+        end
       end
     end
 
