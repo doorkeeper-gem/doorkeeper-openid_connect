@@ -151,12 +151,21 @@ module Gollum
       
       def grep(query, options={})
         ref = options[:ref] ? options[:ref] : "HEAD"
-        result = [] # implement grep here
-        result.map do |line|
-          branch_and_name, _, count = line.rpartition(":")
-          branch, _, name = branch_and_name.partition(':')
-          {:name => name, :count => count}
+        tree = @repo.lookup(sha_from_ref(ref)).tree
+        tree = @repo.lookup(tree[options[:path]][:oid]) if options[:path]
+        results = []
+        tree.walk_blobs(:postorder) do |root, entry|
+          blob = @repo.lookup(entry[:oid])
+          next if blob.binary?
+          count = 0
+          blob.content.each_line do |line|
+            next unless line.match(/#{Regexp.escape(query)}/i)
+            count += 1
+          end
+          path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
+          results << {:name => path, :count => count}
         end
+        results
       end
       
       def rm(path, options = {})
@@ -211,15 +220,14 @@ module Gollum
       end
       
       def ls_files(query, options = {})
-        ref = "refs/heads/#{options[:ref]}" if options[:ref] && !(ref =~ /^refs\/heads\//)
-        ref = "HEAD" if ref.nil?
-        match = query.match(/^(\*)(.*)(\*)$/)
-        query = match.nil? ? query : match[2]
+        ref = options[:ref] || "refs/heads/master"
+        tree = @repo.lookup(sha_from_ref(ref)).tree
+        tree = @repo.lookup(tree[options[:path]][:oid]) if options[:path]
         results = []
-        commit = @repo.references[ref].target
-        commit = commit.is_a?(Rugged::Reference) ? commit.target.tree : commit.tree
-        commit.walk_blobs do |root, blob|
-          results << "#{root}#{blob[:name]}" if blob[:name] =~ /#{query}/
+        tree.walk_blobs do |root, blob|
+          next unless blob[:name] =~ /#{query}/
+          path = options[:path] ? ::File.join(options[:path], root, blob[:name]) : "#{root}#{blob[:name]}"
+          results << path
         end
         results
       end
@@ -551,6 +559,7 @@ module Gollum
         @repo.path
       end
       
+      # Checkout branch and if necessary first create it. Currently used only in gollum-lib's tests.
       def update_ref(ref, commit_sha)
         ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
         if _ref = @repo.references[ref]
@@ -596,6 +605,7 @@ module Gollum
         @tree.each_blob {|blob| blobs << Gollum::Git::Blob.new(@tree.owner.lookup(blob[:oid]), blob) }
         blobs
       end
+
     end
     
   end
