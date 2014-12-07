@@ -51,7 +51,6 @@ module Gollum
 
       attr_reader :mode
       attr_reader :name
-      attr_reader :size
       attr_reader :id
 
       def self.create(repo, options)
@@ -61,7 +60,7 @@ module Gollum
       
       def initialize(blob, options = {})
         @blob = blob
-        @mode = options[:filemode]
+        @mode = options[:mode]
         @name = options[:name]
         @size = options[:size]
         @id = blob.oid
@@ -80,7 +79,15 @@ module Gollum
         guesses.first ? guesses.first.simplified : DEFAULT_MIME_TYPE
       end
 
+      def size
+        @size || @blob.size
+      end
+
       def symlink_target(base_path = nil)
+        target = data
+        new_path = ::File.expand_path(::File.join('..', target), base_path)
+        return new_path if ::File.file? new_path
+        nil
       end
     end
     
@@ -184,7 +191,7 @@ module Gollum
       
       def checkout(path, ref = 'HEAD', options = {})
         path = path.nil? ? path : [path]
-        options = options.merge({:paths => path, :strategy => :safe_create})
+        options = options.merge({:paths => path, :strategy => :force})
         if ref == 'HEAD'
           @repo.checkout_head(options)
         else
@@ -426,15 +433,11 @@ module Gollum
       end
       
       def read_tree(id)
-        id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
-        current_tree = @rugged_repo.lookup(id)
-        current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
-        @index.read_tree(current_tree)
-        @current_tree = Gollum::Git::Tree.new(current_tree)
+        @current_tree = get_current_tree(id, true)
       end
       
       def current_tree
-        @current_tree
+        @current_tree ||= get_current_tree
       end
 
       private
@@ -447,6 +450,15 @@ module Gollum
           ref = ref.target if ref.respond_to?(:target)
           [ref]
         end
+      end
+
+      def get_current_tree(id = "HEAD", read = false)
+        id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
+        return nil if id.nil?
+        current_tree = @rugged_repo.lookup(id)
+        current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
+        @index.read_tree(current_tree) if read
+        Gollum::Git::Tree.new(current_tree)
       end
 
       def update_treemap(path, data)
@@ -536,7 +548,7 @@ module Gollum
 
       def diff(sha1, sha2, path = nil)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts).patches.map {|patch| OpenStruct.new(:diff => patch.to_s)}
+        @repo.diff(sha1, sha2, opts).patches.map {|patch| OpenStruct.new(:diff => patch.to_s)}.reverse # Rugged seems to order the diffs differently than Grit
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
@@ -566,7 +578,7 @@ module Gollum
           @repo.references.update(_ref, commit_sha)
         else
           @repo.create_branch(ref, commit_sha)
-          @repo.checkout(ref, :strategy => :safe_create) unless @repo.bare?
+          @repo.checkout(ref, :strategy => :force) unless @repo.bare?
         end
       end
     end
@@ -590,6 +602,7 @@ module Gollum
       end
       
       def /(file)
+        return self if file == '/'
         begin
         obj = @tree.path(file)
         rescue Rugged::TreeError
