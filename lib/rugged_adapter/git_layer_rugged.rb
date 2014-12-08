@@ -212,6 +212,7 @@ module Gollum
         options[:limit] ||= 0
         options[:offset] ||= 0
         sha = sha_from_ref(ref)
+        return [] if sha.nil?
         begin
           build_log(sha, options)
         rescue Rugged::OdbError, Rugged::InvalidError, Rugged::ReferenceError
@@ -359,7 +360,7 @@ module Gollum
           if tmp_entry.nil?
             tmp_entry = commit.tree[dir]
           else
-            tmp_entry = rugged.lookup(tmp_entry[:oid])[dir]
+            tmp_entry = @repo.lookup(tmp_entry[:oid])[dir]
           end
         end
         tmp_entry
@@ -433,11 +434,16 @@ module Gollum
       end
       
       def read_tree(id)
-        @current_tree = get_current_tree(id, true)
+        id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
+        return nil if id.nil?
+        current_tree = @rugged_repo.lookup(id)
+        current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
+        @index.read_tree(current_tree)
+        @current_tree = Gollum::Git::Tree.new(current_tree)
       end
       
       def current_tree
-        @current_tree ||= get_current_tree
+        @current_tree
       end
 
       private
@@ -450,15 +456,6 @@ module Gollum
           ref = ref.target if ref.respond_to?(:target)
           [ref]
         end
-      end
-
-      def get_current_tree(id = "HEAD", read = false)
-        id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
-        return nil if id.nil?
-        current_tree = @rugged_repo.lookup(id)
-        current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
-        @index.read_tree(current_tree) if read
-        Gollum::Git::Tree.new(current_tree)
       end
 
       def update_treemap(path, data)
@@ -548,7 +545,7 @@ module Gollum
 
       def diff(sha1, sha2, path = nil)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts).patches.map {|patch| OpenStruct.new(:diff => patch.to_s)}.reverse # Rugged seems to order the diffs differently than Grit
+        @repo.diff(sha1, sha2, opts).patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
