@@ -110,7 +110,7 @@ module Gollum
       end
       
       def authored_date
-        @commit.time
+        @commit.author[:time]
       end
       
       def message
