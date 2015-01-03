@@ -545,9 +545,13 @@ module Gollum
         @index ||= Gollum::Git::Index.new(@repo.index, @repo)
       end
 
-      def diff(sha1, sha2, path = nil)
+      def diff(sha1, sha2, *paths)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts).patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
+        patches = @repo.diff(sha1, sha2, opts).patches
+        if not paths.empty?
+          patches.keep_if { |p| paths.include? p.delta.new_file[:path] }
+        end
+        patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
