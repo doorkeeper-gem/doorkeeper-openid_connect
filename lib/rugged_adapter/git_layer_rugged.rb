@@ -132,9 +132,11 @@ module Gollum
         deletions = 0
         total = 0
         files = []
-        diff = @commit.diff.each_patch do |patch|
-          new_additions = patch.stat[0]
-          new_deletions = patch.stat[1]
+        parent = @commit.parents.first
+        diff = Rugged::Tree.diff(@commit.tree.repo, parent ? parent.tree : nil, @commit.tree)
+        diff = diff.each_patch do |patch|
+          new_additions = patch.stat[1]
+          new_deletions = patch.stat[0]
           additions += new_additions
           deletions += new_deletions
           total += patch.changes
