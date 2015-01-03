@@ -138,7 +138,7 @@ module Gollum
           additions += new_additions
           deletions += new_deletions
           total += patch.changes
-          files << [patch.delta.new_file[:path], new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
+          files << [patch.delta.new_file[:path].force_encoding("UTF-8"), new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
         end
         OpenStruct.new(:additions => additions, :deletions => deletions, :files => files, :id => id, :total => total)
       end
