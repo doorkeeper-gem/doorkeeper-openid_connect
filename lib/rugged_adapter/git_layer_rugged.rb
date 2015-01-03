@@ -545,7 +545,7 @@ module Gollum
 
       def diff(sha1, sha2, path = nil)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts).patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
+        @repo.diff(sha1, sha2, opts).patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
