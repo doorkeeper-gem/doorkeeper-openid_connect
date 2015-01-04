@@ -13,7 +13,7 @@ Adapter for [gollum](https://github.com/gollum/gollum) to use [Rugged](https://g
 Install the gem:
 
 ```bash
-gem install --pre gollum-rugged_adapter # --pre required for beta-releases`
+gem install --pre gollum-rugged_adapter # --pre required for beta-releases
 ```
 
 Now run gollum as follows:
