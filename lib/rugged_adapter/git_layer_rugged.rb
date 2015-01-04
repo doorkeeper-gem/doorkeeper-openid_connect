@@ -110,7 +110,7 @@ module Gollum
       end
       
       def authored_date
-        @commit.time
+        @commit.author[:time]
       end
       
       def message
@@ -132,13 +132,15 @@ module Gollum
         deletions = 0
         total = 0
         files = []
-        diff = @commit.diff.each_patch do |patch|
-          new_additions = patch.stat[0]
-          new_deletions = patch.stat[1]
+        parent = @commit.parents.first
+        diff = Rugged::Tree.diff(@commit.tree.repo, parent ? parent.tree : nil, @commit.tree)
+        diff = diff.each_patch do |patch|
+          new_additions = patch.stat[1]
+          new_deletions = patch.stat[0]
           additions += new_additions
           deletions += new_deletions
           total += patch.changes
-          files << [patch.delta.new_file[:path], new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
+          files << [patch.delta.new_file[:path].force_encoding("UTF-8"), new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
         end
         OpenStruct.new(:additions => additions, :deletions => deletions, :files => files, :id => id, :total => total)
       end
@@ -543,9 +545,13 @@ module Gollum
         @index ||= Gollum::Git::Index.new(@repo.index, @repo)
       end
 
-      def diff(sha1, sha2, path = nil)
+      def diff(sha1, sha2, *paths)
         opts = path == nil ? {} : {:path => path}
-        @repo.diff(sha1, sha2, opts).patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
+        patches = @repo.diff(sha1, sha2, opts).patches
+        if not paths.empty?
+          patches.keep_if { |p| paths.include? p.delta.new_file[:path] }
+        end
+        patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
       end
       
       def log(commit = 'refs/heads/master', path = nil, options = {})
