@@ -4,6 +4,10 @@ module Doorkeeper
       module Claims
         class Claim
           attr_accessor :name
+
+          def initialize(options = {})
+            @name = options[:name]
+          end
         end
       end
     end

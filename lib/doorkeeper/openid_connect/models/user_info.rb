@@ -9,11 +9,7 @@ module Doorkeeper
         end
 
         def claims
-          {
-            sub: subject,
-            email: email,
-            assignments: assignments
-          }
+          base_claims.merge resource_owner_claims
         end
 
         def as_json(options = {})
@@ -22,16 +18,20 @@ module Doorkeeper
 
         private
 
+        def base_claims
+          {
+            sub: subject
+          }
+        end
+
+        def resource_owner_claims
+          Doorkeeper::OpenidConnect.configuration.claims.to_h.map do |claim_name, claim_value|
+            [claim_name, @resource_owner.instance_eval(&claim_value)]
+          end.to_h
+        end
+
         def subject
           @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.subject).to_s
-        end
-
-        def email
-          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.email).to_s
-        end
-
-        def assignments
-          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.assignments)
         end
       end
     end

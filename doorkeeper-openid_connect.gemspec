@@ -20,9 +20,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'railties', '>= 3.1'
   spec.add_dependency 'doorkeeper', '>= 1.3'
   spec.add_dependency 'sandal', '~> 0.6.0'
-  spec.add_development_dependency 'rspec-rails', '>= 2.11.4'
-  spec.add_development_dependency 'capybara', '~> 1.1.2'
-  spec.add_development_dependency 'factory_girl', '~> 2.6.4'
+
+  spec.add_development_dependency 'rspec-rails', '~> 2.99.0'
   spec.add_development_dependency 'generator_spec', '~> 0.9.0'
-  spec.add_development_dependency 'database_cleaner', '~> 1.2.0'
+  spec.add_development_dependency 'factory_girl', '~> 2.6.4'
 end

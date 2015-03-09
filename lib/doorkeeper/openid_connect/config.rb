@@ -24,38 +24,6 @@ module Doorkeeper
         def build
           @config
         end
-
-        def jws_private_key(jws_private_key)
-          @config.instance_variable_set('@jws_private_key', jws_private_key)
-        end
-
-        def jws_public_key(jws_public_key)
-          @config.instance_variable_set('@jws_public_key', jws_public_key)
-        end
-
-        def issuer(issuer)
-          @config.instance_variable_set('@issuer', issuer)
-        end
-
-        def expiration(expiration)
-          @config.instance_variable_set('@expiration', expiration)
-        end
-
-        def resource_owner_from_access_token(*method)
-          @config.instance_variable_set('@resource_owner_from_access_token', *method)
-        end
-
-        def subject(*method)
-          @config.instance_variable_set('@subject', *method)
-        end
-
-        def email(*method)
-          @config.instance_variable_set('@email', *method)
-        end
-
-        def assignments(*method)
-          @config.instance_variable_set('@assignments', *method)
-        end
       end
 
       module Option
@@ -121,35 +89,37 @@ module Doorkeeper
 
       extend Option
 
+      option :jws_private_key,
+             default: (lambda do
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.jws_private_key_configured'))
+               nil
+             end)
+
+      option :jws_public_key,
+             default: (lambda do
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.jws_public_key_configured'))
+               nil
+             end)
+
+      option :issuer,
+             default: (lambda do
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.issuer_configured'))
+               nil
+             end)
+
       option :resource_owner_from_access_token,
-             default: (lambda do |access_token|
+             default: (lambda do
                logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_configured'))
                nil
              end)
 
       option :subject,
-             default: (lambda do |resource_owner|
+             default: (lambda do
                logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_configured'))
                nil
              end)
 
-      option :email,
-             default: (lambda do |resource_owner|
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.email_configured'))
-               nil
-             end)
-
-      option :assignments,
-             default: (lambda do |resource_owner|
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.assignments_configured'))
-               nil
-             end)
-
-      option :jws_private_key, default: nil
-      option :jws_public_key, default: nil
-      option :issuer, default: nil
-      option :expiration, default: 1.minute
-
+      option :claims, builder_class: ClaimsBuilder
     end
   end
 end
