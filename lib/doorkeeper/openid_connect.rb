@@ -1,9 +1,13 @@
 require 'doorkeeper/openid_connect/version'
 require 'doorkeeper/openid_connect/engine'
-require 'doorkeeper/openid_connect/config'
 
 require 'doorkeeper/openid_connect/models/id_token'
 require 'doorkeeper/openid_connect/models/user_info'
+require 'doorkeeper/openid_connect/models/claims/claim'
+require 'doorkeeper/openid_connect/models/claims/normal_claim'
+
+require 'doorkeeper/openid_connect/claims_builder'
+require 'doorkeeper/openid_connect/config'
 
 require 'doorkeeper/openid_connect/rails/routes'
 

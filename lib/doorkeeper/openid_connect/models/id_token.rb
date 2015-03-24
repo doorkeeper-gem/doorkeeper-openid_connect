@@ -10,6 +10,8 @@ module Doorkeeper
           @access_token = access_token
           @resource_owner = access_token.instance_eval(&Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token)
           @issued_at = Time.now
+          @signer = Sandal::Sig::RS256.new(Doorkeeper::OpenidConnect.configuration.jws_private_key)
+          @public_key = Doorkeeper::OpenidConnect.configuration.jws_public_key
         end
 
         def claims
@@ -29,9 +31,8 @@ module Doorkeeper
         # TODO make signature strategy configurable with keys?
         # TODO move this out of the model
         def as_jws_token
-          signer = Sandal::Sig::RS256.new(Doorkeeper::OpenidConnect.configuration.jws_private_key)
-          Sandal.encode_token(claims, signer, {
-            kid: Doorkeeper::OpenidConnect.configuration.jws_public_key
+          Sandal.encode_token(claims, @signer, {
+            kid: @public_key
           })
         end
 
