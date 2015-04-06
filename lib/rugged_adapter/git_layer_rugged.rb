@@ -273,6 +273,34 @@ module Gollum
         sha_or_commit_from_ref(ref, :commit)
       end
 
+      def push(remote, branches = nil, options = {})
+        branches = [branches].flatten.map {|branch| "refs/heads/#{branch}" unless branch =~ /^refs\/heads\//}
+        @repo.push(remote, branches, options)
+      end
+
+      def pull(remote, branches = nil, options = {})
+        branches = [branches].flatten.map {|branch| "refs/heads/#{branch}" unless branch =~ /^refs\/heads\//}
+        r = @repo.remotes[remote]
+        r.fetch(branches, options)
+        r.save
+        branches.each do |branch|
+          branch_name = branch.match(/^refs\/heads\/(.*)/)[1]
+          remote_name = remote.match(/^(refs\/heads\/)?(.*)/)[2]
+          remote_ref = @repo.branches["#{remote_name}/#{branch_name}"].target
+          local_ref = @repo.branches[branch].target
+          index = @repo.merge_commits(local_ref, remote_ref)
+          options = { author: Actor.default_actor.to_h,
+            committer:  Actor.default_actor.to_h,
+            message:    "Merged branch #{branch} of #{remote}.",
+            parents: [local_ref, remote_ref],
+            tree: index.write_tree(@repo),
+            update_ref: branch
+          }
+          Rugged::Commit.create @repo, options
+          @repo.checkout(@repo.head.name, :strategy => :force) if !@repo.bare? && branch == @repo.head.name
+        end
+      end
+
       private
 
       def sha?(str)
