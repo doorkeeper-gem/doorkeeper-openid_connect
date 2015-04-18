@@ -42,10 +42,16 @@ Add the following to your config/initializers/doorkeeper_openid_connect.rb:
     -----END RSA PUBLIC KEY-----
     eol
 
+      resource_owner_from_access_token do |access_token|
+        # Example implementation:
+        # User.find_by(id: access_token.resource_owner_id)
+      end
+
       issuer 'issuer string'
 
       subject do |resource_owner|
-        resource_owner.key
+        # Example implementation:
+        # resource_owner.key
       end
 
       claims do
@@ -66,11 +72,11 @@ The following configurations are required:
 
 * jws_private_key - private key for JSON Web Signature(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31)
 * jws_public_key  - public key for JSON Web Signature(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31)
-* issuer - Issuer Identifier for the Issuer of the response. The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
 * resource_owner_from_access_token - defines how to translate the doorkeeper access_token to a resource owner model
 
 Given a resource owner, the following claims are required:
 
+* issuer - REQUIRED. Issuer Identifier for the Issuer of the response. The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
 * subject - REQUIRED. Subject Identifier. A locally unique and never reassigned identifier within the Issuer for the End-User, which is intended to be consumed by the Client, e.g., 24400320 or AItOawmwtWwcT0k51BayewNvutrJUqsvl6qs7A4. It MUST NOT exceed 255 ASCII characters in length. The sub value is a case sensitive string.
 
 Custom claims can optionally be specified in a `claims` block.  The following claim types are currently supported:
