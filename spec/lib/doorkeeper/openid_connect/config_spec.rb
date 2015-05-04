@@ -53,6 +53,16 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'expiration' do
+    it 'sets the value that is accessible via expiration' do
+      value = ''
+      Doorkeeper::OpenidConnect.configure do
+        expiration value
+      end
+      expect(subject.expiration).to eq(value)
+    end
+  end
+
   describe 'claims' do
     it 'sets the claims configuration that is accessible via claims' do
       Doorkeeper::OpenidConnect.configure do

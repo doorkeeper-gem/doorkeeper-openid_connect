@@ -119,6 +119,8 @@ module Doorkeeper
                nil
              end)
 
+      option :expiration, default: 120
+
       option :claims, builder_class: ClaimsBuilder
     end
   end
