@@ -31,9 +31,7 @@ module Doorkeeper
         # TODO make signature strategy configurable with keys?
         # TODO move this out of the model
         def as_jws_token
-          Sandal.encode_token(claims, @signer, {
-            kid: @public_key
-          })
+          Sandal.encode_token(claims, @signer, typ: 'JWT')
         end
 
         private
