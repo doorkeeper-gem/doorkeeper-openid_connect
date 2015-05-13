@@ -56,9 +56,14 @@ module Doorkeeper
       alias_method :original_body, :body
 
       def body
-        original_body.
-          merge({:id_token => id_token.as_jws_token}).
-          reject { |_, value| value.blank? }
+        if id_token
+          original_body.
+            merge({:id_token => id_token.as_jws_token}).
+            reject { |_, value| value.blank? }
+        else
+          original_body.
+            reject { |_, value| value.blank? }
+        end
       end
     end
   end
