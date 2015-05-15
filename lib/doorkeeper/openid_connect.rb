@@ -57,7 +57,7 @@ module Doorkeeper
 
       def body
         original_body.
-          merge({:id_token => id_token.as_jws_token}).
+          merge({:id_token => id_token.try(:as_jws_token)}).
           reject { |_, value| value.blank? }
       end
     end
