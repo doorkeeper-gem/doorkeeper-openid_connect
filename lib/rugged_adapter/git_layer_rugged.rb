@@ -165,14 +165,13 @@ module Gollum
         results = []
         tree.walk_blobs(:postorder) do |root, entry|
           blob = @repo.lookup(entry[:oid])
-          next if blob.binary?
           count = 0
           blob.content.each_line do |line|
             next unless line.match(/#{Regexp.escape(query)}/i)
             count += 1
           end
           path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
-          results << {:name => path, :count => count}
+          results << {:name => path, :count => count} unless count == 0
         end
         results
       end

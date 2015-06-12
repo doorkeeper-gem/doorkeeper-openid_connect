@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.license	= "MIT"
 
   s.add_runtime_dependency 'rugged', '~> 0.21.3', '>=0.21.3'
+  s.add_runtime_dependency 'mime-types', '~> 2.6'
   s.add_development_dependency "rspec", "2.13.0"
 
   s.files         = Dir['lib/**/*.rb'] + ["README.md", "Gemfile"]
