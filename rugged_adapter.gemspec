@@ -19,5 +19,18 @@ Gem::Specification.new do |s|
 
   s.files         = Dir['lib/**/*.rb'] + ["README.md", "Gemfile"]
   s.require_paths = ["lib"]
-end
 
+  # = MANIFEST =
+  s.files = %w(
+    Gemfile
+    LICENSE
+    README.md
+    Rakefile
+    lib/rugged_adapter.rb
+    lib/rugged_adapter/git_layer_rugged.rb
+    lib/rugged_adapter/version.rb
+    rugged_adapter.gemspec
+  )
+  # = MANIFEST =
+
+end
