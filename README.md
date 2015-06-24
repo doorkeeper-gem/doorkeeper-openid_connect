@@ -32,7 +32,7 @@ gollum --adapter rugged
 6. Make sure your changes pass gollum-lib's tests
   * Clone [gollum-lib](https://github.com/gollum/gollum-lib) and add your local version of the rugged adapter to the gollum-lib `Gemfile`:
   
-  `gem gollum-rugged_adapter, :path => '/path/to/rugged_adapter'`
+  `gem "gollum-rugged_adapter", :path => '/path/to/rugged_adapter'`
   * `bundle install`
   * `bundle exec rake GIT_ADAPTER=rugged`
 1. If necessary, rebase your commits into logical chunks, without errors.
