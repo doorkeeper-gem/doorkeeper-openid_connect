@@ -223,8 +223,6 @@ module Gollum
       end
 
       def versions_for_path(path = nil, ref = nil, options = {})
-        options.delete :max_count
-        options.delete :skip
         log(ref, path, options)
       end
       
