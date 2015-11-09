@@ -450,6 +450,7 @@ module Gollum
         actor = Gollum::Git::Actor.default_actor if actor.nil?
         commit_options[:tree] = @index.write_tree
         commit_options[:author] = actor.to_h
+        commit_options[:committer] = actor.to_h
         commit_options[:message] = message.to_s
         commit_options[:parents] = parents
         commit_options[:update_ref] = head
@@ -477,7 +478,7 @@ module Gollum
 
       def get_parents(parents, head)
         if parents
-          parents.map!{|parent| parent.commit} if parents
+          parents.map{|parent| parent.commit}
         elsif ref = @rugged_repo.references[head]
           ref = ref.target
           ref = ref.target if ref.respond_to?(:target)
