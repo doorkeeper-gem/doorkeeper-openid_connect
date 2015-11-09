@@ -450,6 +450,7 @@ module Gollum
         actor = Gollum::Git::Actor.default_actor if actor.nil?
         commit_options[:tree] = @index.write_tree
         commit_options[:author] = actor.to_h
+        commit_options[:committer] = actor.to_h
         commit_options[:message] = message.to_s
         commit_options[:parents] = parents
         commit_options[:update_ref] = head
