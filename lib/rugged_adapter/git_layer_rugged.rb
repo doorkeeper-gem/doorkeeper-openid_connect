@@ -478,7 +478,7 @@ module Gollum
 
       def get_parents(parents, head)
         if parents
-          parents.map!{|parent| parent.commit} if parents
+          parents.map{|parent| parent.commit}
         elsif ref = @rugged_repo.references[head]
           ref = ref.target
           ref = ref.target if ref.respond_to?(:target)
