@@ -189,7 +189,12 @@ module Gollum
       def apply_patch(head_sha = 'HEAD', patch=nil)
         false # Rewrite gollum-lib's revert so that it doesn't require a direct equivalent of Grit's apply_patch
       end
-      
+
+      def revert(path, sha1, sha2, ref)
+        # FIXME: See https://github.com/gollum/grit_adapter/pull/14
+        fail NotImplementedError
+      end
+
       def checkout(path, ref = 'HEAD', options = {})
         path = path.nil? ? path : [path]
         options = options.merge({:paths => path, :strategy => :force})
