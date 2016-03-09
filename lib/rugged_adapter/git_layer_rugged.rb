@@ -284,7 +284,6 @@ module Gollum
         branches = [branches].flatten.map {|branch| "refs/heads/#{branch}" unless branch =~ /^refs\/heads\//}
         r = @repo.remotes[remote]
         r.fetch(branches, options)
-        r.save
         branches.each do |branch|
           branch_name = branch.match(/^refs\/heads\/(.*)/)[1]
           remote_name = remote.match(/^(refs\/heads\/)?(.*)/)[2]
