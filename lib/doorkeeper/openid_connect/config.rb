@@ -1,5 +1,12 @@
 module Doorkeeper
   module OpenidConnect
+    module DoorkeeperConfiguration
+      def configure(&block)
+        super(&block)
+        configuration.optional_scopes.add :openid
+      end
+    end
+
     class MissingConfiguration < StandardError
       def initialize
         super('Configuration for Doorkeeper OpenID Connect missing. Do you have doorkeeper_openid_connect initializer?')
@@ -11,7 +18,7 @@ module Doorkeeper
     end
 
     def self.configuration
-      @config || (fail MissingConfiguration.new)
+      @config || (fail MissingConfiguration)
     end
 
     class Config

@@ -1,5 +1,7 @@
 en:
   doorkeeper:
+    scopes:
+      openid: 'Authenticate your account'
     openid_connect:
       errors:
         messages:

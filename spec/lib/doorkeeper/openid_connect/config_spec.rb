@@ -3,6 +3,12 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect, 'configuration' do
   subject { Doorkeeper::OpenidConnect.configuration }
 
+  describe 'scopes' do
+    it' adds the openid scope to the Doorkeeper configuration' do
+      expect(Doorkeeper.configuration.scopes).to include 'openid'
+    end
+  end
+
   describe 'jws_private_key' do
     it 'sets the value that is accessible via jws_private_key' do
       value = ''

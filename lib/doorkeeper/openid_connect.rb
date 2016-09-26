@@ -14,6 +14,10 @@ require 'doorkeeper/openid_connect/rails/routes'
 require 'doorkeeper'
 
 module Doorkeeper
+  class << self
+    prepend OpenidConnect::DoorkeeperConfiguration
+  end
+
   module OpenidConnect
     def self.configured?
       @config.present?
