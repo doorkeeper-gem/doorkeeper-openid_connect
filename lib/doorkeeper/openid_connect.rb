@@ -11,6 +11,8 @@ require 'doorkeeper/openid_connect/config'
 
 require 'doorkeeper/openid_connect/rails/routes'
 
+require 'doorkeeper'
+
 module Doorkeeper
   module OpenidConnect
     def self.configured?

@@ -12,16 +12,16 @@ Gem::Specification.new do |spec|
   spec.description   = %q{OpenID Connect extension to Doorkeeper.}
   spec.license       = %q{MIT}
 
-  spec.files         = `git ls-files -z`.split("\x0")
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
+  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'railties', '>= 3.1'
-  spec.add_dependency 'doorkeeper', '>= 1.3'
-  spec.add_dependency 'sandal', '~> 0.6.0'
+  spec.add_runtime_dependency 'doorkeeper', '~> 4.0'
+  spec.add_runtime_dependency 'sandal', '~> 0.6'
 
-  spec.add_development_dependency 'rspec-rails', '~> 2.99.0'
-  spec.add_development_dependency 'generator_spec', '~> 0.9.0'
-  spec.add_development_dependency 'factory_girl', '~> 2.6.4'
+  spec.add_development_dependency 'rspec-rails'
+  spec.add_development_dependency 'rails'
+  spec.add_development_dependency 'sqlite3'
 end
