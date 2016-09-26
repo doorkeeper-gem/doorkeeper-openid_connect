@@ -1,4 +1,4 @@
-require 'spec_helper_integration'
+require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect, 'configuration' do
   subject { Doorkeeper::OpenidConnect.configuration }

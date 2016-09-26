@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'sandal', '~> 0.6'
 
   spec.add_development_dependency 'rspec-rails'
+  spec.add_development_dependency 'factory_girl'
   spec.add_development_dependency 'rails'
   spec.add_development_dependency 'sqlite3'
 end
