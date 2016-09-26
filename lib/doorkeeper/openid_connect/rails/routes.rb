@@ -26,6 +26,10 @@ module Doorkeeper
           routes.scope options[:scope] || 'oauth', as: 'oauth' do
             map_route(:userinfo, :userinfo_routes)
           end
+
+          routes.scope as: 'oauth' do
+            map_route(:discovery, :discovery_routes)
+          end
         end
 
         private
@@ -40,6 +44,15 @@ module Doorkeeper
           routes.resource(
             :userinfo,
             path: 'userinfo',
+            only: [:show], as: mapping[:as],
+            controller: mapping[:controllers]
+          )
+        end
+
+        def discovery_routes(mapping)
+          routes.resource(
+            :discovery,
+            path: '.well-known/openid-configuration',
             only: [:show], as: mapping[:as],
             controller: mapping[:controllers]
           )
