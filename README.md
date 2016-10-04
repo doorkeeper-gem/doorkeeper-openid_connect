@@ -102,3 +102,8 @@ Custom claims can optionally be specified in a `claims` block.  The following cl
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Sponsors
+
+Initial development of this project was sponsored by PlayOn! Sports.
+
