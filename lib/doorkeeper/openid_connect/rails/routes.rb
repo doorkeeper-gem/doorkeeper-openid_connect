@@ -25,10 +25,11 @@ module Doorkeeper
           @mapping = Mapper.new.map(&@block)
           routes.scope options[:scope] || 'oauth', as: 'oauth' do
             map_route(:userinfo, :userinfo_routes)
+            map_route(:discovery, :discovery_routes)
           end
 
           routes.scope as: 'oauth' do
-            map_route(:discovery, :discovery_routes)
+            map_route(:discovery, :discovery_well_known_routes)
           end
         end
 
@@ -36,26 +37,29 @@ module Doorkeeper
 
         def map_route(name, method)
           unless @mapping.skipped?(name)
-            send method, @mapping[name]
+            mapping = @mapping[name]
+
+            routes.scope controller: mapping[:controllers], as: mapping[:as] do
+              send method, mapping
+            end
           end
         end
 
         def userinfo_routes(mapping)
-          routes.resource(
-            :userinfo,
-            path: 'userinfo',
-            only: [:show], as: mapping[:as],
-            controller: mapping[:controllers]
-          )
+          routes.get :show, path: 'userinfo', as: ''
         end
 
         def discovery_routes(mapping)
-          routes.resource(
-            :discovery,
-            path: '.well-known/openid-configuration',
-            only: [:show], as: mapping[:as],
-            controller: mapping[:controllers]
-          )
+          routes.scope path: 'discovery' do
+            routes.get :keys
+          end
+        end
+
+        def discovery_well_known_routes(mapping)
+          routes.scope path: '.well-known' do
+            routes.get :provider, path: 'openid-configuration'
+            routes.get :webfinger
+          end
         end
       end
     end

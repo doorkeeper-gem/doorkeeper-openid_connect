@@ -3,6 +3,10 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect, 'configuration' do
   subject { Doorkeeper::OpenidConnect.configuration }
 
+  after :all do
+    load "#{Rails.root}/config/initializers/doorkeeper_openid_connect.rb"
+  end
+
   describe 'scopes' do
     it' adds the openid scope to the Doorkeeper configuration' do
       expect(Doorkeeper.configuration.scopes).to include 'openid'
@@ -11,7 +15,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
   describe 'jws_private_key' do
     it 'sets the value that is accessible via jws_private_key' do
-      value = ''
+      value = 'private_key'
       Doorkeeper::OpenidConnect.configure do
         jws_private_key value
       end
@@ -21,7 +25,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
   describe 'jws_public_key' do
     it 'sets the value that is accessible via jws_public_key' do
-      value = ''
+      value = 'public_key'
       Doorkeeper::OpenidConnect.configure do
         jws_public_key value
       end
@@ -31,11 +35,11 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
   describe 'issuer' do
     it 'sets the value that is accessible via issuer' do
-      value = ''
+      value = 'issuer'
       Doorkeeper::OpenidConnect.configure do
-        jws_public_key value
+        issuer value
       end
-      expect(subject.jws_public_key).to eq(value)
+      expect(subject.issuer).to eq(value)
     end
   end
 
@@ -43,7 +47,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     it 'sets the block that is accessible via resource_owner_from_access_token' do
       block = proc {}
       Doorkeeper::OpenidConnect.configure do
-        resource_owner_from_access_token &block
+        resource_owner_from_access_token(&block)
       end
       expect(subject.resource_owner_from_access_token).to eq(block)
     end
@@ -53,7 +57,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     it 'sets the block that is accessible via subject' do
       block = proc {}
       Doorkeeper::OpenidConnect.configure do
-        subject &block
+        subject(&block)
       end
       expect(subject.subject).to eq(block)
     end
@@ -61,7 +65,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
   describe 'expiration' do
     it 'sets the value that is accessible via expiration' do
-      value = ''
+      value = 'expiration'
       Doorkeeper::OpenidConnect.configure do
         expiration value
       end

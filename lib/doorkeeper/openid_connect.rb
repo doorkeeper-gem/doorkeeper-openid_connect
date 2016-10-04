@@ -12,6 +12,7 @@ require 'doorkeeper/openid_connect/config'
 require 'doorkeeper/openid_connect/rails/routes'
 
 require 'doorkeeper'
+require 'json/jwt'
 
 module Doorkeeper
   class << self
@@ -19,12 +20,19 @@ module Doorkeeper
   end
 
   module OpenidConnect
+    # TODO: make this configurable
+    SIGNING_ALGORITHM = 'RS256'
+
     def self.configured?
       @config.present?
     end
 
     def self.installed?
       configured?
+    end
+
+    def self.signing_key
+      JSON::JWK.new(OpenSSL::PKey.read(configuration.jws_private_key))
     end
   end
 end

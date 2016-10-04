@@ -96,33 +96,19 @@ module Doorkeeper
 
       extend Option
 
-      option :jws_private_key,
-             default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.jws_private_key_configured'))
-               nil
-             end)
-
-      option :jws_public_key,
-             default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.jws_public_key_configured'))
-               nil
-             end)
-
-      option :issuer,
-             default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.issuer_configured'))
-               nil
-             end)
+      option :jws_private_key
+      option :jws_public_key
+      option :issuer
 
       option :resource_owner_from_access_token,
              default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_configured'))
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured'))
                nil
              end)
 
       option :subject,
              default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_configured'))
+               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured'))
                nil
              end)
 
