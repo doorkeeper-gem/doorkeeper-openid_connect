@@ -47,6 +47,7 @@ module Doorkeeper
 
         def userinfo_routes(mapping)
           routes.get :show, path: 'userinfo', as: ''
+          routes.post :show, path: 'userinfo', as: nil
         end
 
         def discovery_routes(mapping)
