@@ -24,10 +24,10 @@ module Doorkeeper
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
         {
           issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: :https),
-          token_endpoint: oauth_token_url(protocol: :https),
-          userinfo_endpoint: oauth_userinfo_url(protocol: :https),
-          jwks_uri: oauth_discovery_keys_url(protocol: :https),
+          authorization_endpoint: oauth_authorization_url(protocol: protocol),
+          token_endpoint: oauth_token_url(protocol: protocol),
+          userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
+          jwks_uri: oauth_discovery_keys_url(protocol: protocol),
 
           scopes_supported: doorkeeper.scopes,
 
@@ -62,7 +62,7 @@ module Doorkeeper
           links: [
             {
               rel: WEBFINGER_RELATION,
-              href: root_url(protocol: :https),
+              href: root_url(protocol: protocol),
             }
           ]
         }
@@ -79,6 +79,14 @@ module Doorkeeper
             )
           ]
         }
+      end
+
+      def protocol
+        if ::Rails.env.production?
+          :https
+        else
+          :http
+        end
       end
     end
   end

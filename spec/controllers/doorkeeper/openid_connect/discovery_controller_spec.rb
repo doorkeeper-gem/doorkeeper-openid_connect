@@ -8,10 +8,10 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       expect(data.sort).to eq({
         'issuer' => 'dummy',
-        'authorization_endpoint' => 'https://test.host/oauth/authorize',
-        'token_endpoint' => 'https://test.host/oauth/token',
-        'userinfo_endpoint' => 'https://test.host/oauth/userinfo',
-        'jwks_uri' => 'https://test.host/oauth/discovery/keys',
+        'authorization_endpoint' => 'http://test.host/oauth/authorize',
+        'token_endpoint' => 'http://test.host/oauth/token',
+        'userinfo_endpoint' => 'http://test.host/oauth/userinfo',
+        'jwks_uri' => 'http://test.host/oauth/discovery/keys',
 
         'scopes_supported' => ['openid'],
 
@@ -32,6 +32,15 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         ],
       }.sort)
     end
+
+    it 'uses HTTPS URLs in production' do
+      allow(Rails.env).to receive(:production?).and_return(true)
+
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data['authorization_endpoint']).to eq 'https://test.host/oauth/authorize'
+    end
   end
 
   describe '#webfinger' do
@@ -49,7 +58,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'subject' => 'user@example.com',
         'links' => [
           'rel' => 'http://openid.net/specs/connect/1.0/issuer',
-          'href' => 'https://test.host/',
+          'href' => 'http://test.host/',
         ],
       }.sort)
     end
