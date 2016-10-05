@@ -53,6 +53,22 @@ module Doorkeeper
           id_token_signing_alg_values_supported: [
             'RS256',
           ],
+
+          claim_types_supported: [
+            'normal',
+
+            # TODO: support these
+            #'aggregated',
+            #'distributed',
+          ],
+
+          claims_supported: [
+            'iss',
+            'sub',
+            'aud',
+            'exp',
+            'iat',
+          ] | openid_connect.claims.to_h.keys,
         }
       end
 

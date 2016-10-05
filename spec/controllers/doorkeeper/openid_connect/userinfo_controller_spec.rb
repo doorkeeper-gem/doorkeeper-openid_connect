@@ -13,7 +13,7 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
         get :show, access_token: token.token
 
         expect(response.status).to eq 200
-        expect(response.body).to eq %Q{{"sub":"#{user.id}"}}
+        expect(response.body).to eq %Q{{"sub":"#{user.id}","name":"Joe"}}
       end
     end
 

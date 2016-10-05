@@ -58,11 +58,11 @@ Add the following to your config/initializers/doorkeeper_openid_connect.rb:
       # expiration 600
 
       claims do
-        claim :_foo_ do |resource_owner|
+        normal_claim :_foo_ do |resource_owner|
           resource_owner.foo
         end
 
-        claim :_bar_ do |resource_owner|
+        normal_claim :_bar_ do |resource_owner|
           resource_owner.bar
         end
       end

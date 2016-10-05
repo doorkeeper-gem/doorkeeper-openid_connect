@@ -50,4 +50,8 @@ twIDAQAB
   subject do |resource_owner|
     resource_owner.id
   end
+
+  claims do
+    normal_claim :name, &:name
+  end
 end

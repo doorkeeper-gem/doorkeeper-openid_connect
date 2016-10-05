@@ -30,6 +30,19 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'id_token_signing_alg_values_supported' => [
           'RS256',
         ],
+
+        'claim_types_supported' => [
+          'normal',
+        ],
+
+        'claims_supported' => [
+          'iss',
+          'sub',
+          'aud',
+          'exp',
+          'iat',
+          'name',
+        ],
       }.sort)
     end
 
