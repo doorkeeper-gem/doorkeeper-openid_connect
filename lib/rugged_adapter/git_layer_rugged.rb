@@ -167,7 +167,7 @@ module Gollum
           blob = @repo.lookup(entry[:oid])
           count = 0
           blob.content.each_line do |line|
-            next unless line.match(/#{Regexp.escape(query)}/i)
+            next unless line.force_encoding("UTF-8").match(/#{Regexp.escape(query)}/i)
             count += 1
           end
           path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
