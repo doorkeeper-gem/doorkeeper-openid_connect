@@ -1,0 +1,35 @@
+require 'rails_helper'
+
+describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
+  subject { Doorkeeper::OAuth::Authorization::Code.new pre_auth, resource_owner }
+  let(:resource_owner) { create :user }
+  let(:access_grant) { create :access_grant }
+  let(:pre_auth) { double }
+  let(:client) { double }
+
+  describe '#issue_token' do
+    before do
+      allow(pre_auth).to receive(:client) { client }
+      allow(pre_auth).to receive(:redirect_uri) { 'redirect_uri' }
+      allow(pre_auth).to receive(:scopes) { 'scopes' }
+      allow(pre_auth).to receive(:nonce) { '123456' }
+      allow(client).to receive(:id) { 'client_id' }
+
+      allow(Doorkeeper::AccessGrant).to receive(:create!) { access_grant }
+      allow(Doorkeeper::OpenidConnect::Nonce).to receive(:create!)
+    end
+
+    it 'stores the nonce' do
+      subject.issue_token
+
+      expect(Doorkeeper::OpenidConnect::Nonce).to have_received(:create!).with({
+        access_grant: access_grant,
+        nonce: '123456'
+      })
+    end
+
+    it 'returns the created grant' do
+      expect(subject.issue_token).to be_a Doorkeeper::AccessGrant
+    end
+  end
+end
