@@ -1,6 +1,8 @@
 require 'doorkeeper/openid_connect/version'
 require 'doorkeeper/openid_connect/engine'
 
+require 'doorkeeper/openid_connect/helpers/controller'
+
 require 'doorkeeper/openid_connect/models/id_token'
 require 'doorkeeper/openid_connect/models/user_info'
 require 'doorkeeper/openid_connect/models/claims/claim'
@@ -15,10 +17,6 @@ require 'doorkeeper'
 require 'json/jwt'
 
 module Doorkeeper
-  class << self
-    prepend OpenidConnect::DoorkeeperConfiguration
-  end
-
   module OpenidConnect
     # TODO: make this configurable
     SIGNING_ALGORITHM = 'RS256'
@@ -34,6 +32,16 @@ module Doorkeeper
     def self.signing_key
       JSON::JWK.new(OpenSSL::PKey.read(configuration.jws_private_key))
     end
+  end
+end
+
+module Doorkeeper
+  class << self
+    prepend ::Doorkeeper::OpenidConnect::DoorkeeperConfiguration
+  end
+
+  module Helpers::Controller
+    prepend ::Doorkeeper::OpenidConnect::Helpers::Controller
   end
 end
 

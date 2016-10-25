@@ -2,6 +2,9 @@ en:
   doorkeeper:
     scopes:
       openid: 'Authenticate your account'
+    errors:
+      messages:
+        login_required: 'The authorization server requires end-user authentication'
     openid_connect:
       errors:
         messages:
