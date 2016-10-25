@@ -21,11 +21,11 @@ module Doorkeeper
         end
 
         def as_json(options = {})
-          claims
+          claims.reject { |_, value| value.blank? }
         end
 
         def as_jws_token
-          JSON::JWT.new(claims).sign(Doorkeeper::OpenidConnect.signing_key).to_s
+          JSON::JWT.new(as_json).sign(Doorkeeper::OpenidConnect.signing_key).to_s
         end
 
         private
