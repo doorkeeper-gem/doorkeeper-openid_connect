@@ -5,15 +5,6 @@ en:
     openid_connect:
       errors:
         messages:
-          # Common error messages
-          invalid_request: 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.'
-          invalid_redirect_uri: 'The redirect uri included is not valid.'
-          unauthorized_client: 'The client is not authorized to perform this request using this method.'
-          access_denied: 'The resource owner or authorization server denied the request.'
-          invalid_scope: 'The requested scope is invalid, unknown, or malformed.'
-          server_error: 'The authorization server encountered an unexpected condition which prevented it from fulfilling the request.'
-          temporarily_unavailable: 'The authorization server is currently unable to handle the request due to a temporary overloading or maintenance of the server.'
-
           # Configuration error messages
           resource_owner_from_access_token_not_configured: 'Failure due to Doorkeeper::OpenidConnect.configure.resource_owner_from_access_token missing configuration.'
           subject_not_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.subject missing configuration.'
