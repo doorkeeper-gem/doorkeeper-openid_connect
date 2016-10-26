@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
   let(:client) { create :application }
-  let(:user)   { User.create! name: 'Joe', password: 'sekret' }
+  let(:user)   { create :user, name: 'Joe' }
   let(:token)  { create :access_token, application: client, resource_owner_id: user.id }
 
   describe '#show' do
