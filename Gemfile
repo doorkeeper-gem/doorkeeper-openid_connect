@@ -1,4 +1,4 @@
-ENV['rails'] ||= '5.0.0'
+ENV['rails'] ||= '4.2.0'
 
 source 'https://rubygems.org'
 
