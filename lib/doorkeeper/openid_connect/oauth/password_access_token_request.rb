@@ -2,11 +2,7 @@ module Doorkeeper
   module OpenidConnect
     module OAuth
       module PasswordAccessTokenRequest
-        def self.prepended(base)
-          base.class_eval do
-            attr_reader :nonce
-          end
-        end
+        attr_reader :nonce
 
         def initialize(server, client, resource_owner, parameters = {})
           super

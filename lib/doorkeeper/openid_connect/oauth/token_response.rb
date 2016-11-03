@@ -2,11 +2,7 @@ module Doorkeeper
   module OpenidConnect
     module OAuth
       module TokenResponse
-        def self.prepended(base)
-          base.class_eval do
-            attr_accessor :id_token
-          end
-        end
+        attr_accessor :id_token
 
         def body
           if token.includes_scope? 'openid'
