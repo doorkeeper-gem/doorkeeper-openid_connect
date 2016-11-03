@@ -68,6 +68,26 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'auth_time_from_resource_owner' do
+    it 'sets the block that is accessible via auth_time_from_resource_owner' do
+      block = proc {}
+      Doorkeeper::OpenidConnect.configure do
+        auth_time_from_resource_owner(&block)
+      end
+      expect(subject.auth_time_from_resource_owner).to eq(block)
+    end
+  end
+
+  describe 'reauthenticate_resource_owner' do
+    it 'sets the block that is accessible via reauthenticate_resource_owner' do
+      block = proc {}
+      Doorkeeper::OpenidConnect.configure do
+        reauthenticate_resource_owner(&block)
+      end
+      expect(subject.reauthenticate_resource_owner).to eq(block)
+    end
+  end
+
   describe 'subject' do
     it 'sets the block that is accessible via subject' do
       block = proc {}

@@ -110,6 +110,14 @@ module Doorkeeper
         fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')
       }
 
+      option :auth_time_from_resource_owner, default: lambda { |*_|
+        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.auth_time_from_resource_owner_not_configured')
+      }
+
+      option :reauthenticate_resource_owner, default: lambda { |*_|
+        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured')
+      }
+
       option :subject, default: lambda { |*_|
         fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured')
       }

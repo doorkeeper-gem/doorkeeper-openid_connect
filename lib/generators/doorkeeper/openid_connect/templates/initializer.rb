@@ -18,6 +18,18 @@ EOL
     # User.find_by(id: access_token.resource_owner_id)
   end
 
+  auth_time_from_resource_owner do |resource_owner|
+    # Example implementation:
+    # resource_owner.current_sign_in_at
+  end
+
+  reauthenticate_resource_owner do |resource_owner|
+    # Example implementation:
+    # store_location_for resource_owner, request.fullpath
+    # sign_out resource_owner
+    # redirect_to new_user_session_url
+  end
+
   subject do |resource_owner|
     # Example implementation:
     # resource_owner.key

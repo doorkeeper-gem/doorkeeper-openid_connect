@@ -4,6 +4,7 @@ Doorkeeper.configure do
       User.new name: params[:current_user]
     else
       redirect_to('/login')
+      nil
     end
   end
 end

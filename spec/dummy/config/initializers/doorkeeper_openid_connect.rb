@@ -47,6 +47,14 @@ twIDAQAB
     User.find_by(id: access_token.resource_owner_id)
   end
 
+  auth_time_from_resource_owner do |resource_owner|
+    resource_owner.current_sign_in_at
+  end
+
+  reauthenticate_resource_owner do |_resource_owner|
+    redirect_to '/reauthenticate'
+  end
+
   subject do |resource_owner|
     resource_owner.id
   end
