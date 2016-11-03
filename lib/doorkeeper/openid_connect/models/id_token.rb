@@ -4,8 +4,11 @@ module Doorkeeper
       class IdToken
         include ActiveModel::Validations
 
-        def initialize(access_token)
+        attr_reader :nonce
+
+        def initialize(access_token, nonce = nil)
           @access_token = access_token
+          @nonce = nonce
           @resource_owner = access_token.instance_eval(&Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token)
           @issued_at = Time.now
         end
@@ -16,7 +19,8 @@ module Doorkeeper
             sub: subject,
             aud: audience,
             exp: expiration,
-            iat: issued_at
+            iat: issued_at,
+            nonce: nonce
           }
         end
 

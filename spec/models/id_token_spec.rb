@@ -1,9 +1,16 @@
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
-  subject { described_class.new(access_token) }
+  subject { described_class.new(access_token, nonce) }
   let(:access_token) { create :access_token, resource_owner_id: user.id }
   let(:user) { create :user }
+  let(:nonce) { '123456' }
+
+  describe '#nonce' do
+    it 'returns the stored nonce' do
+      expect(subject.nonce).to eq '123456'
+    end
+  end
 
   describe '#claims' do
     it 'returns all default claims' do
@@ -12,6 +19,7 @@ describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
       expect(subject.claims[:aud]).to eq access_token.application.uid
       expect(subject.claims[:exp]).to eq subject.claims[:iat] + 120
       expect(subject.claims[:iat]).to be_a Integer
+      expect(subject.claims[:nonce]).to eq nonce
     end
   end
 
@@ -21,7 +29,7 @@ describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
       json = subject.as_json
 
       expect(json).to include :aud
-      expect(json).not_to include :iss
+      expect(json).to_not include :iss
     end
   end
 

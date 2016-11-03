@@ -27,4 +27,6 @@ module Doorkeeper
       end
     end
   end
+
+  Helpers::Controller.send :prepend, OpenidConnect::Helpers::Controller
 end
