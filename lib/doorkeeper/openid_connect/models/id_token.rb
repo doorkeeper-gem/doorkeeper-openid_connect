@@ -24,7 +24,7 @@ module Doorkeeper
           }
         end
 
-        def as_json(options = {})
+        def as_json(*_)
           claims.reject { |_, value| value.blank? }
         end
 

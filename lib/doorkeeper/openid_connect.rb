@@ -29,7 +29,7 @@ module Doorkeeper
 
   module OpenidConnect
     # TODO: make this configurable
-    SIGNING_ALGORITHM = 'RS256'
+    SIGNING_ALGORITHM = 'RS256'.freeze
 
     def self.signing_key
       JSON::JWK.new(OpenSSL::PKey.read(configuration.jws_private_key))

@@ -74,17 +74,17 @@ module Doorkeeper
           Builder.instance_eval do
             define_method name do |*args, &block|
               # TODO: is builder_class option being used?
-              value = unless attribute_builder
-                        block ? block : args.first
-                      else
+              value = if attribute_builder
                         attribute_builder.new(&block).build
+                      else
+                        block ? block : args.first
                       end
 
               @config.instance_variable_set(:"@#{attribute}", value)
             end
           end
 
-          define_method attribute do |*args|
+          define_method attribute do |*_|
             if instance_variable_defined?(:"@#{attribute}")
               instance_variable_get(:"@#{attribute}")
             else
@@ -106,17 +106,13 @@ module Doorkeeper
       option :jws_public_key
       option :issuer
 
-      option :resource_owner_from_access_token,
-             default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured'))
-               nil
-             end)
+      option :resource_owner_from_access_token, default: lambda { |*_|
+        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')
+      }
 
-      option :subject,
-             default: (lambda do
-               logger.warn(I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured'))
-               nil
-             end)
+      option :subject, default: lambda { |*_|
+        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured')
+      }
 
       option :expiration, default: 120
 

@@ -18,7 +18,8 @@ module Doorkeeper
         attr_accessor :routes
 
         def initialize(routes, &block)
-          @routes, @block = routes, block
+          @routes = routes
+          @block = block
         end
 
         def generate_routes!(options)
@@ -36,27 +37,27 @@ module Doorkeeper
         private
 
         def map_route(name, method)
-          unless @mapping.skipped?(name)
-            mapping = @mapping[name]
+          return if @mapping.skipped?(name)
 
-            routes.scope controller: mapping[:controllers], as: mapping[:as] do
-              send method, mapping
-            end
+          mapping = @mapping[name]
+
+          routes.scope controller: mapping[:controllers], as: mapping[:as] do
+            send method
           end
         end
 
-        def userinfo_routes(mapping)
+        def userinfo_routes
           routes.get :show, path: 'userinfo', as: ''
           routes.post :show, path: 'userinfo', as: nil
         end
 
-        def discovery_routes(mapping)
+        def discovery_routes
           routes.scope path: 'discovery' do
             routes.get :keys
           end
         end
 
-        def discovery_well_known_routes(mapping)
+        def discovery_well_known_routes
           routes.scope path: '.well-known' do
             routes.get :provider, path: 'openid-configuration'
             routes.get :webfinger

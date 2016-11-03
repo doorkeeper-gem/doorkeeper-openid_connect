@@ -1,5 +1,4 @@
 Doorkeeper::OpenidConnect.configure do
-
   issuer 'issuer string'
 
   jws_private_key <<-EOL
@@ -38,4 +37,3 @@ EOL
   #   end
   # end
 end
-
