@@ -1,4 +1,5 @@
 require 'doorkeeper'
+require 'active_model'
 require 'json/jwt'
 
 require 'doorkeeper/openid_connect/claims_builder'
