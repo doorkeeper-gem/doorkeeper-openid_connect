@@ -6,6 +6,10 @@ describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
   let(:user) { create :user }
   let(:nonce) { '123456' }
 
+  before do
+    allow(Time).to receive(:now) { Time.at 60 }
+  end
+
   describe '#nonce' do
     it 'returns the stored nonce' do
       expect(subject.nonce).to eq '123456'
@@ -14,12 +18,15 @@ describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
 
   describe '#claims' do
     it 'returns all default claims' do
-      expect(subject.claims[:iss]).to eq 'dummy'
-      expect(subject.claims[:sub]).to eq user.id.to_s
-      expect(subject.claims[:aud]).to eq access_token.application.uid
-      expect(subject.claims[:exp]).to eq subject.claims[:iat] + 120
-      expect(subject.claims[:iat]).to be_a Integer
-      expect(subject.claims[:nonce]).to eq nonce
+      expect(subject.claims).to eq({
+        iss: 'dummy',
+        sub: user.id.to_s,
+        aud: access_token.application.uid,
+        exp: 180,
+        iat: 60,
+        nonce: nonce,
+        auth_time: 23,
+      })
     end
   end
 

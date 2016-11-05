@@ -20,7 +20,8 @@ module Doorkeeper
             aud: audience,
             exp: expiration,
             iat: issued_at,
-            nonce: nonce
+            nonce: nonce,
+            auth_time: auth_time,
           }
         end
 
@@ -52,6 +53,10 @@ module Doorkeeper
 
         def issued_at
           @issued_at.utc.to_i
+        end
+
+        def auth_time
+          @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner).try(:to_i)
         end
       end
     end

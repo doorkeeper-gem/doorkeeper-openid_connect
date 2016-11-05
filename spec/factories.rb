@@ -22,7 +22,9 @@ FactoryGirl.define do
     redirect_uri 'https://app.com/callback'
   end
 
-  factory :user
+  factory :user do
+    current_sign_in_at Time.at(23)
+  end
 
   factory :nonce, class: Doorkeeper::OpenidConnect::Nonce do
     access_grant
