@@ -5,10 +5,12 @@ module Doorkeeper
         module Code
           def issue_token
             super.tap do |access_grant|
-              ::Doorkeeper::OpenidConnect::Nonce.create!(
-                access_grant: access_grant,
-                nonce: pre_auth.nonce
-              )
+              if pre_auth.nonce
+                ::Doorkeeper::OpenidConnect::Nonce.create!(
+                  access_grant: access_grant,
+                  nonce: pre_auth.nonce
+                )
+              end
             end
           end
         end
