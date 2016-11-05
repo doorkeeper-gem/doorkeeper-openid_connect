@@ -14,12 +14,8 @@ module Doorkeeper
             :normal
           end
 
-          def method_missing(method_sym, *arguments, &block)
+          def to_proc
             @value
-          end
-
-          def response_to?(method_sym, *arguments, &block)
-            method_sym.to_s == @name
           end
         end
       end

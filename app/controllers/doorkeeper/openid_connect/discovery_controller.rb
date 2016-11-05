@@ -3,7 +3,7 @@ module Doorkeeper
     class DiscoveryController < ::Doorkeeper::ApplicationController
       include Doorkeeper::Helpers::Controller
 
-      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
+      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'.freeze
 
       def provider
         render json: provider_response
