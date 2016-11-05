@@ -3,7 +3,7 @@ require 'rails/generators/active_record'
 module Doorkeeper
   module OpenidConnect
     class MigrationGenerator < ::Rails::Generators::Base
-      include Rails::Generators::Migration
+      include ::Rails::Generators::Migration
       source_root File.expand_path('../templates', __FILE__)
       desc 'Installs Doorkeeper OpenID Connect migration file.'
 

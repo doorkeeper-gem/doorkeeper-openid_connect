@@ -1,7 +1,7 @@
 module Doorkeeper
   module OpenidConnect
     class InstallGenerator < ::Rails::Generators::Base
-      include Rails::Generators::Migration
+      include ::Rails::Generators::Migration
       source_root File.expand_path('../templates', __FILE__)
       desc 'Installs Doorkeeper OpenID Connect.'
 
