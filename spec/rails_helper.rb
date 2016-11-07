@@ -47,4 +47,10 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.include FactoryGirl::Syntax::Methods
+
+  # Reinitialize configuration after each example
+  config.after :each do
+    load "#{Rails.root}/config/initializers/doorkeeper.rb"
+    load "#{Rails.root}/config/initializers/doorkeeper_openid_connect.rb"
+  end
 end
