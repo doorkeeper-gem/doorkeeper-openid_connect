@@ -16,9 +16,10 @@ module Doorkeeper
           return true unless prompt_values.include?('none') && !owner
 
           # clear the previous response body to avoid a DoubleRenderError
-          # TODO: this is currently broken on Rails 5, see
-          # https://github.com/rails/rails/issues/25106
           self.response_body = nil
+
+          # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
+          @_response_body = nil
 
           error = ::Doorkeeper::OAuth::ErrorResponse.new(name: :login_required)
           response.headers.merge!(error.headers)
