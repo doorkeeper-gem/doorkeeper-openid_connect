@@ -30,7 +30,7 @@ module Doorkeeper
 
         def validate_max_age_param!(owner)
           max_age = params[:max_age].to_i
-          return true unless max_age.positive?
+          return true unless max_age > 0
 
           auth_time = instance_exec owner,
             &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
