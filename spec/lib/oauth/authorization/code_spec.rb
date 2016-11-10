@@ -16,13 +16,13 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       allow(client).to receive(:id) { 'client_id' }
 
       allow(Doorkeeper::AccessGrant).to receive(:create!) { access_grant }
-      allow(Doorkeeper::OpenidConnect::Nonce).to receive(:create!)
+      allow(Doorkeeper::OpenidConnect::Request).to receive(:create!)
     end
 
     it 'stores the nonce' do
       subject.issue_token
 
-      expect(Doorkeeper::OpenidConnect::Nonce).to have_received(:create!).with({
+      expect(Doorkeeper::OpenidConnect::Request).to have_received(:create!).with({
         access_grant: access_grant,
         nonce: '123456'
       })
@@ -32,7 +32,7 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       allow(pre_auth).to receive(:nonce) { nil }
       subject.issue_token
 
-      expect(Doorkeeper::OpenidConnect::Nonce).to_not have_received(:create!)
+      expect(Doorkeeper::OpenidConnect::Request).to_not have_received(:create!)
     end
 
     it 'returns the created grant' do

@@ -10,8 +10,8 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
 
   let(:server) { double }
   let(:client) { double }
-  let(:grant) { create :access_grant, openid_connect_nonce: nonce }
-  let(:nonce) { build :nonce, nonce: '123456' }
+  let(:grant) { create :access_grant, openid_request: openid_request }
+  let(:openid_request) { create :openid_request, nonce: '123456' }
   let(:token) { create :access_token }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
 
@@ -23,8 +23,16 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
       expect(response.id_token.nonce).to eq '123456'
     end
 
+    it 'destroys the OpenID request record' do
+      grant.save!
+
+      expect do
+        subject.send :after_successful_response
+      end.to change { Doorkeeper::OpenidConnect::Request.count }.by(-1)
+    end
+
     it 'skips the nonce if not present' do
-      grant.openid_connect_nonce = nil
+      grant.openid_request.nonce = nil
       subject.send :after_successful_response
 
       expect(response.id_token.nonce).to be_nil

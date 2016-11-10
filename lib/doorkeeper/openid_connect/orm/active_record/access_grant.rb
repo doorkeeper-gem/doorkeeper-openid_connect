@@ -3,8 +3,8 @@ module Doorkeeper
     module AccessGrant
       def self.prepended(base)
         base.class_eval do
-          has_one :openid_connect_nonce,
-            class_name: 'Doorkeeper::OpenidConnect::Nonce',
+          has_one :openid_request,
+            class_name: 'Doorkeeper::OpenidConnect::Request',
             inverse_of: :access_grant,
             dependent: :delete
         end

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe Doorkeeper::OpenidConnect::Nonce do
+describe Doorkeeper::OpenidConnect::Request do
   describe 'validations' do
     it 'requires an access grant' do
       subject.access_grant_id = nil
@@ -23,20 +23,8 @@ describe Doorkeeper::OpenidConnect::Nonce do
 
       expect(association.options).to eq({
         class_name: 'Doorkeeper::AccessGrant',
-        inverse_of: :openid_connect_nonce,
+        inverse_of: :openid_request,
       })
-    end
-  end
-
-  describe '#use' do
-    before do
-      subject.nonce = '123456'
-      allow(subject).to receive(:destroy!)
-    end
-
-    it 'destroys the record and returns the nonce' do
-      expect(subject.use!).to eq '123456'
-      expect(subject).to have_received(:destroy!)
     end
   end
 end

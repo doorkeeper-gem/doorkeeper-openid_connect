@@ -6,7 +6,14 @@ module Doorkeeper
 
         def after_successful_response
           super
-          id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token, grant.openid_connect_nonce.try(:use!))
+
+          nonce =
+            if openid_request = grant.openid_request
+              openid_request.destroy!
+              openid_request.nonce
+            end
+
+          id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token, nonce)
           @response.id_token = id_token
         end
       end
