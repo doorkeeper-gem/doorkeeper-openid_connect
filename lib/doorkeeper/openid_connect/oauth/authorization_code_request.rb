@@ -13,7 +13,7 @@ module Doorkeeper
               openid_request.nonce
             end
 
-          id_token = Doorkeeper::OpenidConnect::Models::IdToken.new(access_token, nonce)
+          id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
           @response.id_token = id_token
         end
       end

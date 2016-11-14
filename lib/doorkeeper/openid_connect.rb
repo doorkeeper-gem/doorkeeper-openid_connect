@@ -3,16 +3,15 @@ require 'active_model'
 require 'json/jwt'
 
 require 'doorkeeper/openid_connect/claims_builder'
+require 'doorkeeper/openid_connect/claims/claim'
+require 'doorkeeper/openid_connect/claims/normal_claim'
 require 'doorkeeper/openid_connect/config'
 require 'doorkeeper/openid_connect/engine'
+require 'doorkeeper/openid_connect/id_token'
+require 'doorkeeper/openid_connect/user_info'
 require 'doorkeeper/openid_connect/version'
 
 require 'doorkeeper/openid_connect/helpers/controller'
-
-require 'doorkeeper/openid_connect/models/id_token'
-require 'doorkeeper/openid_connect/models/user_info'
-require 'doorkeeper/openid_connect/models/claims/claim'
-require 'doorkeeper/openid_connect/models/claims/normal_claim'
 
 require 'doorkeeper/openid_connect/oauth/authorization/code'
 require 'doorkeeper/openid_connect/oauth/authorization_code_request'

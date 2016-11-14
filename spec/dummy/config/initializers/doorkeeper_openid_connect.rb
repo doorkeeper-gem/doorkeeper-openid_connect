@@ -61,5 +61,13 @@ twIDAQAB
 
   claims do
     normal_claim :name, &:name
+
+    normal_claim :created_at, scope: :openid do |user|
+      user.created_at.to_i
+    end
+
+    normal_claim :updated_at do |user|
+      user.updated_at.to_i
+    end
   end
 end

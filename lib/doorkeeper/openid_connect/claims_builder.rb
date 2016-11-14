@@ -12,13 +12,15 @@ module Doorkeeper
         @claims
       end
 
-      def normal_claim(name, &block)
+      def normal_claim(name, scope: nil, &block)
         @claims[name] =
-          Doorkeeper::OpenidConnect::Models::Claims::NormalClaim.new(
+          Claims::NormalClaim.new(
             name: name,
-            value: block
+            scope: scope,
+            generator: block
           )
       end
+      alias_method :claim, :normal_claim
     end
   end
 end

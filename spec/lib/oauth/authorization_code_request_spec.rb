@@ -19,7 +19,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
     it 'adds the ID token to the response' do
       subject.send :after_successful_response
 
-      expect(response.id_token).to be_a Doorkeeper::OpenidConnect::Models::IdToken
+      expect(response.id_token).to be_a Doorkeeper::OpenidConnect::IdToken
       expect(response.id_token.nonce).to eq '123456'
     end
 

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe Doorkeeper::OpenidConnect::Models::IdToken, type: :model do
+describe Doorkeeper::OpenidConnect::IdToken do
   subject { described_class.new(access_token, nonce) }
   let(:access_token) { create :access_token, resource_owner_id: user.id }
   let(:user) { create :user }

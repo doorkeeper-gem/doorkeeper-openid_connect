@@ -42,6 +42,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           'exp',
           'iat',
           'name',
+          'created_at',
+          'updated_at',
         ],
       }.sort)
     end

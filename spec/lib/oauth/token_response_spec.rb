@@ -3,7 +3,7 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
   subject { Doorkeeper::OAuth::TokenResponse.new token }
   let(:token) { create :access_token }
-  let(:id_token) { Doorkeeper::OpenidConnect::Models::IdToken.new token, '123456' }
+  let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new token, '123456' }
 
   describe '#body' do
     before do
