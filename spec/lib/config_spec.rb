@@ -8,22 +8,18 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     load "#{Rails.root}/config/initializers/doorkeeper_openid_connect.rb"
   end
 
-  describe 'scopes' do
-    it 'adds the openid scope to the Doorkeeper configuration' do
-      expect(Doorkeeper.configuration.scopes).to include 'openid'
-    end
-  end
-
-  describe 'orm' do
+  describe '#configure' do
     it 'fails if not set to :active_record' do
       # stub ORM setup to avoid Doorkeeper exceptions
       allow(Doorkeeper).to receive(:setup_orm_adapter)
       allow(Doorkeeper).to receive(:setup_orm_models)
 
+      Doorkeeper.configure do
+        orm :mongoid
+      end
+
       expect do
-        Doorkeeper.configure do
-          orm :mongoid
-        end
+        Doorkeeper::OpenidConnect.configure {}
       end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
     end
   end

@@ -24,8 +24,6 @@ require 'doorkeeper/openid_connect/orm/active_record'
 require 'doorkeeper/openid_connect/rails/routes'
 
 module Doorkeeper
-  singleton_class.send :prepend, OpenidConnect::DoorkeeperConfiguration
-
   module OpenidConnect
     # TODO: make this configurable
     SIGNING_ALGORITHM = 'RS256'.freeze

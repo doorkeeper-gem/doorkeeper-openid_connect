@@ -21,7 +21,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.1"
 
   spec.add_runtime_dependency 'doorkeeper', '~> 4.0'
-  #spec.add_runtime_dependency 'activemodel', '~> 4.0'
   spec.add_runtime_dependency 'json-jwt', '~> 1.6.5'
 
   spec.add_development_dependency 'rspec-rails'

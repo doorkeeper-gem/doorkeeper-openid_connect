@@ -12,7 +12,7 @@ This library implements [OpenID Connect](http://openid.net/connect/) for Rails a
 - [Status](#status)
 - [Installation](#installation)
 - [Configuration](#configuration)
-  - [Scopes](#scopes)
+  - [OAuth Scopes](#oauth-scopes)
   - [Routes](#routes)
 - [Development](#development)
 - [License](#license)
@@ -106,11 +106,11 @@ Custom claims can optionally be specified in a `claims` block. The following cla
 
 You can pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) as defined by OpenID Connect will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims), and any other claims will by default use the `profile` scope.
 
-### Scopes
+### OAuth Scopes
 
-The `openid` scope is automatically added to Doorkeeper's `optional_scopes`. If you want to use any of the other default scopes defined by OpenID Connect (`profile`, `email`, `address` and `phone`) you need to enable them manually with `default_scopes` / `optional_scopes` in `config/initializers/doorkeeper.rb`.
+To authenticate using OpenID Connect, clients need to request the `openid` scope. You can either enable this for all applications using `optional_scopes` in `config/initializers/doorkeeper.rb`, or add them to any Doorkeeper application's `scope` attribute. Note that any application defining its own scopes won't inherit the scopes defined in the initializer.
 
-Note that any Doorkeeper OAuth applications which define their own scopes also need to be updated to include `openid` and other desired scopes.
+The specification also defines the optional scopes `profile`, `email`, `address` and `phone` to grant access to groups of Standard Claims, as mentioned above.
 
 See [Using Scopes](https://github.com/doorkeeper-gem/doorkeeper/wiki/Using-Scopes) in the Doorkeeper wiki for more information.
 
