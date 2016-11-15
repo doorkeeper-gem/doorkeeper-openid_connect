@@ -29,6 +29,9 @@ FactoryGirl.find_definitions
 # If you are not using ActiveRecord, you can remove this line.
 ActiveRecord::Migration.maintain_test_schema!
 
+# Remove after dropping support of Rails 4.2
+require_relative 'support/http_method_shim.rb'
+
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
