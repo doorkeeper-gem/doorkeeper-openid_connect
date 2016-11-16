@@ -2,8 +2,9 @@ require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect do
   describe 'SIGNING_ALGORITHM' do
-    it 'is hard-coded to RS256' do
-      expect(subject::SIGNING_ALGORITHM).to eq 'RS256'
+    it 'is an allowable Signing Algorithm' do
+      let(:jwt_signing_algorithms) { %w[HS256 HS384 HS512 RS256 RS384 RS512 ES256 ES384 ES512] }
+      expect(jwt_signing_algorithms).to include(subject::SIGNING_ALGORITHM)
     end
   end
 
