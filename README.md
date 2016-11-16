@@ -80,7 +80,10 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 - `jws_private_key`, `jws_public_key`
   - Private and public RSA key pair for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
   - You can generate these with the `openssl` command, see e.g. [Generate a keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
-  - You should not commit these keys to your repository, but use external files (in combination with `File.read`) or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
+  - You should not commit these keys to your repository, but use external files (in combination with `File.read`) or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).  
+- `signing_algorithm`  
+  - Possible values include HS256, HS384, HS512, RS256, RS384, RS512, ES256, ES384, ES512  
+  - Read more at [JWT Algorithms](https://github.com/jwt/ruby-jwt#user-content-algorithms-and-usage)  
 - `resource_owner_from_access_token`
   - Defines how to translate the Doorkeeper access token to a resource owner model.
 
