@@ -12,6 +12,10 @@ EOL
 ....
 -----END RSA PUBLIC KEY-----
 EOL
+ 
+  signing_algorithm 'RS256'
+git@github.com:doorkeeper-gem/doorkeeper-openid_connect.git
+....
 
   resource_owner_from_access_token do |access_token|
     # Example implementation:
