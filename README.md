@@ -59,6 +59,7 @@ Verify your settings in `config/initializers/doorkeeper.rb`:
 
 - `resource_owner_authenticator`
   - Make sure this returns a falsey value if the current user can't be determined:
+
     ```ruby
     resource_owner_authenticator do
       if current_user
