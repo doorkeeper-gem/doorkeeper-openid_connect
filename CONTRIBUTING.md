@@ -63,3 +63,10 @@ feat: create initial CONTRIBUTING.md
 
 This closes #73
 ```
+
+## Release process
+
+- Bump version in `lib/doorkeeper/openid_connect/version.rb`
+- Update `CHANGELOG.md`
+- Commit all changes
+- Tag release and publish gem with `rake release`

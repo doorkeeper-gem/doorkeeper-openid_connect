@@ -1,15 +1,14 @@
-# coding: utf-8
 $:.push File.expand_path('../lib', __FILE__)
 require 'doorkeeper/openid_connect/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'doorkeeper-openid_connect'
   spec.version       = Doorkeeper::OpenidConnect::VERSION
-  spec.authors       = ['Sam Dengler']
-  spec.email         = ['sam.dengler@playonsports.com']
-  spec.homepage      = 'https://github.com/playon/doorkeeper-openid_connect'
-  spec.summary       = %q{OpenID Connect extension to Doorkeeper.}
-  spec.description   = %q{OpenID Connect extension to Doorkeeper.}
+  spec.authors       = ['Sam Dengler', 'Markus Koller']
+  spec.email         = ['sam.dengler@playonsports.com', 'markus-koller@gmx.ch']
+  spec.homepage      = 'https://github.com/doorkeeper-gem/doorkeeper-openid_connect'
+  spec.summary       = %q{OpenID Connect extension for Doorkeeper.}
+  spec.description   = %q{OpenID Connect extension for Doorkeeper.}
   spec.license       = %q{MIT}
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
@@ -27,4 +26,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'factory_girl'
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'pry-byebug'
+  spec.add_development_dependency 'conventional-changelog', '~> 1.2'
 end

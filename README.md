@@ -12,15 +12,15 @@ This library implements [OpenID Connect](http://openid.net/connect/) for Rails a
 - [Status](#status)
 - [Installation](#installation)
 - [Configuration](#configuration)
-  - [OAuth Scopes](#oauth-scopes)
+  - [Scopes](#scopes)
+  - [Claims](#claims)
   - [Routes](#routes)
+  - [Nonces](#nonces)
 - [Development](#development)
 - [License](#license)
 - [Sponsors](#sponsors)
 
 ## Status
-
-The library is usable but still a bit rough around the edges. Please refer to the [v1.0.1 README](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/v1.0.1/README.md) until the next version is released.
 
 The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-connect-core-1_0.html) are currently supported:
 - [Authentication using the Authorization Code Flow](http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)
@@ -81,7 +81,7 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 - `jws_private_key`, `jws_public_key`
   - Private and public RSA key pair for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
   - You can generate these with the `openssl` command, see e.g. [Generate a keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
-  - You should not commit these keys to your repository, but use external files (in combination with `File.read`) or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
+  - You should not commit these keys to your repository, but use external files (in combination with `File.read`) and/or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
 - `resource_owner_from_access_token`
   - Defines how to translate the Doorkeeper access token to a resource owner model.
 
@@ -100,20 +100,33 @@ The following settings are optional:
   - Expiration time after which the ID Token must not be accepted for processing by clients.
   - The default is 120 seconds
 
-Custom claims can optionally be specified in a `claims` block. The following claim types are currently supported:
+### Scopes
 
-- `normal_claim`
-  - Specify claim name and a block which is called with `resource_owner` to determine the claim value.
+To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.
 
-You can pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) as defined by OpenID Connect will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims), and any other claims will by default use the `profile` scope.
+> Note that any application defining its own scopes won't inherit the scopes defined in the initializer, so you might have to update existing applications as well.
+>
+> See [Using Scopes](https://github.com/doorkeeper-gem/doorkeeper/wiki/Using-Scopes) in the Doorkeeper wiki for more information.
 
-### OAuth Scopes
+### Claims
 
-To authenticate using OpenID Connect, clients need to request the `openid` scope. You can either enable this for all applications using `optional_scopes` in `config/initializers/doorkeeper.rb`, or add them to any Doorkeeper application's `scope` attribute. Note that any application defining its own scopes won't inherit the scopes defined in the initializer.
+Claims can be defined in a `claims` block inside `config/initializers/doorkeeper_openid_connect.rb`:
 
-The specification also defines the optional scopes `profile`, `email`, `address` and `phone` to grant access to groups of Standard Claims, as mentioned above.
+```ruby
+Doorkeeper::OpenidConnect.configure do
+  claims do
+    claim :email do |resource_owner|
+      resource_owner.email
+    end
 
-See [Using Scopes](https://github.com/doorkeeper-gem/doorkeeper/wiki/Using-Scopes) in the Doorkeeper wiki for more information.
+    claim :full_name do |resource_owner|
+      "#{resource_owner.first_name} #{resource_owner.last_name}"
+    end
+  end
+end
+```
+
+You can pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. If you define any of the defined [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) they will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) (`profile`, `email`, `address` and `phone`), and any other claims will by default use the `profile` scope. Again, to use any of these scopes you need to enable them as described above.
 
 ### Routes
 
@@ -134,6 +147,39 @@ POST  /oauth/userinfo
 GET   /oauth/discovery/keys
 GET   /.well-known/openid-configuration
 GET   /.well-known/webfinger
+```
+
+### Nonces
+
+To support clients who send nonces you have to tweak Doorkeeper's authorization view so the parameter is passed on.
+
+If you don't already have custom templates, run this generator in your Rails application to add them:
+
+```sh
+rails generate doorkeeper:views
+```
+
+Then tweak the template as follows:
+
+```patch
+--- i/app/views/doorkeeper/authorizations/new.html.erb
++++ w/app/views/doorkeeper/authorizations/new.html.erb
+@@ -26,6 +26,7 @@
+       <%= hidden_field_tag :state, @pre_auth.state %>
+       <%= hidden_field_tag :response_type, @pre_auth.response_type %>
+       <%= hidden_field_tag :scope, @pre_auth.scope %>
++      <%= hidden_field_tag :nonce, @pre_auth.nonce %>
+       <%= submit_tag t('doorkeeper.authorizations.buttons.authorize'), class: "btn btn-success btn-lg btn-block" %>
+     <% end %>
+     <%= form_tag oauth_authorization_path, method: :delete do %>
+@@ -34,6 +35,7 @@
+       <%= hidden_field_tag :state, @pre_auth.state %>
+       <%= hidden_field_tag :response_type, @pre_auth.response_type %>
+       <%= hidden_field_tag :scope, @pre_auth.scope %>
++      <%= hidden_field_tag :nonce, @pre_auth.nonce %>
+       <%= submit_tag t('doorkeeper.authorizations.buttons.deny'), class: "btn btn-danger btn-lg btn-block" %>
+     <% end %>
+   </div>
 ```
 
 ## Development
