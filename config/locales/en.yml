@@ -2,6 +2,10 @@ en:
   doorkeeper:
     scopes:
       openid: 'Authenticate your account'
+      profile: 'View your profile information'
+      email: 'View your email address'
+      address: 'View your physical address'
+      phone: 'View your phone number'
     errors:
       messages:
         login_required: 'The authorization server requires end-user authentication'

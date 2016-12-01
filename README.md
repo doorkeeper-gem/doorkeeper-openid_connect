@@ -5,7 +5,9 @@
 [![Code Climate](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect.svg)](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect)
 [![Gem Version](https://badge.fury.io/rb/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
 
-This library implements [OpenID Connect](http://openid.net/connect/) for Rails applications on top of the [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) OAuth 2.0 framework.
+This library implements an [OpenID Connect](http://openid.net/connect/) authentication provider for Rails applications on top of the [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) OAuth 2.0 framework.
+
+OpenID Connect is a single-sign-on and identity layer with a [growing list of server and client implementations](http://openid.net/developers/libraries/). If you're looking for a client in Ruby check out [omniauth-openid-connect](https://github.com/jjbohn/omniauth-openid-connect/).
 
 ## Table of Contents
 
@@ -16,6 +18,7 @@ This library implements [OpenID Connect](http://openid.net/connect/) for Rails a
   - [Claims](#claims)
   - [Routes](#routes)
   - [Nonces](#nonces)
+  - [Internationalization (I18n)](#internationalization-i18n)
 - [Development](#development)
 - [License](#license)
 - [Sponsors](#sponsors)
@@ -187,6 +190,10 @@ Then tweak the template as follows:
      <% end %>
    </div>
 ```
+
+### Internationalization (I18n)
+
+We use Rails locale files for error messages and scope descriptions, see [config/locales/en.yml](config/locales/en.yml). You can override these by adding them to your own translations in `config/locale`.
 
 ## Development
 
