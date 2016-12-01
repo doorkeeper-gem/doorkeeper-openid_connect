@@ -34,6 +34,8 @@ Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_conne
 
 ## Installation
 
+Make sure your application is already set up with [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper#installation).
+
 Add this line to your application's `Gemfile` and run `bundle install`:
 
 ```ruby
@@ -53,12 +55,16 @@ rails generate doorkeeper:openid_connect:migration
 rake db:migrate
 ```
 
+If you're upgrading from an earlier version, check [CHANGELOG.md](CHANGELOG.md) for upgrade instructions.
+
 ## Configuration
+
+Make sure you've [configured Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper#configuration) before continuing.
 
 Verify your settings in `config/initializers/doorkeeper.rb`:
 
 - `resource_owner_authenticator`
-  - Make sure this returns a falsey value if the current user can't be determined:
+  - This callback needs to returns a falsey value if the current user can't be determined:
 
     ```ruby
     resource_owner_authenticator do
