@@ -158,6 +158,8 @@ GET   /.well-known/openid-configuration
 GET   /.well-known/webfinger
 ```
 
+With the exception of the hard-coded `/.well-known` paths (see [RFC 5785](https://tools.ietf.org/html/rfc5785)) you can customize routes in the same way as with Doorkeeper, please refer to [this page on their wiki](https://github.com/doorkeeper-gem/doorkeeper/wiki/Customizing-routes#version--05-1).
+
 ### Nonces
 
 To support clients who send nonces you have to tweak Doorkeeper's authorization view so the parameter is passed on.
