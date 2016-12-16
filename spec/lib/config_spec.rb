@@ -34,16 +34,6 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
-  describe 'jws_public_key' do
-    it 'sets the value that is accessible via jws_public_key' do
-      value = 'public_key'
-      Doorkeeper::OpenidConnect.configure do
-        jws_public_key value
-      end
-      expect(subject.jws_public_key).to eq(value)
-    end
-  end
-
   describe 'issuer' do
     it 'sets the value that is accessible via issuer' do
       value = 'issuer'

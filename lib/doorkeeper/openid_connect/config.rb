@@ -29,6 +29,10 @@ module Doorkeeper
         def build
           @config
         end
+
+        def jws_public_key(*args)
+          puts "DEPRECATION WARNING: `jws_public_key` is not needed anymore and will be removed in a future version, please remove it from config/initializers/doorkeeper_openid_connect.rb"
+        end
       end
 
       module Option
@@ -95,7 +99,6 @@ module Doorkeeper
       extend Option
 
       option :jws_private_key
-      option :jws_public_key
       option :issuer
 
       option :resource_owner_from_access_token, default: lambda { |*_|

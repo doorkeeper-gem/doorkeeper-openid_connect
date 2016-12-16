@@ -7,12 +7,6 @@ Doorkeeper::OpenidConnect.configure do
 -----END RSA PRIVATE KEY-----
 EOL
 
-  jws_public_key <<-EOL
------BEGIN RSA PUBLIC KEY-----
-....
------END RSA PUBLIC KEY-----
-EOL
-
   resource_owner_from_access_token do |access_token|
     # Example implementation:
     # User.find_by(id: access_token.resource_owner_id)

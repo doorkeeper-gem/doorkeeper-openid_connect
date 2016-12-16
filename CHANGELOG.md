@@ -1,3 +1,10 @@
+### Unreleased
+
+#### Changes
+
+* The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
+
+
 <a name="v1.1.0"></a>
 ### v1.1.0 (2016-11-30)
 
