@@ -29,8 +29,18 @@ describe Doorkeeper::OpenidConnect::UserInfo do
   end
 
   describe '#as_json' do
-    it 'returns all accessible claims' do
-      expect(subject.as_json).to eq subject.claims
+    it 'returns claims with nil values and empty strings removed' do
+      allow(subject).to receive(:resource_owner_claims).and_return({
+        nil: nil,
+        empty: '',
+        blank: ' ',
+      })
+
+      json = subject.as_json
+
+      expect(json).to_not include :nil
+      expect(json).to_not include :empty
+      expect(json).to include :blank
     end
   end
 end
