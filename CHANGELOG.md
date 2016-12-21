@@ -3,6 +3,7 @@
 #### Changes
 
 * The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
+* The configuration setting `protocol` was added.
 
 
 <a name="v1.1.0"></a>
