@@ -125,6 +125,7 @@ module Doorkeeper
 
       def protocol
         @protocol ||= ::Rails.env.production? ? :https : :http
+        @protocol
       end
     end
   end
