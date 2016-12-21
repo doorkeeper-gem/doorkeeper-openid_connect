@@ -48,8 +48,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       }.sort)
     end
 
-    it 'uses HTTPS URLs in production' do
-      allow(Rails.env).to receive(:production?).and_return(true)
+    it 'uses the protocol option for generating URLs' do
+      allow(Doorkeeper::OpenidConnect.configuration).to receive(:protocol).and_return('https')
 
       get :provider
       data = JSON.parse(response.body)
