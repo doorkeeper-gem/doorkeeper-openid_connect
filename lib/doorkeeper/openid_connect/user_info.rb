@@ -13,7 +13,7 @@ module Doorkeeper
       end
 
       def as_json(*_)
-        claims
+        claims.reject { |_, value| value.nil? || value == '' }
       end
 
       private

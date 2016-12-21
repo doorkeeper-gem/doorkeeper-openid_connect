@@ -25,7 +25,7 @@ module Doorkeeper
       end
 
       def as_json(*_)
-        claims.reject { |_, value| value.blank? }
+        claims.reject { |_, value| value.nil? || value == '' }
       end
 
       def as_jws_token

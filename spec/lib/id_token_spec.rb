@@ -31,12 +31,16 @@ describe Doorkeeper::OpenidConnect::IdToken do
   end
 
   describe '#as_json' do
-    it 'returns claims with blank values removed' do
+    it 'returns claims with nil values and empty strings removed' do
       allow(subject).to receive(:issuer).and_return(nil)
+      allow(subject).to receive(:subject).and_return('')
+      allow(subject).to receive(:audience).and_return(' ')
+
       json = subject.as_json
 
-      expect(json).to include :aud
       expect(json).to_not include :iss
+      expect(json).to_not include :sub
+      expect(json).to include :aud
     end
   end
 

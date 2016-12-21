@@ -3,6 +3,7 @@
 #### Changes
 
 * The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
+* nil values and empty strings are now removed from the UserInfo and IdToken responses
 * The configuration setting `protocol` was added.
 
 
