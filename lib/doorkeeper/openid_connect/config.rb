@@ -113,6 +113,10 @@ module Doorkeeper
       option :expiration, default: 120
 
       option :claims, builder_class: ClaimsBuilder
+
+      option :protocol, default: lambda { |*_|
+        ::Rails.env.production? ? :https : :http
+      }
     end
   end
 end

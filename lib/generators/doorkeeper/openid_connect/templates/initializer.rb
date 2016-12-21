@@ -29,6 +29,12 @@ EOL
     # resource_owner.key
   end
 
+  # Protocol to use when generating URIs for the discovery endpoint,
+  # for example if you also use HTTPS in development
+  # protocol do
+  #   :https
+  # end
+
   # Expiration time on or after which the ID Token MUST NOT be accepted for processing. (default 120 seconds).
   # expiration 600
 

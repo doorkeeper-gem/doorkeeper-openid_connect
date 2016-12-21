@@ -49,13 +49,15 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       }.sort)
     end
 
-    it 'uses HTTPS URLs in production' do
-      allow(Rails.env).to receive(:production?).and_return(true)
+    it 'uses the protocol option for generating URLs' do
+      Doorkeeper::OpenidConnect.configure do
+        protocol { :testing }
+      end
 
       get :provider
       data = JSON.parse(response.body)
 
-      expect(data['authorization_endpoint']).to eq 'https://test.host/oauth/authorize'
+      expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
     end
   end
 
