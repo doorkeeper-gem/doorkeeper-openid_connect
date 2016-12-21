@@ -121,7 +121,11 @@ module Doorkeeper
 
       option :claims, builder_class: ClaimsBuilder
 
-      option :protocol, default: ::Rails.env.production? ? :https : :http
+      option :protocol
+
+      def protocol
+        @protocol ||= ::Rails.env.production? ? :https : :http
+      end
     end
   end
 end

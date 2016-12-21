@@ -103,4 +103,24 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       expect(subject.claims).to_not be_nil
     end
   end
+
+  describe 'protocol' do
+    it 'defaults to https in production' do
+      expect(::Rails.env).to receive(:production?).and_return(true)
+      expect(subject.protocol).to eq(:https)
+    end
+
+    it 'defaults to http in other environments' do
+      expect(::Rails.env).to receive(:production?).and_return(false)
+      expect(subject.protocol).to eq(:http)
+    end
+
+    it 'can be set to other protocols' do
+      Doorkeeper::OpenidConnect.configure do
+        protocol :ftp
+      end
+
+      expect(subject.protocol).to eq(:ftp)
+    end
+  end
 end
