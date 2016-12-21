@@ -31,18 +31,6 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
 -----END RSA PRIVATE KEY-----
   EOL
 
-  jws_public_key <<-EOL
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjdnSA6UWUQQHf6BLIkI
-EUhMRNBJC1NN/pFt1EJmEiI88GS0ceROO5B5Ooo9Y3QOWJ/n+u1uwTHBz0HCTN4w
-gArWd1TcqB5GQzQRP4eYnWyPfi4CfeqAHzQp+v4VwbcK0LW4FqtW5D0dtrFtI281
-FDxLhARzkhU2y7fuYhL8fVw5rUhE8uwvHRZ5CEZyxf7BSHxIvOZAAymhuzNLATt2
-DGkDInU1BmF75tEtBJAVLzWG/j4LPZh1EpSdfezqaXQlcy9PJi916UzTl0P7Yy+u
-lOdUsMlB6yo8qKTY1+AbZ5jzneHbGDU/O8QjYvii1WDmJ60t0jXicmOkGrOhruOp
-twIDAQAB
------END PUBLIC KEY-----
-  EOL
-
   resource_owner_from_access_token do |access_token|
     User.find_by(id: access_token.resource_owner_id)
   end
