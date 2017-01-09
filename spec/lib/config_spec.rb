@@ -52,6 +52,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       end
       expect(subject.resource_owner_from_access_token).to eq(block)
     end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.resource_owner_from_access_token.call
+      end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
+    end
   end
 
   describe 'auth_time_from_resource_owner' do
@@ -61,6 +69,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
         auth_time_from_resource_owner(&block)
       end
       expect(subject.auth_time_from_resource_owner).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.auth_time_from_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
     end
   end
 
@@ -72,6 +88,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       end
       expect(subject.reauthenticate_resource_owner).to eq(block)
     end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.reauthenticate_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
+    end
   end
 
   describe 'subject' do
@@ -81,6 +105,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
         subject(&block)
       end
       expect(subject.subject).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.subject.call
+      end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
     end
   end
 
