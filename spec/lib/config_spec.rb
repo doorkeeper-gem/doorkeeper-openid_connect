@@ -34,6 +34,20 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'jws_signature_alg' do
+    it 'has a default value of :RS256' do
+      expect(subject.jws_signature_alg).to eq :RS256
+    end
+
+    it 'sets the signature value accessible via jws_signature_alg' do
+      value = :ES256
+      Doorkeeper::OpenidConnect.configure do
+        jws_signature_alg value
+      end
+      expect(subject.jws_signature_alg).to eq(value)
+    end
+  end
+
   describe 'issuer' do
     it 'sets the value that is accessible via issuer' do
       value = 'issuer'

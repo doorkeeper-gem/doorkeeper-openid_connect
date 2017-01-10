@@ -1,6 +1,8 @@
 Doorkeeper::OpenidConnect.configure do
   issuer 'issuer string'
 
+  jws_signing_alg :RS256
+  
   jws_private_key <<-EOL
 -----BEGIN RSA PRIVATE KEY-----
 ....

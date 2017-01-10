@@ -26,10 +26,14 @@ require 'doorkeeper/openid_connect/rails/routes'
 module Doorkeeper
   module OpenidConnect
     # TODO: make this configurable
-    SIGNING_ALGORITHM = 'RS256'.freeze
+    # SIGNING_ALGORITHM = 'ES256'.freeze
 
     def self.signing_key
       JSON::JWK.new(OpenSSL::PKey.read(configuration.jws_private_key))
+    end
+
+    def self.signing_algorithm
+      configuration.jws_signature_alg
     end
   end
 end

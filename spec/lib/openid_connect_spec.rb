@@ -2,8 +2,14 @@ require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect do
   describe 'SIGNING_ALGORITHM' do
-    it 'is hard-coded to RS256' do
+    xit 'is hard-coded to RS256' do
       expect(subject::SIGNING_ALGORITHM).to eq 'RS256'
+    end
+  end
+
+  describe '.signing_algorithm' do
+    it 'returns the configured signing algorithm' do
+      expect(subject.signing_algorithm).to eq :RS256
     end
   end
 

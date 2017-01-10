@@ -99,6 +99,7 @@ module Doorkeeper
       extend Option
 
       option :jws_private_key
+      option :jws_signature_alg, default: :RS256
       option :issuer
 
       option :resource_owner_from_access_token, default: lambda { |*_|

@@ -51,7 +51,7 @@ module Doorkeeper
 
           # TODO: make this configurable
           id_token_signing_alg_values_supported: [
-            'RS256',
+            openid_connect.jws_signature_alg,
           ],
 
           claim_types_supported: [
@@ -91,7 +91,7 @@ module Doorkeeper
           keys: [
             signing_key.slice(:kty, :kid, :e, :n).merge(
               use: 'sig',
-              alg: Doorkeeper::OpenidConnect::SIGNING_ALGORITHM
+              alg: Doorkeeper::OpenidConnect.signing_algorithm
             )
           ]
         }
