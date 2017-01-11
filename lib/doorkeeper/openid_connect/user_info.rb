@@ -27,7 +27,7 @@ module Doorkeeper
       def resource_owner_claims
         Doorkeeper::OpenidConnect.configuration.claims.to_h.map do |name, claim|
           if @scopes.exists? claim.scope
-            [name, @resource_owner.instance_eval(&claim.generator)]
+            [name, claim.generator.call(@resource_owner, @scopes)]
           end
         end.compact.to_h
       end

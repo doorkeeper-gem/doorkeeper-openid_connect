@@ -135,6 +135,12 @@ Doorkeeper::OpenidConnect.configure do
     claim :full_name do |resource_owner|
       "#{resource_owner.first_name} #{resource_owner.last_name}"
     end
+
+    claim :preferred_username, scope: :openid do |resource_owner, application_scopes|
+      # Pass the resource_owner's preferred_username if the application has
+      # `profile` scope access. Otherwise, provide a more generic alternative.
+      application_scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
+    end
   end
 end
 ```

@@ -11,6 +11,7 @@ describe Doorkeeper::OpenidConnect::UserInfo do
       expect(subject.claims).to eq({
         sub: user.id.to_s,
         created_at: user.created_at.to_i,
+        variable_name: 'openid-name',
       })
     end
 
@@ -23,6 +24,7 @@ describe Doorkeeper::OpenidConnect::UserInfo do
           name: 'Joe',
           created_at: user.created_at.to_i,
           updated_at: user.updated_at.to_i,
+          variable_name: 'profile-name',
         })
       end
     end

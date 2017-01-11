@@ -48,7 +48,13 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
   end
 
   claims do
-    normal_claim :name, &:name
+    normal_claim :name do |user|
+      user.name
+    end
+
+    normal_claim :variable_name, scope: :openid do |user, scopes|
+      scopes.exists?(:profile) ? "profile-name" : "openid-name"
+    end
 
     normal_claim :created_at, scope: :openid do |user|
       user.created_at.to_i
