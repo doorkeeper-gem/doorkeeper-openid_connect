@@ -24,10 +24,10 @@ module Doorkeeper
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
         {
           issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: protocol),
-          token_endpoint: oauth_token_url(protocol: protocol),
-          userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
-          jwks_uri: oauth_discovery_keys_url(protocol: protocol),
+          authorization_endpoint: oauth_authorization_url,
+          token_endpoint: oauth_token_url,
+          userinfo_endpoint: oauth_userinfo_url,
+          jwks_uri: oauth_discovery_keys_url,
 
           scopes_supported: doorkeeper.scopes,
 
