@@ -120,6 +120,12 @@ module Doorkeeper
       option :expiration, default: 120
 
       option :claims, builder_class: ClaimsBuilder
+
+      option :protocol
+
+      def protocol
+        @protocol ||= ::Rails.env.production? ? :https : :http
+      end
     end
   end
 end
