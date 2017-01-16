@@ -33,7 +33,7 @@ module Doorkeeper
       end
 
       def subject
-        @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.subject).to_s
+        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner).to_s
       end
     end
   end
