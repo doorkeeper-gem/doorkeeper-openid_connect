@@ -5,6 +5,7 @@
 * The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
 * nil values and empty strings are now removed from the UserInfo and IdToken responses
 * Claims now receive an optional second `scopes` argument which allow you to dynamically adjust claim values based on the requesting applications' scopes
+* Allow json-jwt dependency at ~> 1.6.
 * Configuration blocks no longer internally use `instance_eval` which previously gave undocumented and unexpected `self` access to the caller.
 
 <a name="v1.1.0"></a>
