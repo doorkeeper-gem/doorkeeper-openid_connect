@@ -1,5 +1,6 @@
 module Doorkeeper
   module OpenidConnect
+    SUPPORTED_ORMS = [:active_record, :mongoid5]
     class ConfigurationError < StandardError; end
     class MissingConfiguration < StandardError
       def initialize
@@ -8,8 +9,8 @@ module Doorkeeper
     end
 
     def self.configure(&block)
-      if Doorkeeper.configuration.orm != :active_record
-        fail ConfigurationError, 'Doorkeeper OpenID Connect currently only supports the ActiveRecord ORM adapter'
+      unless SUPPORTED_ORMS.include? Doorkeeper.configuration.orm
+        fail ConfigurationError, "Doorkeeper OpenID Connect currently only supports the #{SUPPORTED_ORMS.map { |orm| orm.to_s.titleize }.join(', ')} ORMS"
       end
 
       @config = Config::Builder.new(&block).build
