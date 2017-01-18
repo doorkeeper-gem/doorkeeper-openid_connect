@@ -2,12 +2,20 @@
 
 #### Changes
 
+<a name="v1.1.2"></a>
+### v1.1.2 (2017-01-18)
+
+### Bugfixes
+
+- Fixes the `undefined local variable or method 'pre_auth'` error
+
 <a name="v1.1.1"></a>
 ### v1.1.1 (2017-01-18)
 
 #### Upgrading
 
 - The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
+- The undocumented shorthand `to_proc` syntax for defining claims (`claim :user, &:name`) is not supported anymore
 
 #### Features
 
