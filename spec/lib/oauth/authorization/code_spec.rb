@@ -35,6 +35,13 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       expect(Doorkeeper::OpenidConnect::Request).to_not have_received(:create!)
     end
 
+    it 'does not store the nonce if blank' do
+      allow(pre_auth).to receive(:nonce) { ' ' }
+      subject.issue_token
+
+      expect(Doorkeeper::OpenidConnect::Request).to_not have_received(:create!)
+    end
+
     it 'returns the created grant' do
       expect(subject.issue_token).to be_a Doorkeeper::AccessGrant
     end
