@@ -2,14 +2,29 @@
 
 #### Changes
 
-* The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
-* nil values and empty strings are now removed from the UserInfo and IdToken responses
-* Claims now receive an optional second `scopes` argument which allow you to dynamically adjust claim values based on the requesting applications' scopes (by @nbibler)
-* Standard Claims are now mapped correctly to their default scopes (by @tylerhunt)
-* Allow json-jwt dependency at ~> 1.6. (by @nbibler)
-* Configuration blocks no longer internally use `instance_eval` which previously gave undocumented and unexpected `self` access to the caller. (by @nbibler)
-* The `prompt` parameter values `login` and `consent` are now supported
-* The configuration setting `protocol` was added (by @gigr)
+<a name="v1.1.1"></a>
+### v1.1.1 (2017-01-18)
+
+#### Upgrading
+
+- The configuration setting `jws_public_key` wasn't actually used, it's deprecated now and will be removed in the next major release
+
+#### Features
+
+- Claims now receive an optional second `scopes` argument which allow you to dynamically adjust claim values based on the requesting applications' scopes (by @nbibler)
+- The `prompt` parameter values `login` and `consent` are now supported
+- The configuration setting `protocol` was added (by @gigr)
+
+#### Bugfixes
+
+- Standard Claims are now mapped correctly to their default scopes (by @tylerhunt)
+- Blank `nonce` parameters are now ignored
+
+#### Changes
+
+- `nil` values and empty strings are now removed from the UserInfo and IdToken responses
+- Allow `json-jwt` dependency at ~> 1.6. (by @nbibler)
+- Configuration blocks no longer internally use `instance_eval` which previously gave undocumented and unexpected `self` access to the caller (by @nbibler)
 
 <a name="v1.1.0"></a>
 ### v1.1.0 (2016-11-30)
@@ -23,11 +38,11 @@ This release is a general clean-up and adds support for some advanced OpenID Con
 
 #### Features
 
-* Add discovery endpoint	 ([a16caa8](/../../commit/a16caa8))
-* Add webfinger and keys endpoints for discovery	 ([f70898b](/../../commit/f70898b))
-* Add supported claims to discovery response	 ([1d8f9ea](/../../commit/1d8f9ea))
-* Support prompt=none parameter	 ([c775d8b](/../../commit/c775d8b))
-* Store and return nonces in IdToken responses	 ([d28ca8c](/../../commit/d28ca8c))
-* Add generator for initializer	 ([80399fd](/../../commit/80399fd))
-* Support max_age parameter	 ([aabe3aa](/../../commit/aabe3aa))
-* Respect scope grants in UserInfo response	 ([25f2170](/../../commit/25f2170))
+- Add discovery endpoint	 ([a16caa8](/../../commit/a16caa8))
+- Add webfinger and keys endpoints for discovery	 ([f70898b](/../../commit/f70898b))
+- Add supported claims to discovery response	 ([1d8f9ea](/../../commit/1d8f9ea))
+- Support prompt=none parameter	 ([c775d8b](/../../commit/c775d8b))
+- Store and return nonces in IdToken responses	 ([d28ca8c](/../../commit/d28ca8c))
+- Add generator for initializer	 ([80399fd](/../../commit/80399fd))
+- Support max_age parameter	 ([aabe3aa](/../../commit/aabe3aa))
+- Respect scope grants in UserInfo response	 ([25f2170](/../../commit/25f2170))
