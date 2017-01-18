@@ -17,9 +17,9 @@ EOL
     # resource_owner.current_sign_in_at
   end
 
-  reauthenticate_resource_owner do |resource_owner|
+  reauthenticate_resource_owner do |resource_owner, return_to|
     # Example implementation:
-    # store_location_for resource_owner, request.fullpath
+    # store_location_for resource_owner, return_to
     # sign_out resource_owner
     # redirect_to new_user_session_url
   end
