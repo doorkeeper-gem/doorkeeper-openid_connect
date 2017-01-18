@@ -8,6 +8,7 @@
 * Standard Claims are now mapped correctly to their default scopes (by @tylerhunt)
 * Allow json-jwt dependency at ~> 1.6. (by @nbibler)
 * Configuration blocks no longer internally use `instance_eval` which previously gave undocumented and unexpected `self` access to the caller. (by @nbibler)
+* The `prompt` parameter values `login` and `consent` are now supported
 
 <a name="v1.1.0"></a>
 ### v1.1.0 (2016-11-30)
