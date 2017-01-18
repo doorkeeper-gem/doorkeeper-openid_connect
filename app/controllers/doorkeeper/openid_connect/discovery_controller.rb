@@ -98,11 +98,7 @@ module Doorkeeper
       end
 
       def protocol
-        if ::Rails.env.production?
-          :https
-        else
-          :http
-        end
+        Doorkeeper::OpenidConnect.configuration.protocol.call
       end
     end
   end

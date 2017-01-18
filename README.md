@@ -110,6 +110,12 @@ The following settings are optional:
   - Expiration time after which the ID Token must not be accepted for processing by clients.
   - The default is 120 seconds
 
+- `protocol`
+  - The protocol to use when generating URIs for the discovery endpoints.
+  - The default is `https` for production, and `http` for all other environments
+  - Note that the OIC specification mandates HTTPS, so you shouldn't change this
+    for production environments unless you have a really good reason!
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.
