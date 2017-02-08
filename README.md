@@ -102,12 +102,19 @@ The following settings are optional, but recommended for better client compatibi
 - `reauthenticate_resource_owner`
   - Defines how to trigger reauthentication for the current user (e.g. display a password prompt, or sign-out the user and redirect to the login form).
   - Required to support the `max_age` and `prompt=login` parameters.
+  - The block is executed in the controller's scope, so you have access to methods like `params`, `redirect_to` etc.
 
 The following settings are optional:
 
 - `expiration`
   - Expiration time after which the ID Token must not be accepted for processing by clients.
   - The default is 120 seconds
+
+- `protocol`
+  - The protocol to use when generating URIs for the discovery endpoints.
+  - The default is `https` for production, and `http` for all other environments
+  - Note that the OIC specification mandates HTTPS, so you shouldn't change this
+    for production environments unless you have a really good reason!
 
 ### Scopes
 
@@ -130,6 +137,12 @@ Doorkeeper::OpenidConnect.configure do
 
     claim :full_name do |resource_owner|
       "#{resource_owner.first_name} #{resource_owner.last_name}"
+    end
+
+    claim :preferred_username, scope: :openid do |resource_owner, application_scopes|
+      # Pass the resource_owner's preferred_username if the application has
+      # `profile` scope access. Otherwise, provide a more generic alternative.
+      application_scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
     end
   end
 end

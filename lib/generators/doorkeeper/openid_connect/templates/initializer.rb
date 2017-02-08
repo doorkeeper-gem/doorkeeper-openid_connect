@@ -19,9 +19,9 @@ EOL
     # resource_owner.current_sign_in_at
   end
 
-  reauthenticate_resource_owner do |resource_owner|
+  reauthenticate_resource_owner do |resource_owner, return_to|
     # Example implementation:
-    # store_location_for resource_owner, request.fullpath
+    # store_location_for resource_owner, return_to
     # sign_out resource_owner
     # redirect_to new_user_session_url
   end
@@ -30,6 +30,12 @@ EOL
     # Example implementation:
     # resource_owner.key
   end
+
+  # Protocol to use when generating URIs for the discovery endpoint,
+  # for example if you also use HTTPS in development
+  # protocol do
+  #   :https
+  # end
 
   # Expiration time on or after which the ID Token MUST NOT be accepted for processing. (default 120 seconds).
   # expiration 600

@@ -39,7 +39,7 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
     resource_owner.current_sign_in_at
   end
 
-  reauthenticate_resource_owner do |_resource_owner|
+  reauthenticate_resource_owner do |_resource_owner, _return_to|
     redirect_to '/reauthenticate'
   end
 
@@ -48,7 +48,13 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
   end
 
   claims do
-    normal_claim :name, &:name
+    normal_claim :name do |user|
+      user.name
+    end
+
+    normal_claim :variable_name, scope: :openid do |user, scopes|
+      scopes.exists?(:profile) ? "profile-name" : "openid-name"
+    end
 
     normal_claim :created_at, scope: :openid do |user|
       user.created_at.to_i

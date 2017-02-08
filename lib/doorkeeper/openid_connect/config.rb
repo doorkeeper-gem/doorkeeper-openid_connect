@@ -1,22 +1,15 @@
 module Doorkeeper
   module OpenidConnect
-    class ConfigurationError < StandardError; end
-    class MissingConfiguration < StandardError
-      def initialize
-        super('Configuration for Doorkeeper OpenID Connect missing. Do you have doorkeeper_openid_connect initializer?')
-      end
-    end
-
     def self.configure(&block)
       if Doorkeeper.configuration.orm != :active_record
-        fail ConfigurationError, 'Doorkeeper OpenID Connect currently only supports the ActiveRecord ORM adapter'
+        fail Errors::InvalidConfiguration, 'Doorkeeper OpenID Connect currently only supports the ActiveRecord ORM adapter'
       end
 
       @config = Config::Builder.new(&block).build
     end
 
     def self.configuration
-      @config || (fail MissingConfiguration)
+      @config || (fail Errors::MissingConfiguration)
     end
 
     class Config
@@ -103,24 +96,28 @@ module Doorkeeper
       option :issuer
 
       option :resource_owner_from_access_token, default: lambda { |*_|
-        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')
+        fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')
       }
 
       option :auth_time_from_resource_owner, default: lambda { |*_|
-        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.auth_time_from_resource_owner_not_configured')
+        fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.auth_time_from_resource_owner_not_configured')
       }
 
       option :reauthenticate_resource_owner, default: lambda { |*_|
-        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured')
+        fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured')
       }
 
       option :subject, default: lambda { |*_|
-        fail ConfigurationError, I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured')
+        fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured')
       }
 
       option :expiration, default: 120
 
       option :claims, builder_class: ClaimsBuilder
+
+      option :protocol, default: lambda { |*_|
+        ::Rails.env.production? ? :https : :http
+      }
     end
   end
 end

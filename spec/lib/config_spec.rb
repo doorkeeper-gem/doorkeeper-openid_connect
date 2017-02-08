@@ -3,11 +3,6 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect, 'configuration' do
   subject { Doorkeeper::OpenidConnect.configuration }
 
-  after :each do
-    load "#{Rails.root}/config/initializers/doorkeeper.rb"
-    load "#{Rails.root}/config/initializers/doorkeeper_openid_connect.rb"
-  end
-
   describe '#configure' do
     it 'fails if not set to :active_record' do
       # stub ORM setup to avoid Doorkeeper exceptions
@@ -20,7 +15,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
       expect do
         Doorkeeper::OpenidConnect.configure {}
-      end.to raise_error Doorkeeper::OpenidConnect::ConfigurationError
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
   end
 
@@ -66,6 +61,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       end
       expect(subject.resource_owner_from_access_token).to eq(block)
     end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.resource_owner_from_access_token.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+    end
   end
 
   describe 'auth_time_from_resource_owner' do
@@ -75,6 +78,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
         auth_time_from_resource_owner(&block)
       end
       expect(subject.auth_time_from_resource_owner).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.auth_time_from_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
   end
 
@@ -86,6 +97,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       end
       expect(subject.reauthenticate_resource_owner).to eq(block)
     end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.reauthenticate_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+    end
   end
 
   describe 'subject' do
@@ -95,6 +114,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
         subject(&block)
       end
       expect(subject.subject).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.subject.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
   end
 
@@ -115,6 +142,28 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
         end
       end
       expect(subject.claims).to_not be_nil
+    end
+  end
+
+  describe 'protocol' do
+    it 'defaults to https in production' do
+      expect(::Rails.env).to receive(:production?).and_return(true)
+
+      expect(subject.protocol.call).to eq(:https)
+    end
+
+    it 'defaults to http in other environments' do
+      expect(::Rails.env).to receive(:production?).and_return(false)
+
+      expect(subject.protocol.call).to eq(:http)
+    end
+
+    it 'can be set to other protocols' do
+      Doorkeeper::OpenidConnect.configure do
+        protocol { :ftp }
+      end
+
+      expect(subject.protocol.call).to eq(:ftp)
     end
   end
 end

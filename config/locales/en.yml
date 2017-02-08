@@ -9,6 +9,9 @@ en:
     errors:
       messages:
         login_required: 'The authorization server requires end-user authentication'
+        consent_required: 'The authorization server requires end-user consent'
+        interaction_required: 'The authorization server requires end-user interaction'
+        account_selection_required: 'The authorization server requires end-user account selection'
     openid_connect:
       errors:
         messages:

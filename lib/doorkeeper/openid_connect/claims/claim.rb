@@ -7,18 +7,18 @@ module Doorkeeper
         # http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
         # http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
         STANDARD_CLAIMS = {
-          profile: %w[
+          profile: %i[
             name family_name given_name middle_name nickname preferred_username
             profile picture website gender birthdate zoneinfo locale updated_at
           ],
-          email: %w[ email email_verified ],
-          address: %w[ address ],
-          phone: %w[ phone_number phone_number_verified ],
+          email: %i[ email email_verified ],
+          address: %i[ address ],
+          phone: %i[ phone_number phone_number_verified ],
         }
 
         def initialize(options = {})
-          @name = options[:name]
-          @scope = options[:scope]
+          @name = options[:name].to_sym
+          @scope = options[:scope].to_sym if options[:scope]
 
           # use default scope for Standard Claims
           @scope ||= STANDARD_CLAIMS.find do |_scope, claims|

@@ -8,7 +8,7 @@ module Doorkeeper
       def initialize(access_token, nonce = nil)
         @access_token = access_token
         @nonce = nonce
-        @resource_owner = access_token.instance_eval(&Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token)
+        @resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
         @issued_at = Time.now
       end
 
@@ -42,7 +42,7 @@ module Doorkeeper
       end
 
       def subject
-        @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.subject).to_s
+        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner).to_s
       end
 
       def audience
@@ -58,7 +58,7 @@ module Doorkeeper
       end
 
       def auth_time
-        @resource_owner.instance_eval(&Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner).try(:to_i)
+        Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner.call(@resource_owner).try(:to_i)
       end
     end
   end
