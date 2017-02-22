@@ -36,7 +36,7 @@ module Doorkeeper
             when 'login' then
               if owner
                 auth_time = authentication_time(owner)
-                if !auth_time || (Time.zone.now - auth_time) > 30.seconds
+                if !auth_time || (Time.zone.now - auth_time) > 10.seconds
                   reauthenticate_resource_owner(owner)
                 end
               end
