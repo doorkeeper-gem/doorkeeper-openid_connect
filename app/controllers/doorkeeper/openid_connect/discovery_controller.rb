@@ -89,7 +89,7 @@ module Doorkeeper
 
         {
           keys: [
-            signing_key.slice(:kty, :kid, :e, :n).merge(
+            signing_key.slice(:kty, :kid, :e, :n, :x, :y, :crv).merge(
               use: 'sig',
               alg: Doorkeeper::OpenidConnect.signing_algorithm
             )
