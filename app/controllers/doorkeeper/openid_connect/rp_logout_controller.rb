@@ -18,6 +18,9 @@ module Doorkeeper
         #   parameter or via another mechanism. If supplied, the OP SHOULD honor this request following the logout.
         # state
         #   OPTIONAL. Opaque value used by the RP to maintain state between the logout request and the callback to the endpoint specified by the post_logout_redirect_uri query parameter. If included in the logout request, the OP passes this value back to the RP using the state query parameter when redirecting the User Agent back to the RP.
+        #
+        ## Documentation for the Spec
+        # https://openid.net/specs/openid-connect-session-1_0.html#RPLogout
 
         # client = doorkeeper_token.application
         instance_exec current_user, &Doorkeeper::OpenidConnect.configuration.logout_resource_owner
