@@ -11,6 +11,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'authorization_endpoint' => 'http://test.host/oauth/authorize',
         'token_endpoint' => 'http://test.host/oauth/token',
         'userinfo_endpoint' => 'http://test.host/oauth/userinfo',
+        'end_session_endpoint' => 'http://test.host/oauth/rp_logout',
         'jwks_uri' => 'http://test.host/oauth/discovery/keys',
 
         'scopes_supported' => ['openid'],
