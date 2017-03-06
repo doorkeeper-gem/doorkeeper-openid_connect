@@ -50,10 +50,6 @@ module Doorkeeper
         end
 
         redirect_to "/"
-
-        # resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(doorkeeper_token)
-        # user_info = Doorkeeper::OpenidConnect::UserInfo.new(resource_owner, doorkeeper_token.scopes)
-        # render json: user_info, status: :ok
       end
     end
   end
