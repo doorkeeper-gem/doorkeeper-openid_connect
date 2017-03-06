@@ -26,6 +26,7 @@ module Doorkeeper
           @mapping = Mapper.new.map(&@block)
           routes.scope options[:scope] || 'oauth', as: 'oauth' do
             map_route(:userinfo, :userinfo_routes)
+            map_route(:rp_logout, :rp_logout_routes)
             map_route(:discovery, :discovery_routes)
           end
 
@@ -49,6 +50,10 @@ module Doorkeeper
         def userinfo_routes
           routes.get :show, path: 'userinfo', as: ''
           routes.post :show, path: 'userinfo', as: nil
+        end
+
+        def rp_logout_routes
+          routes.get :show, path: 'rp_logout', as: ''
         end
 
         def discovery_routes

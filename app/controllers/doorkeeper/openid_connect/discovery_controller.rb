@@ -27,6 +27,7 @@ module Doorkeeper
           authorization_endpoint: oauth_authorization_url,
           token_endpoint: oauth_token_url,
           userinfo_endpoint: oauth_userinfo_url,
+          end_session_endpoint: oauth_rp_logout_url,
           jwks_uri: oauth_discovery_keys_url,
 
           scopes_supported: doorkeeper.scopes,
