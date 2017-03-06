@@ -20,3 +20,4 @@ en:
           auth_time_from_resource_owner_not_configured: 'Failure due to Doorkeeper::OpenidConnect.configure.auth_time_from_resource_owner missing configuration.'
           reauthenticate_resource_owner_not_configured: 'Failure due to Doorkeeper::OpenidConnect.configure.reauthenticate_resource_owner missing configuration.'
           subject_not_configured: 'ID Token generation failed due to Doorkeeper::OpenidConnect.configure.subject missing configuration.'
+          logout_resource_owner_not_configured: 'Failure due to Doorkeeper::OpenidConnect.configure.logout_resource_owner missing configuration.'
