@@ -107,6 +107,24 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'logout_resource_owner' do
+    it 'sets the block that is accessible via logout_resource_owner' do
+      block = proc {}
+      Doorkeeper::OpenidConnect.configure do
+        logout_resource_owner(&block)
+      end
+      expect(subject.logout_resource_owner).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.logout_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+    end
+  end
+
   describe 'subject' do
     it 'sets the block that is accessible via subject' do
       block = proc {}
