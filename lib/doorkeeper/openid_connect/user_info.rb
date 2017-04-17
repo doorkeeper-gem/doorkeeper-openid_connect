@@ -3,9 +3,10 @@ module Doorkeeper
     class UserInfo
       include ActiveModel::Validations
 
-      def initialize(resource_owner, scopes)
+      def initialize(resource_owner, doorkeeper_token)
         @resource_owner = resource_owner
-        @scopes = scopes
+        @scopes = doorkeeper_token.scopes
+        @application = doorkeeper_token.application
       end
 
       def claims
@@ -33,7 +34,7 @@ module Doorkeeper
       end
 
       def subject
-        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner).to_s
+        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner, @application).to_s
       end
     end
   end
