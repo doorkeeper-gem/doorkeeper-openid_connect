@@ -88,9 +88,11 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
   - Identifier for the resource owner (i.e. the authenticated user). A locally unique and never reassigned identifier within the issuer for the end-user, which is intended to be consumed by the client. The value is a case-sensitive string and must not exceed 255 ASCII characters in length.
   - The database ID of the user is an acceptable choice if you don't mind leaking that information.
 - `jws_private_key`
-  - Private RSA key for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
-  - You can generate a private key with the `openssl` command, see e.g. [Generate a keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
+  - Private key for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
+  - You can generate a private key with the `openssl` command, see e.g. [Generate an RSA keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
   - You should not commit the key to your repository, but use an external file (in combination with `File.read`) and/or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
+- `signing_algorithm`
+  - The encryption type of the private key which defaults to `:rs256`. The list of supported algorithms can be found [here](https://github.com/nov/json-jwt/wiki/JWE#supported-algorithms)
 - `resource_owner_from_access_token`
   - Defines how to translate the Doorkeeper access token to a resource owner model.
 

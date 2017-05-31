@@ -20,12 +20,22 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
   end
 
   describe 'jws_private_key' do
-    it 'sets the value that is accessible via jws_private_key' do
+    it 'delegates to signing_key' do
       value = 'private_key'
       Doorkeeper::OpenidConnect.configure do
         jws_private_key value
       end
-      expect(subject.jws_private_key).to eq(value)
+      expect(subject.signing_key).to eq(value)
+    end
+  end
+
+  describe 'signing_key' do
+    it 'sets the value that is accessible via signing_key' do
+      value = 'private_key'
+      Doorkeeper::OpenidConnect.configure do
+        signing_key value
+      end
+      expect(subject.signing_key).to eq(value)
     end
   end
 

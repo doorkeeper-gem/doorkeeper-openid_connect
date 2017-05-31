@@ -26,6 +26,11 @@ module Doorkeeper
         def jws_public_key(*args)
           puts "DEPRECATION WARNING: `jws_public_key` is not needed anymore and will be removed in a future version, please remove it from config/initializers/doorkeeper_openid_connect.rb"
         end
+
+        def jws_private_key(*args)
+          puts "DEPRECATION WARNING: `jws_private_key` has been replaced by signing_key and will be removed in a future version, please remove it from config/initializers/doorkeeper_openid_connect.rb"
+          signing_key(*args)
+        end
       end
 
       module Option
@@ -91,8 +96,9 @@ module Doorkeeper
 
       extend Option
 
-      option :jws_private_key
       option :issuer
+      option :signing_key
+      option :signing_algorithm, default: :rs256
 
       option :resource_owner_from_access_token, default: lambda { |*_|
         fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')

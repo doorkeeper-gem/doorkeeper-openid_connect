@@ -45,9 +45,25 @@ describe Doorkeeper::OpenidConnect::IdToken do
   end
 
   describe '#as_jws_token' do
-    it 'returns claims encoded as JWT' do
-      jwt = JSON::JWT.decode_compact_serialized subject.as_jws_token, Doorkeeper::OpenidConnect.signing_key
-      expect(jwt.to_hash).to eq subject.as_json.stringify_keys
+    shared_examples 'a jws token' do
+      it 'returns claims encoded as JWT' do
+        jwt = JSON::JWT.decode_compact_serialized subject.as_jws_token, Doorkeeper::OpenidConnect.signing_key
+        expect(jwt.to_hash).to eq subject.as_json.stringify_keys
+      end
+    end
+
+    it_behaves_like 'a jws token'
+
+    context 'when signing_algorithm is EC' do
+      before { configure_ec }
+
+      it_behaves_like 'a jws token'
+    end
+
+    context 'when signing_algorithm is HMAC' do
+      before { configure_hmac }
+
+      it_behaves_like 'a jws token'
     end
   end
 end
