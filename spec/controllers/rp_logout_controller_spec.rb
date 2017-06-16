@@ -14,11 +14,18 @@ describe Doorkeeper::OpenidConnect::RpLogoutController, type: :controller do
         end
       end
 
-      it 'redirects to the specified post_logout_redirect_uri' do 
+      it 'redirects to the specified post_logout_redirect_uri' do
         get :show, post_logout_redirect_uri: 'https://test.venuenext.net'
 
         expect(response.status).to eq 302
         expect(response).to redirect_to('https://test.venuenext.net')
+      end
+
+      it 'redirects to the specified localhost post_logout_redirect_uri' do
+        get :show, post_logout_redirect_uri: 'https://localhost:3000'
+
+        expect(response.status).to eq 302
+        expect(response).to redirect_to('https://localhost:3000')
       end
 
       it 'redirects to the specified post_logout_redirect_uri with the state' do
@@ -36,7 +43,7 @@ describe Doorkeeper::OpenidConnect::RpLogoutController, type: :controller do
       end
 
       it 'merges the query parameters with the state in an encoded post_logout_redirect_uri' do
-        get :show, 
+        get :show,
           post_logout_redirect_uri: 'https://test.venuenext.net/path/?state=bob&param2=8912',
           state: 'test999'
 
@@ -67,7 +74,7 @@ describe Doorkeeper::OpenidConnect::RpLogoutController, type: :controller do
         end
       end
 
-      it 'returns an error for non venuenext.net domains' do 
+      it 'returns an error for non venuenext.net domains' do
         get :show, post_logout_redirect_uri: 'https://test.otherdomain.net'
 
         expect(response.status).to eq 400
