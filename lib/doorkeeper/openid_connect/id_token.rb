@@ -29,7 +29,10 @@ module Doorkeeper
       end
 
       def as_jws_token
-        JSON::JWT.new(as_json).sign(Doorkeeper::OpenidConnect.signing_key).to_s
+        JSON::JWT.new(as_json).sign(
+          Doorkeeper::OpenidConnect.signing_key, 
+          Doorkeeper::OpenidConnect.signing_algorithm,
+        ).to_s
       end
 
       private

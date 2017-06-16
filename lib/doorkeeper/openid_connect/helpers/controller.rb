@@ -34,7 +34,17 @@ module Doorkeeper
               raise Errors::LoginRequired unless owner
               raise Errors::ConsentRequired unless matching_tokens_for_resource_owner(owner).present?
             when 'login' then
-              reauthenticate_resource_owner(owner) if owner
+              # HACK: To avoid double logins when a user is logged out and we get a
+              #       request with prompt=login (when using devise).
+              
+              # Consider a login that has happened within the past 10 seconds to have fulfilled
+              # the prompt=login parameter in the request.
+              if owner
+                auth_time = authentication_time(owner)
+                if !auth_time || (Time.zone.now - auth_time) > 10.seconds
+                  reauthenticate_resource_owner(owner)
+                end
+              end
             when 'consent' then
               matching_tokens_for_resource_owner(owner).map(&:destroy)
             when 'select_account' then
@@ -50,8 +60,7 @@ module Doorkeeper
           max_age = params[:max_age].to_i
           return unless max_age > 0 && owner
 
-          auth_time = instance_exec owner,
-            &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
+          auth_time = authentication_time(owner)
 
           if !auth_time || (Time.zone.now - auth_time) > max_age
             reauthenticate_resource_owner(owner)
@@ -81,6 +90,12 @@ module Doorkeeper
           ).select do |token|
             Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, nil)
           end
+        end
+
+        private
+
+        def authentication_time(owner)
+          instance_exec(owner, &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner)
         end
       end
     end

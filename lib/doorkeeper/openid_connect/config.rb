@@ -92,6 +92,7 @@ module Doorkeeper
       extend Option
 
       option :jws_private_key
+      option :jws_signature_alg, default: :RS256
       option :issuer
 
       option :resource_owner_from_access_token, default: lambda { |*_|
@@ -104,6 +105,10 @@ module Doorkeeper
 
       option :reauthenticate_resource_owner, default: lambda { |*_|
         fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured')
+      }
+
+      option :logout_resource_owner, default: lambda { |*_|
+        fail Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.logout_resource_owner_not_configured')
       }
 
       option :subject, default: lambda { |*_|

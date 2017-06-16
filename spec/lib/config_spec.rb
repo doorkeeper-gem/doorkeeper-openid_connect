@@ -29,6 +29,20 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'jws_signature_alg' do
+    it 'has a default value of :RS256' do
+      expect(subject.jws_signature_alg).to eq :RS256
+    end
+
+    it 'sets the signature value accessible via jws_signature_alg' do
+      value = :ES256
+      Doorkeeper::OpenidConnect.configure do
+        jws_signature_alg value
+      end
+      expect(subject.jws_signature_alg).to eq(value)
+    end
+  end
+
   describe 'issuer' do
     it 'sets the value that is accessible via issuer' do
       value = 'issuer'
@@ -89,6 +103,24 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
       expect do
         subject.reauthenticate_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+    end
+  end
+
+  describe 'logout_resource_owner' do
+    it 'sets the block that is accessible via logout_resource_owner' do
+      block = proc {}
+      Doorkeeper::OpenidConnect.configure do
+        logout_resource_owner(&block)
+      end
+      expect(subject.logout_resource_owner).to eq(block)
+    end
+
+    it 'fails if unset' do
+      Doorkeeper::OpenidConnect.configure {}
+
+      expect do
+        subject.logout_resource_owner.call
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
   end

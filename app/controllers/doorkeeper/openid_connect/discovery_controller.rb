@@ -24,10 +24,11 @@ module Doorkeeper
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
         {
           issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: protocol),
-          token_endpoint: oauth_token_url(protocol: protocol),
-          userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
-          jwks_uri: oauth_discovery_keys_url(protocol: protocol),
+          authorization_endpoint: oauth_authorization_url,
+          token_endpoint: oauth_token_url,
+          userinfo_endpoint: oauth_userinfo_url,
+          end_session_endpoint: oauth_rp_logout_url,
+          jwks_uri: oauth_discovery_keys_url,
 
           scopes_supported: doorkeeper.scopes,
 
@@ -51,7 +52,7 @@ module Doorkeeper
 
           # TODO: make this configurable
           id_token_signing_alg_values_supported: [
-            'RS256',
+            openid_connect.jws_signature_alg,
           ],
 
           claim_types_supported: [
@@ -89,9 +90,9 @@ module Doorkeeper
 
         {
           keys: [
-            signing_key.slice(:kty, :kid, :e, :n).merge(
+            signing_key.slice(:kty, :kid, :e, :n, :x, :y, :crv).merge(
               use: 'sig',
-              alg: Doorkeeper::OpenidConnect::SIGNING_ALGORITHM
+              alg: Doorkeeper::OpenidConnect.signing_algorithm
             )
           ]
         }
