@@ -65,5 +65,9 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
     normal_claim :updated_at do |user|
       user.updated_at.to_i
     end
+
+    normal_claim :token_id, scope: :openid do |user, scopes, token|
+      token.id
+    end
   end
 end

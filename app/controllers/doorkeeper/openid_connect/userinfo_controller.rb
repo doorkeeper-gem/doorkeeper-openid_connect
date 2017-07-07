@@ -5,9 +5,7 @@ module Doorkeeper
       before_action -> { doorkeeper_authorize! :openid }
 
       def show
-        resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(doorkeeper_token)
-        user_info = Doorkeeper::OpenidConnect::UserInfo.new(resource_owner, doorkeeper_token)
-        render json: user_info, status: :ok
+        render json: Doorkeeper::OpenidConnect::UserInfo.new(doorkeeper_token), status: :ok
       end
     end
   end
