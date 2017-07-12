@@ -87,6 +87,21 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 - `subject`
   - Identifier for the resource owner (i.e. the authenticated user). A locally unique and never reassigned identifier within the issuer for the end-user, which is intended to be consumed by the client. The value is a case-sensitive string and must not exceed 255 ASCII characters in length.
   - The database ID of the user is an acceptable choice if you don't mind leaking that information.
+  - If you want to provide a different subject identifier to each client, use [pairwise subject identifier](http://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) with configurations like below.
+
+    ```ruby
+    # config/initializers/doorkeeper_openid_connect.rb 
+    Doorkeeper::OpenidConnect.configure do
+    # ...
+      subject_types_supported [:pairwise]
+
+      subject do |resource_owner, application|
+        Digest::SHA256.hexdigest("#{resource_owner.id}#{URI.parse(application.redirect_uri).host}#{'your_secret_salt'}")
+      end
+    # ...
+    end
+    ```
+
 - `jws_private_key`
   - Private key for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
   - You can generate a private key with the `openssl` command, see e.g. [Generate an RSA keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).

@@ -44,10 +44,7 @@ module Doorkeeper
             #'private_key_jwt'
           ],
 
-          # TODO: make this configurable
-          subject_types_supported: [
-            'public',
-          ],
+          subject_types_supported: openid_connect.subject_types_supported,
 
           id_token_signing_alg_values_supported: [
             ::Doorkeeper::OpenidConnect.signing_algorithm
