@@ -46,9 +46,8 @@ module Doorkeeper
 
           subject_types_supported: openid_connect.subject_types_supported,
 
-          # TODO: make this configurable
           id_token_signing_alg_values_supported: [
-            'RS256',
+            ::Doorkeeper::OpenidConnect.signing_algorithm
           ],
 
           claim_types_supported: [
@@ -82,13 +81,13 @@ module Doorkeeper
       end
 
       def keys_response
-        signing_key = Doorkeeper::OpenidConnect.signing_key
+        signing_key = Doorkeeper::OpenidConnect.signing_key_normalized
 
         {
           keys: [
-            signing_key.slice(:kty, :kid, :e, :n).merge(
+            signing_key.merge(
               use: 'sig',
-              alg: Doorkeeper::OpenidConnect::SIGNING_ALGORITHM
+              alg: Doorkeeper::OpenidConnect.signing_algorithm
             )
           ]
         }

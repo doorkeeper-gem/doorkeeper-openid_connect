@@ -83,29 +83,34 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
   end
 
   describe '#keys' do
-    it 'returns the key parameters' do
-      get :keys
-      data = JSON.parse(response.body)
+    subject { get :keys }
 
-      expect(data.sort).to eq({
-        'keys' => [
-          {
-            'kty' => 'RSA',
-            'kid' => 'IqYwZo2cE6hsyhs48cU8QHH4GanKIx0S4Dc99kgTIMA',
-            'e' => 'AQAB',
-            'n' => (
-              'sjdnSA6UWUQQHf6BLIkIEUhMRNBJC1NN_pFt1EJmEiI88GS0ceROO5B5O' \
-              'oo9Y3QOWJ_n-u1uwTHBz0HCTN4wgArWd1TcqB5GQzQRP4eYnWyPfi4Cfe' \
-              'qAHzQp-v4VwbcK0LW4FqtW5D0dtrFtI281FDxLhARzkhU2y7fuYhL8fVw' \
-              '5rUhE8uwvHRZ5CEZyxf7BSHxIvOZAAymhuzNLATt2DGkDInU1BmF75tEt' \
-              'BJAVLzWG_j4LPZh1EpSdfezqaXQlcy9PJi916UzTl0P7Yy-ulOdUsMlB6' \
-              'yo8qKTY1-AbZ5jzneHbGDU_O8QjYvii1WDmJ60t0jXicmOkGrOhruOptw'
-            ),
-            'use' => 'sig',
-            'alg' => 'RS256',
-          }
-        ],
-      }.sort)
+    shared_examples 'a key response' do |options|
+      expected_parameters = options[:expected_parameters]
+
+      it "includes only #{expected_parameters.join(', ')} parameters" do
+        subject
+        data = JSON.parse(response.body)
+        key = data['keys'].first
+
+        expect(key.keys.map(&:to_sym)).to match_array(expected_parameters)
+      end
+    end
+
+    context 'when using an RSA key' do
+      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :e, :n, :use, :alg]
+    end
+
+    context 'when using an EC key' do
+      before { configure_ec }
+
+      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :x, :y, :use, :alg]
+    end
+
+    context 'when using an HMAC key' do
+      before { configure_hmac }
+
+      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :use, :alg]
     end
   end
 end

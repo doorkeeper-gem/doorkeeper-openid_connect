@@ -9,7 +9,7 @@ Our first line of defense is the [Travis CI](https://travis-ci.org/doorkeeper-ge
 Create a feature branch:
 
 ```sh
-git checkout -B feat/contributing
+git checkout -B feature/contributing
 ```
 
 ## Creating Good Commits
@@ -47,7 +47,7 @@ We use commit messages as per [Conventional Changelog](https://github.com/conven
 
 Allowed types:
 
-* **feat**: A new feature
+* **feature**: A new feature
 * **fix**: A bug fix
 * **docs**: Documentation only changes
 * **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, newline, line endings, etc)
@@ -59,7 +59,7 @@ Allowed types:
 You can add additional details after a new line to describe the change in detail or automatically close an issue on GitHub.
 
 ```none
-feat: create initial CONTRIBUTING.md
+feature: create initial CONTRIBUTING.md
 
 This closes #73
 ```

@@ -1,7 +1,7 @@
 Doorkeeper::OpenidConnect.configure do
   issuer 'dummy'
 
-  jws_private_key <<-EOL
+  signing_key <<-EOL
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpgIBAAKCAQEAsjdnSA6UWUQQHf6BLIkIEUhMRNBJC1NN/pFt1EJmEiI88GS0
 ceROO5B5Ooo9Y3QOWJ/n+u1uwTHBz0HCTN4wgArWd1TcqB5GQzQRP4eYnWyPfi4C
