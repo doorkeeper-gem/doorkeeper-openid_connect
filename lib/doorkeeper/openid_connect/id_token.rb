@@ -21,7 +21,7 @@ module Doorkeeper
           iat: issued_at,
           nonce: nonce,
           auth_time: auth_time,
-        }
+        }.merge(@resource_owner.try(:to_token_payload) || {})
       end
 
       def as_json(*_)

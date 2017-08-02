@@ -30,6 +30,31 @@ describe Doorkeeper::OpenidConnect::IdToken do
     end
   end
 
+  describe '#claims with extra payload' do
+
+    it 'returns all default claims' do
+
+      def user.to_token_payload 
+        {
+          username: 'test_name'
+        }
+      end
+
+      subject.instance_variable_set '@resource_owner', user
+
+      expect(subject.claims).to eq({
+        iss: 'dummy',
+        sub: user.id.to_s,
+        aud: access_token.application.uid,
+        exp: 180,
+        iat: 60,
+        nonce: nonce,
+        auth_time: 23,
+        username: 'test_name'
+      })
+    end
+  end
+
   describe '#as_json' do
     it 'returns claims with nil values and empty strings removed' do
       allow(subject).to receive(:issuer).and_return(nil)
