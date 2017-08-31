@@ -1,6 +1,17 @@
-### Unreleased
+<a name="v1.2.0"></a>
+### v1.2.0 (2017-08-31)
 
-#### Changes
+### Upgrading
+
+- The configuration setting `jws_private_key` was renamed to `signing_key`, you can still use the old name until it's removed in the next major release
+
+### Features
+
+- Support for pairwise subject identifiers (by @travisofthenorth)
+- Support for EC and HMAC signing algorithms (by @110y)
+- Claims now receive an optional third `access_token` argument which allow you to dynamically adjust claim values based on the client's token (by @gigr)
+
+### Bugfixes
 
 <a name="v1.1.2"></a>
 ### v1.1.2 (2017-01-18)
