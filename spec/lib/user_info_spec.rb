@@ -1,7 +1,8 @@
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::UserInfo do
-  subject { described_class.new user, token }
+  subject { described_class.new token }
+
   let(:user) { create :user, name: 'Joe' }
   let(:token) { create :access_token, resource_owner_id: user.id, scopes: scopes }
   let(:scopes) { 'openid' }
@@ -12,6 +13,7 @@ describe Doorkeeper::OpenidConnect::UserInfo do
         sub: user.id.to_s,
         created_at: user.created_at.to_i,
         variable_name: 'openid-name',
+        token_id: token.id,
       })
     end
 
@@ -25,6 +27,7 @@ describe Doorkeeper::OpenidConnect::UserInfo do
           created_at: user.created_at.to_i,
           updated_at: user.updated_at.to_i,
           variable_name: 'profile-name',
+          token_id: token.id,
         })
       end
     end
