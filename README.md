@@ -12,6 +12,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 ## Table of Contents
 
 - [Status](#status)
+  - [Example Applications](#example-applications)
 - [Installation](#installation)
 - [Configuration](#configuration)
   - [Scopes](#scopes)
@@ -34,6 +35,11 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 In addition we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
 Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_connect/discovery_controller.rb) for more details on supported features.
+
+### Example Applications
+
+- [GitLab](https://gitlab.com/gitlab-org/gitlab-ce) ([original MR](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/8018))
+- [Testing app for this gem](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/tree/master/spec/dummy)
 
 ## Installation
 
