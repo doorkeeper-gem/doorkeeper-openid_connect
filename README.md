@@ -28,6 +28,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 
 The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-connect-core-1_0.html) are currently supported:
 - [Authentication using the Authorization Code Flow](http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)
+- [Implicit Flow](http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth)
 - [Requesting Claims using Scope Values](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
 - [UserInfo Endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
@@ -85,6 +86,12 @@ Verify your settings in `config/initializers/doorkeeper.rb`:
       end
     end
     ```
+- `grant_flows`
+  - If you want to use `id_token` or `id_token token` response types you need to add `implicit_oidc` to `grant_flows`:
+
+    ```ruby
+    grant_flows %w(authorization_code implicit_oidc)
+    ```
 
 The following settings are required in `config/initializers/doorkeeper_openid_connect.rb`:
 
@@ -96,7 +103,7 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
   - If you want to provide a different subject identifier to each client, use [pairwise subject identifier](http://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) with configurations like below.
 
     ```ruby
-    # config/initializers/doorkeeper_openid_connect.rb 
+    # config/initializers/doorkeeper_openid_connect.rb
     Doorkeeper::OpenidConnect.configure do
     # ...
       subject_types_supported [:pairwise]
