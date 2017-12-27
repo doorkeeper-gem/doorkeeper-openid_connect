@@ -124,6 +124,10 @@ module Doorkeeper
       option :protocol, default: lambda { |*_|
         ::Rails.env.production? ? :https : :http
       }
+
+      option :end_session_endpoint, default: lambda { |*_|
+        nil
+      }
     end
   end
 end
