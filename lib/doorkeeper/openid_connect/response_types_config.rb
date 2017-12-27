@@ -3,8 +3,10 @@ module Doorkeeper
     module ResponseTypeConfig
       private def calculate_authorization_response_types
         types = super
-        types << ['id_token', 'token'] if grant_flows.include? 'implicit_oidc'
-        types << ['id_token'] if grant_flows.include? 'implicit_oidc'
+        if grant_flows.include? 'implicit_oidc'
+          types << 'id_token token'
+          types << 'token'
+        end
         types
       end
     end
