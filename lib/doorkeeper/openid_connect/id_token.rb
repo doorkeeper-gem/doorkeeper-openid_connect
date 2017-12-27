@@ -64,7 +64,7 @@ module Doorkeeper
       def id_token_with_access_token(response_type)
         return false unless response_type
         id_token_and_token_flow = ["id_token", "token"]
-        id_token_and_token_flow & response_type == id_token_and_token_flow
+        id_token_and_token_flow & response_type.split(" ") == id_token_and_token_flow
       end
 
       def issuer
