@@ -2,6 +2,7 @@ require 'doorkeeper'
 require 'active_model'
 require 'json/jwt'
 
+require 'doorkeeper/request'
 require 'doorkeeper/request/id_token'
 require 'doorkeeper/request/id_token_and_token'
 require 'doorkeeper/oauth/id_token_request'
