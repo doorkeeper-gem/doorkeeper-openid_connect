@@ -16,20 +16,20 @@ module Gollum
 
     DEFAULT_MIME_TYPE = "text/plain"
     class NoSuchShaFound < StandardError; end
-    
+
     class Actor
-      
+
       attr_accessor :name, :email
 
       def self.default_actor
         self.new("Gollum", "Gollum@wiki")
       end
-      
+
       def initialize(name, email)
         @name = name
         @email = email
       end
-      
+
       def output(time)
         # implementation from grit
         offset = time.utc_offset / 60
@@ -44,9 +44,9 @@ module Gollum
       def to_h
         {:name => @name, :email => @email}
       end
-      
+
     end
-    
+
     class Blob
 
       attr_reader :mode
@@ -57,7 +57,7 @@ module Gollum
         blob = repo.git.lookup(options[:id])
         self.new(blob, options)
       end
-      
+
       def initialize(blob, options = {})
         @blob = blob
         @mode = options[:mode]
@@ -65,11 +65,11 @@ module Gollum
         @size = options[:size]
         @id = blob.oid
       end
-      
+
       def data
         @content ||= @blob.content
       end
-      
+
       def is_symlink
         @mode == 0120000
       end
@@ -90,13 +90,13 @@ module Gollum
         nil
       end
     end
-    
+
     class Commit
-      
+
       def initialize(commit)
         @commit = commit
       end
-      
+
       def id
         @commit.oid
       end
@@ -108,15 +108,15 @@ module Gollum
       def author
         @author ||= Gollum::Git::Actor.new(@commit.author[:name], @commit.author[:email])
       end
-      
+
       def authored_date
         @commit.author[:time]
       end
-      
+
       def message
         @commit.message
       end
-      
+
       def tree
         Gollum::Git::Tree.new(@commit.tree)
       end
@@ -144,20 +144,20 @@ module Gollum
         end
         OpenStruct.new(:additions => additions, :deletions => deletions, :files => files, :id => id, :total => total)
       end
-      
+
     end
-    
+
     class Git
-    
+
       # Rugged does not have a Git class, but the Repository class should allows us to do what's necessary.
       def initialize(repo)
         @repo = repo
       end
-      
+
       def exist?
         ::File.exists?(@repo.path)
       end
-      
+
       def grep(query, options={})
         ref = options[:ref] ? options[:ref] : "HEAD"
         tree = @repo.lookup(sha_from_ref(ref)).tree
@@ -175,7 +175,7 @@ module Gollum
         end
         results
       end
-      
+
       def rm(path, options = {})
         index = @repo.index
         index.write
@@ -230,7 +230,7 @@ module Gollum
       def versions_for_path(path = nil, ref = nil, options = {})
         log(ref, path, options)
       end
-      
+
       def ls_files(query, options = {})
         ref = options[:ref] || "refs/heads/master"
         tree = @repo.lookup(sha_from_ref(ref)).tree
@@ -270,7 +270,7 @@ module Gollum
         end
       end
       alias_method :sha_from_ref, :sha_or_commit_from_ref
-      
+
       def commit_from_ref(ref)
         sha_or_commit_from_ref(ref, :commit)
       end
@@ -389,7 +389,7 @@ module Gollum
 
         pathname.each_filename do |dir|
           if tmp_entry.nil?
-            tmp_entry = commit.tree[dir]
+            return nil unless (tmp_entry = commit.tree[dir])
           else
             tmp_entry = @repo.lookup(tmp_entry[:oid])[dir]
           end
@@ -405,7 +405,7 @@ module Gollum
         # If +path+ is a filename, not a directory, then we should only have
         # one delta. We don't need to follow renames for directories.
         return nil if diff.each_delta.count > 1
-        
+
         delta = diff.each_delta.first
         if delta.added?
           full_diff = parent.diff(commit)
@@ -419,23 +419,23 @@ module Gollum
           end
         end
       end
- 
+
     end
-    
+
     class Index
-      
+
       def initialize(index, repo)
         @index = index
         @rugged_repo = repo
         @treemap = {}
       end
-      
+
       def delete(path)
         @index.remove_all(path)
         update_treemap(path, false)
         false
       end
-      
+
       def add(path, data)
         blob = @rugged_repo.write(data, :blob)
         @index.add(:path => path, :oid => blob, :mode => 0100644)
@@ -446,7 +446,7 @@ module Gollum
       def index
         @index
       end
-      
+
       def commit(message, parents = nil, actor = nil, last_tree = nil, head = 'refs/heads/master')
         commit_options = {}
         head = "refs/heads/#{head}" unless head =~ /^refs\/heads\//
@@ -460,11 +460,11 @@ module Gollum
         commit_options[:update_ref] = head
         Rugged::Commit.create(@rugged_repo, commit_options)
       end
-      
+
       def tree
         @treemap
       end
-      
+
       def read_tree(id)
         id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
         return nil if id.nil?
@@ -473,7 +473,7 @@ module Gollum
         @index.read_tree(current_tree)
         @current_tree = Gollum::Git::Tree.new(current_tree)
       end
-      
+
       def current_tree
         @current_tree
       end
@@ -495,38 +495,38 @@ module Gollum
         path = path[1..-1] if path[0] == ::File::SEPARATOR
         path = path.split(::File::SEPARATOR)
         last = path.pop
-    
+
         current = @treemap
-    
+
         path.each do |dir|
           current[dir] ||= {}
           node = current[dir]
           current = node
         end
-    
+
         current[last] = data
         @treemap
       end
 
     end
-    
+
     class Ref
       def initialize(ref)
         @ref = ref
       end
-      
+
       def name
         @ref.name
       end
-      
+
       def commit
         Gollum::Git::Commit.new(@ref.target)
       end
-            
+
     end
-    
+
     class Repo
-      
+
       def initialize(path, options)
         begin
           @repo = Rugged::Repository.new(path, options)
@@ -536,41 +536,41 @@ module Gollum
          # raise Gollum::NoSuchPathError
         end
       end
-      
+
       def self.init(path)
         Rugged::Repository.init_at(path, false)
         self.new(path, :is_bare => false)
       end
-      
+
       def self.init_bare(path)
         Rugged::Repository.init_at(path, true)
         self.new(path, :is_bare => true)
       end
-      
+
       def bare
         @repo.bare?
       end
-      
+
       def config
         @repo.config
       end
-      
+
       def git
         @git ||= Gollum::Git::Git.new(@repo)
       end
-      
+
       def commit(id)
         git.commit_from_ref(id)
       end
-      
+
       def commits(start = 'refs/heads/master', max_count = 10, skip = 0)
         git.log(start, nil, :max_count => max_count, :skip => skip)
       end
-      
+
       def head
         Gollum::Git::Ref.new(@repo.head)
       end
-      
+
       def index
         @index ||= Gollum::Git::Index.new(@repo.index, @repo)
       end
@@ -583,27 +583,27 @@ module Gollum
         end
         patches.map  {|patch| OpenStruct.new(:diff => patch.to_s.split("\n")[2..-1].join("\n").force_encoding("UTF-8"))}.reverse # First remove two superfluous lines. Rugged seems to order the diffs differently than Grit, so reverse.
       end
-      
+
       def log(commit = 'refs/heads/master', path = nil, options = {})
         git.log(commit, path, options)
       end
-      
+
       def lstree(sha, options = {})
         results = []
         @repo.lookup(sha).tree.walk(:postorder) do |root, entry|
           entry[:sha] = entry[:oid]
           entry[:mode] = entry[:filemode].to_s(8)
           entry[:type] = entry[:type].to_s
-          entry[:path] = "#{root}#{entry[:name]}" 
+          entry[:path] = "#{root}#{entry[:name]}"
           results << entry
         end
         results
       end
-      
+
       def path
         @repo.path
       end
-      
+
       # Checkout branch and if necessary first create it. Currently used only in gollum-lib's tests.
       def update_ref(ref, commit_sha)
         ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
@@ -617,23 +617,23 @@ module Gollum
     end
 
     class Tree
-      
+
       def initialize(tree)
         @tree = tree
       end
-      
+
       def keys
         @tree.map{|entry| entry[:name]}
       end
-      
+
       def [](i)
         @tree[i]
       end
-      
+
       def id
         @tree.oid
       end
-      
+
       def /(file)
         return self if file == '/'
         begin
@@ -645,7 +645,7 @@ module Gollum
         obj = @tree.owner.lookup(obj[:oid])
         obj.is_a?(Rugged::Tree) ? Gollum::Git::Tree.new(obj) : Gollum::Git::Blob.new(obj)
       end
-      
+
       def blobs
         blobs = []
         @tree.each_blob {|blob| blobs << Gollum::Git::Blob.new(@tree.owner.lookup(blob[:oid]), blob) }
@@ -653,6 +653,6 @@ module Gollum
       end
 
     end
-    
+
   end
 end
