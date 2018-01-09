@@ -388,11 +388,13 @@ module Gollum
         tmp_entry = nil
 
         pathname.each_filename do |dir|
-          if tmp_entry.nil?
-            return nil unless (tmp_entry = commit.tree[dir])
-          else
-            tmp_entry = @repo.lookup(tmp_entry[:oid])[dir]
-          end
+          tmp_entry = if tmp_entry.nil?
+                        commit.tree[dir]
+                      else
+                        @repo.lookup(tmp_entry[:oid])[dir]
+                      end
+
+          return nil unless tmp_entry
         end
         tmp_entry
       end
