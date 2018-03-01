@@ -11,7 +11,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       current_user: user.id,
       client_id: application.uid,
       scope: default_scopes,
+      redirect_uri: application.redirect_uri,
     }.merge(params)
+  end
+
+  def build_redirect_uri(params = {})
+    Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(application.redirect_uri, params)
   end
 
   describe '#resource_owner_authenticator' do
@@ -42,23 +47,28 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
 
         it 'renders a login_required error when not logged in' do
-          authorize! prompt: 'none', current_user: nil
+          authorize! prompt: 'none', current_user: nil, state: 'somestate'
 
-          expect(response.status).to eq 401
-          expect(JSON.parse(response.body)).to eq({
+          error_params = {
             'error' => 'login_required',
-            'error_description' => 'The authorization server requires end-user authentication'
-          })
+            'error_description' => 'The authorization server requires end-user authentication',
+            'state' => 'somestate'
+          }
+
+          expect(response).to redirect_to build_redirect_uri(error_params)
+          expect(JSON.parse(response.body)).to eq(error_params)
         end
 
         it 'renders an invalid_request error if another prompt value is present' do
           authorize! prompt: 'none login'
 
-          expect(response.status).to eq 401
-          expect(JSON.parse(response.body)).to eq({
+          error_params = {
             'error' => 'invalid_request',
             'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.'
-          })
+          }
+
+          expect(response.status).to redirect_to build_redirect_uri(error_params)
+          expect(JSON.parse(response.body)).to eq(error_params)
         end
       end
 
@@ -66,11 +76,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         it 'renders a consent_required error when logged in' do
           authorize! prompt: 'none'
 
-          expect(response.status).to eq 401
-          expect(JSON.parse(response.body)).to eq({
+          error_params = {
             'error' => 'consent_required',
             'error_description' => 'The authorization server requires end-user consent'
-          })
+          }
+
+          expect(response).to redirect_to build_redirect_uri(error_params)
+          expect(JSON.parse(response.body)).to eq(error_params)
         end
       end
     end
@@ -116,11 +128,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       it 'renders an account_selection_required error' do
         authorize! prompt: 'select_account'
 
-        expect(response.status).to eq 401
-        expect(JSON.parse(response.body)).to eq({
+        error_params = {
           'error' => 'account_selection_required',
           'error_description' => 'The authorization server requires end-user account selection'
-        })
+        }
+
+        expect(response.status).to redirect_to build_redirect_uri(error_params)
+        expect(JSON.parse(response.body)).to eq(error_params)
       end
     end
 
@@ -128,11 +142,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         it 'renders an invalid_request error' do
           authorize! prompt: 'maybe'
 
-          expect(response.status).to eq 401
-          expect(JSON.parse(response.body)).to eq({
+          error_params = {
             'error' => 'invalid_request',
             'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.'
-          })
+          }
+
+          expect(response.status).to redirect_to build_redirect_uri(error_params)
+          expect(JSON.parse(response.body)).to eq(error_params)
         end
     end
   end
