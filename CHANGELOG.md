@@ -1,3 +1,11 @@
+<a name="v1.3.0"></a>
+### v1.3.0 (2018-03-05)
+
+### Features
+
+- Support for Implicit Flow (`response_type=id_token` and `response_type=id_token token`),
+  see the updated README for usage instructions (by @nashby, @nhance and @stevenvegt)
+
 <a name="v1.2.0"></a>
 ### v1.2.0 (2017-08-31)
 

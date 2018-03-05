@@ -37,33 +37,6 @@ Things to avoid when creating commits:
 * Mixing two unrelated functional changes.
 * Sending large new features in a single giant commit.
 
-## Commit Message Conventions
-
-We use commit messages as per [Conventional Changelog](https://github.com/conventional-changelog/conventional-changelog):
-
-```none
-<type>(<scope>): <subject>
-```
-
-Allowed types:
-
-* **feature**: A new feature
-* **fix**: A bug fix
-* **docs**: Documentation only changes
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, newline, line endings, etc)
-* **refactor**: A code change that neither fixes a bug or adds a feature
-* **perf**: A code change that improves performance
-* **test**: Adding missing tests
-* **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation
-
-You can add additional details after a new line to describe the change in detail or automatically close an issue on GitHub.
-
-```none
-feature: create initial CONTRIBUTING.md
-
-This closes #73
-```
-
 ## Release process
 
 - Bump version in `lib/doorkeeper/openid_connect/version.rb`
