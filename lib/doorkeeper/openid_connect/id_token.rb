@@ -20,7 +20,7 @@ module Doorkeeper
           exp: expiration,
           iat: issued_at,
           nonce: nonce,
-          auth_time: auth_time,
+          auth_time: auth_time
         }
       end
 
