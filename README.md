@@ -28,7 +28,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 
 The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-connect-core-1_0.html) are currently supported:
 - [Authentication using the Authorization Code Flow](http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)
-- [Implicit Flow](http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth)
+- [Authentication using the Implicit Flow](http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth)
 - [Requesting Claims using Scope Values](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
 - [UserInfo Endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
@@ -143,7 +143,7 @@ The following settings are optional:
 - `protocol`
   - The protocol to use when generating URIs for the discovery endpoints.
   - The default is `https` for production, and `http` for all other environments
-  - Note that the OIC specification mandates HTTPS, so you shouldn't change this
+  - Note that the OIDC specification mandates HTTPS, so you shouldn't change this
     for production environments unless you have a really good reason!
 
 ### Scopes
