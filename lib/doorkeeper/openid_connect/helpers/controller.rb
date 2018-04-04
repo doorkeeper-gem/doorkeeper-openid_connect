@@ -19,9 +19,14 @@ module Doorkeeper
           # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
           @_response_body = nil
 
-          error = ::Doorkeeper::OAuth::ErrorResponse.new(name: exception.error_name)
+          error = ::Doorkeeper::OAuth::ErrorResponse.new(name: exception.error_name, state: params[:state], redirect_uri: params[:redirect_uri])
           response.headers.merge!(error.headers)
-          render json: error.body, status: error.status
+
+          if error.redirectable?
+            render json: error.body, status: :found, location: error.redirect_uri
+          else
+            render json: error.body, status: error.status
+          end
         end
 
         def handle_prompt_param!(owner)
