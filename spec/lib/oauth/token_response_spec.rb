@@ -21,6 +21,17 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
       end
     end
 
+    context 'with the openid scope present but no id_token' do
+      before do
+        token.scopes = 'openid email'
+        subject.id_token = nil
+      end
+
+      it 'adds the ID token to the response' do
+        expect(subject.body[:id_token]).to be_truthy
+      end
+    end
+
     context 'with the openid scope not present' do
       before do
         token.scopes = 'email'
