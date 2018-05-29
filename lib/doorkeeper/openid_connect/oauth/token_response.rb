@@ -7,7 +7,7 @@ module Doorkeeper
         def body
           if token.includes_scope? 'openid'
             super
-              .merge(id_token: id_token.try(:as_jws_token))
+              .merge(id_token:  id_token ? id_token.as_jws_token : Doorkeeper::OpenidConnect::IdToken.new(token).as_jws_token)
               .reject { |_, value| value.blank? }
           else
             super
