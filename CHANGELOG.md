@@ -1,3 +1,7 @@
+### master
+- Redirect errors per Section 3.1.2.6 of OpenID Connect 1.0 (by @ryands)
+- Set `id_token` when it's nil in token response (it's used in `refresh_token` requests) (by @Miouge1)
+
 <a name="v1.3.0"></a>
 ### v1.3.0 (2018-03-05)
 
