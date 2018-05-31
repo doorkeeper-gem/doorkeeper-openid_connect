@@ -1,17 +1,24 @@
-### master
+## Unreleased
+
+## v1.4.0 (2018-05-31)
+
+### Upgrading
+
+- Support for Ruby versions older than 2.3 was dropped
+
+### Features
+
 - Redirect errors per Section 3.1.2.6 of OpenID Connect 1.0 (by @ryands)
 - Set `id_token` when it's nil in token response (it's used in `refresh_token` requests) (by @Miouge1)
 
-<a name="v1.3.0"></a>
-### v1.3.0 (2018-03-05)
+## v1.3.0 (2018-03-05)
 
 ### Features
 
 - Support for Implicit Flow (`response_type=id_token` and `response_type=id_token token`),
   see the updated README for usage instructions (by @nashby, @nhance and @stevenvegt)
 
-<a name="v1.2.0"></a>
-### v1.2.0 (2017-08-31)
+## v1.2.0 (2017-08-31)
 
 ### Upgrading
 
@@ -25,15 +32,13 @@
 
 ### Bugfixes
 
-<a name="v1.1.2"></a>
-### v1.1.2 (2017-01-18)
+## v1.1.2 (2017-01-18)
 
 ### Bugfixes
 
 - Fixes the `undefined local variable or method 'pre_auth'` error
 
-<a name="v1.1.1"></a>
-### v1.1.1 (2017-01-18)
+## v1.1.1 (2017-01-18)
 
 #### Upgrading
 
@@ -57,8 +62,7 @@
 - Allow `json-jwt` dependency at ~> 1.6. (by @nbibler)
 - Configuration blocks no longer internally use `instance_eval` which previously gave undocumented and unexpected `self` access to the caller (by @nbibler)
 
-<a name="v1.1.0"></a>
-### v1.1.0 (2016-11-30)
+## v1.1.0 (2016-11-30)
 
 This release is a general clean-up and adds support for some advanced OpenID Connect features.
 
