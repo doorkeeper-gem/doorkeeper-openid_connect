@@ -17,13 +17,6 @@ env:
   - rails=5.0.0
 
 rvm:
-  - 2.1
-  - 2.2
   - 2.3
   - 2.4
   - 2.5
-
-matrix:
-  exclude:
-    - env: rails=5.0.0
-      rvm: 2.1
