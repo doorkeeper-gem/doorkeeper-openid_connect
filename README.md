@@ -115,8 +115,8 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
     end
     ```
 
-- `jws_private_key`
-  - Private key for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
+- `signing_key`
+  - Private key to be used for [JSON Web Signature](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-31).
   - You can generate a private key with the `openssl` command, see e.g. [Generate an RSA keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
   - You should not commit the key to your repository, but use an external file (in combination with `File.read`) and/or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
 - `signing_algorithm`
