@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::IdTokenToken do
   subject { described_class.new(access_token, nonce) }
-  let(:access_token) { create :access_token, resource_owner_id: user.id }
+  let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: 'openid' }
   let(:user) { create :user }
   let(:nonce) { '123456' }
 
@@ -24,7 +24,9 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
         iat: 60,
         nonce: nonce,
         auth_time: 23,
-        at_hash: '77QmUPtjPfzWtF2AnpK9RQ'
+        at_hash: '77QmUPtjPfzWtF2AnpK9RQ',
+        both_responses: 'both',
+        id_token_response: 'id_token',
       })
     end
   end

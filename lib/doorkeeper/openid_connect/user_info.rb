@@ -8,7 +8,9 @@ module Doorkeeper
       end
 
       def claims
-        base_claims.merge resource_owner_claims
+        {
+          sub: subject
+        }.merge ClaimsBuilder.generate(@access_token, :user_info)
       end
 
       def as_json(*_)
@@ -16,20 +18,6 @@ module Doorkeeper
       end
 
       private
-
-      def base_claims
-        {
-          sub: subject
-        }
-      end
-
-      def resource_owner_claims
-        Doorkeeper::OpenidConnect.configuration.claims.to_h.map do |name, claim|
-          if scopes.exists? claim.scope
-            [name, claim.generator.call(resource_owner, scopes, @access_token)]
-          end
-        end.compact.to_h
-      end
 
       def subject
         Doorkeeper::OpenidConnect.configuration.subject.call(resource_owner, application).to_s
@@ -41,10 +29,6 @@ module Doorkeeper
 
       def application
         @application ||= @access_token.application
-      end
-
-      def scopes
-        @scopes ||= @access_token.scopes
       end
     end
   end

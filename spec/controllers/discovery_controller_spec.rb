@@ -46,6 +46,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           'created_at',
           'updated_at',
           'token_id',
+          'both_responses',
+          'id_token_response',
+          'user_info_response',
         ],
       }.sort)
     end

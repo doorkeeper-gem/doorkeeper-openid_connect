@@ -174,11 +174,17 @@ Doorkeeper::OpenidConnect.configure do
       # `profile` scope access. Otherwise, provide a more generic alternative.
       application_scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
     end
+
+    claim :groups, response: [:id_token, :user_info] do |resource_owner|
+      resource_owner.groups
+    end
   end
 end
 ```
 
-You can pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. If you define any of the defined [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) they will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) (`profile`, `email`, `address` and `phone`), and any other claims will by default use the `profile` scope. Again, to use any of these scopes you need to enable them as described above.
+By default all custom claims are only returned from the `UserInfo` endpoint and not included in the ID token. You can optionally pass a `response:` keyword with one or both of the symbols `:id_token` or `:user_info` to specify where the claim should be returned.
+
+You can also pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. If you define any of the defined [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) they will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) (`profile`, `email`, `address` and `phone`), and any other claims will by default use the `profile` scope. Again, to use any of these scopes you need to enable them as described above.
 
 ### Routes
 

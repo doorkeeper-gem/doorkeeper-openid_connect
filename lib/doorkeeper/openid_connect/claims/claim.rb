@@ -2,7 +2,7 @@ module Doorkeeper
   module OpenidConnect
     module Claims
       class Claim
-        attr_accessor :name, :scope
+        attr_accessor :name, :response, :scope
 
         # http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
         # http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
@@ -18,6 +18,7 @@ module Doorkeeper
 
         def initialize(options = {})
           @name = options[:name].to_sym
+          @response = Array.wrap(options[:response])
           @scope = options[:scope].to_sym if options[:scope]
 
           # use default scope for Standard Claims

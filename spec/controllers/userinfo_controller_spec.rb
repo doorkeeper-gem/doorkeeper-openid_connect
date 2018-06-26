@@ -13,7 +13,14 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
         get :show, access_token: token.token
 
         expect(response.status).to eq 200
-        expect(response.body).to eq %Q{{"sub":"#{user.id}","variable_name":"openid-name","created_at":#{user.created_at.to_i},"token_id":#{token.id}}}
+        expect(JSON.parse(response.body)).to eq({
+          'sub'                => user.id.to_s,
+          'variable_name'      => 'openid-name',
+          'created_at'         => user.created_at.to_i,
+          'token_id'           => token.id,
+          'both_responses'     => 'both',
+          'user_info_response' => 'user_info',
+        })
       end
     end
 
@@ -24,7 +31,16 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
         get :show, access_token: token.token
 
         expect(response.status).to eq 200
-        expect(response.body).to eq %Q{{"sub":"#{user.id}","name":"Joe","variable_name":"profile-name","created_at":#{user.created_at.to_i},"updated_at":#{user.updated_at.to_i},"token_id":#{token.id}}}
+        expect(JSON.parse(response.body)).to eq({
+          'sub'                => user.id.to_s,
+          'name'               => 'Joe',
+          'variable_name'      => 'profile-name',
+          'created_at'         => user.created_at.to_i,
+          'updated_at'         => user.updated_at.to_i,
+          'token_id'           => token.id,
+          'both_responses'     => 'both',
+          'user_info_response' => 'user_info',
+        })
       end
     end
 
