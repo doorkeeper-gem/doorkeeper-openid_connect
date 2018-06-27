@@ -1,5 +1,9 @@
 ## Unreleased
 
+No changes yet.
+
+## v1.5.0 (2018-06-27)
+
 ### Features
 
 - Custom claims can now also be returned directly in the ID token, see the updated README for usage instructions
