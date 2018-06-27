@@ -21,7 +21,7 @@ module Doorkeeper
           iat: issued_at,
           nonce: nonce,
           auth_time: auth_time
-        }
+        }.merge ClaimsBuilder.generate(@access_token, :id_token)
       end
 
       def as_json(*_)

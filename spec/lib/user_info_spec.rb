@@ -14,6 +14,8 @@ describe Doorkeeper::OpenidConnect::UserInfo do
         created_at: user.created_at.to_i,
         variable_name: 'openid-name',
         token_id: token.id,
+        both_responses: 'both',
+        user_info_response: 'user_info',
       })
     end
 
@@ -28,6 +30,8 @@ describe Doorkeeper::OpenidConnect::UserInfo do
           updated_at: user.updated_at.to_i,
           variable_name: 'profile-name',
           token_id: token.id,
+          both_responses: 'both',
+          user_info_response: 'user_info',
         })
       end
     end
@@ -35,17 +39,15 @@ describe Doorkeeper::OpenidConnect::UserInfo do
 
   describe '#as_json' do
     it 'returns claims with nil values and empty strings removed' do
-      allow(subject).to receive(:resource_owner_claims).and_return({
+      allow(subject).to receive(:claims).and_return({
         nil: nil,
         empty: '',
         blank: ' ',
       })
 
-      json = subject.as_json
-
-      expect(json).to_not include :nil
-      expect(json).to_not include :empty
-      expect(json).to include :blank
+      expect(subject.as_json).to eq({
+        blank: ' '
+      })
     end
   end
 end

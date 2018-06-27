@@ -50,24 +50,28 @@ tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
   end
 
   claims do
-    normal_claim :name do |user|
+    claim :name do |user|
       user.name
     end
 
-    normal_claim :variable_name, scope: :openid do |user, scopes|
+    claim :variable_name, scope: :openid do |user, scopes|
       scopes.exists?(:profile) ? "profile-name" : "openid-name"
     end
 
-    normal_claim :created_at, scope: :openid do |user|
+    claim :created_at, scope: :openid do |user|
       user.created_at.to_i
     end
 
-    normal_claim :updated_at do |user|
+    claim :updated_at do |user|
       user.updated_at.to_i
     end
 
-    normal_claim :token_id, scope: :openid do |user, scopes, token|
+    claim :token_id, scope: :openid do |user, scopes, token|
       token.id
     end
+
+    claim(:both_responses, scope: :openid, response: [:id_token, :user_info]) { 'both' }
+    claim(:id_token_response, scope: :openid, response: [:id_token]) { 'id_token' }
+    claim(:user_info_response, scope: :openid, response: :user_info) { 'user_info' }
   end
 end
