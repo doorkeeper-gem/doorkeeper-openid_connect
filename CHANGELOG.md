@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.5.1 (2018-09-04)
+
+### Changes
+
+- This gem is now compatible with Doorkeeper 5.x
+
 ## v1.5.0 (2018-06-27)
 
 ### Features
