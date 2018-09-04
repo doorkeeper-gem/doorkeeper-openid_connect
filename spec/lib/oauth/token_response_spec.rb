@@ -3,7 +3,8 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
   subject { Doorkeeper::OAuth::TokenResponse.new token }
   let(:token) { create :access_token }
-  let(:pre_auth) { Doorkeeper::OAuth::PreAuthorization.new(nil, nil, nonce: '123456')}
+  let(:client) { Doorkeeper::OAuth::Client.new create(:application) }
+  let(:pre_auth) { Doorkeeper::OAuth::PreAuthorization.new(Doorkeeper.configuration, client, nonce: '123456')}
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new token, pre_auth }
 
   describe '#body' do
