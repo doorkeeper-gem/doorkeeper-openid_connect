@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.5.2 (2018-09-04)
+
+### Changes
+
+- The previous release was a bit premature, this fixes some compatibility issues with Doorkeeper 5.x
+
 ## v1.5.1 (2018-09-04)
 
 ### Changes
