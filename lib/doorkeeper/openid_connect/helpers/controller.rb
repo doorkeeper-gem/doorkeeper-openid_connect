@@ -77,14 +77,8 @@ module Doorkeeper
         end
 
         def matching_tokens_for_resource_owner(owner)
-          # TODO: maybe use Doorkeeper::AccessToken.matching_token_for once
-          # https://github.com/doorkeeper-gem/doorkeeper/pull/907 is merged
-          Doorkeeper::AccessToken.where(
-            application_id: pre_auth.client.id,
-            resource_owner_id: owner.id,
-            revoked_at: nil,
-          ).select do |token|
-            Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, nil)
+          Doorkeeper::AccessToken.authorized_tokens_for(pre_auth.client.id, owner.id).select do |token|
+            Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, pre_auth.client.scopes)
           end
         end
       end
