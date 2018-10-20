@@ -162,12 +162,14 @@ module Gollum
         ref = options[:ref] ? options[:ref] : "HEAD"
         tree = @repo.lookup(sha_from_ref(ref)).tree
         tree = @repo.lookup(tree[options[:path]][:oid]) if options[:path]
+        enc = options.fetch(:encoding, 'utf-8')
         results = []
         tree.walk_blobs(:postorder) do |root, entry|
           blob = @repo.lookup(entry[:oid])
           count = 0
-          blob.content.each_line do |line|
-            next unless line.force_encoding("UTF-8").match(/#{Regexp.escape(query)}/i)
+          next if blob.binary?
+          blob.content.force_encoding(enc).each_line do |line|
+            next unless line.match(/#{Regexp.escape(query)}/i)
             count += 1
           end
           path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
