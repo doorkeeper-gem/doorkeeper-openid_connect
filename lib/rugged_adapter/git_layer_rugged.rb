@@ -169,7 +169,7 @@ module Gollum
           count = 0
           next if blob.binary?
           blob.content.force_encoding(enc).each_line do |line|
-            next unless line.match(/#{Regexp.escape(query)}/i)
+            next unless line.match(/#{query}/i)
             count += 1
           end
           path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
