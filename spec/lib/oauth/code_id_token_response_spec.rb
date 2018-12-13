@@ -1,0 +1,57 @@
+require 'rails_helper'
+
+describe Doorkeeper::OAuth::CodeIdTokenResponse do
+  subject { Doorkeeper::OAuth::CodeIdTokenResponse.new(pre_auth, auth, auth_token, id_token) }
+  let(:token) { create :access_token }
+  let(:application) do
+    scopes = double(all: ['openid'])
+    double(:application, id: 9990, scopes: scopes)
+  end
+
+  let(:pre_auth) do
+    double(
+        :pre_auth,
+        client: application,
+        redirect_uri: 'http://tst.com/cb',
+        state: nil,
+        scopes: Doorkeeper::OAuth::Scopes.from_string('openid'),
+        error: nil,
+        authorizable?: true,
+        nonce: '12345'
+    )
+  end
+
+  let(:auth) do
+    Doorkeeper::OAuth::Authorization::Code.new(pre_auth, double(id: 1)).tap do |c|
+      c.issue_token
+    end
+  end
+
+  let(:auth_token) do
+    Doorkeeper::OAuth::Authorization::Token.new(pre_auth, double(id: 1)).tap do |c|
+      c.issue_token
+    end
+  end
+
+  let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }
+
+  describe '#redirect_uri' do
+    it 'includes id_token' do
+      expect(subject.redirect_uri).to include('id_token')
+    end
+
+    it 'includes code' do
+      expect(subject.redirect_uri).to include('code')
+    end
+  end
+
+  describe '#form_response' do
+    it 'includes id_token' do
+      expect(subject.form_response).to include('id_token')
+    end
+
+    it 'includes code' do
+      expect(subject.form_response).to include('code')
+    end
+  end
+end

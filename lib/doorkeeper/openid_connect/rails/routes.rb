@@ -27,6 +27,7 @@ module Doorkeeper
           routes.scope options[:scope] || 'oauth', as: 'oauth' do
             map_route(:userinfo, :userinfo_routes)
             map_route(:discovery, :discovery_routes)
+            map_route(:authorizations, :authorizations_routes)
           end
 
           routes.scope as: 'oauth' do
@@ -44,6 +45,11 @@ module Doorkeeper
           routes.scope controller: mapping[:controllers], as: mapping[:as] do
             send method
           end
+        end
+
+        def authorizations_routes
+          routes.post :create, path: 'authorize', as: 'openid'
+          routes.get :new, path: 'authorize', as: 'open_id_new'
         end
 
         def userinfo_routes

@@ -1,4 +1,5 @@
 /.bundle
+/.idea/
 /Gemfile.lock
 /spec/dummy/db/*.sqlite3
 /spec/dummy/log/*.log

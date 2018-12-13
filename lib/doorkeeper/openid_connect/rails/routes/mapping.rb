@@ -8,12 +8,14 @@ module Doorkeeper
           def initialize
             @controllers = {
               userinfo: 'doorkeeper/openid_connect/userinfo',
-              discovery: 'doorkeeper/openid_connect/discovery'
+              discovery: 'doorkeeper/openid_connect/discovery',
+              authorizations: 'doorkeeper/openid_connect/authorizations'
             }
 
             @as = {
               userinfo: :userinfo,
-              discovery: :discovery
+              discovery: :discovery,
+              authorizations: :authorization
             }
 
             @skips = []

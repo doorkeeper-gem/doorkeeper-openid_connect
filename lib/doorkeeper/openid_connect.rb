@@ -3,12 +3,24 @@ require 'active_model'
 require 'json/jwt'
 
 require 'doorkeeper/request'
+
 require 'doorkeeper/request/id_token'
 require 'doorkeeper/request/id_token_token'
+require 'doorkeeper/request/code_id_token'
+require 'doorkeeper/request/code_id_token_token'
+require 'doorkeeper/request/code_token'
+
 require 'doorkeeper/oauth/id_token_request'
 require 'doorkeeper/oauth/id_token_token_request'
+require 'doorkeeper/oauth/code_id_token_request'
+require 'doorkeeper/oauth/code_id_token_token_request'
+require 'doorkeeper/oauth/code_token_request'
+
 require 'doorkeeper/oauth/id_token_response'
 require 'doorkeeper/oauth/id_token_token_response'
+require 'doorkeeper/oauth/code_id_token_response'
+require 'doorkeeper/oauth/code_id_token_token_response'
+require 'doorkeeper/oauth/code_token_response'
 
 require 'doorkeeper/openid_connect/claims_builder'
 require 'doorkeeper/openid_connect/claims/claim'
@@ -17,8 +29,12 @@ require 'doorkeeper/openid_connect/config'
 require 'doorkeeper/openid_connect/response_types_config'
 require 'doorkeeper/openid_connect/engine'
 require 'doorkeeper/openid_connect/errors'
+
 require 'doorkeeper/openid_connect/id_token'
 require 'doorkeeper/openid_connect/id_token_token'
+require 'doorkeeper/openid_connect/code_id_token'
+require 'doorkeeper/openid_connect/code_id_token_token'
+
 require 'doorkeeper/openid_connect/user_info'
 require 'doorkeeper/openid_connect/version'
 

@@ -8,6 +8,11 @@ module Doorkeeper
           types << 'id_token'
           types << 'id_token token'
         end
+        if grant_flows.include? 'hybrid'
+          types << 'code token'
+          types << 'code id_token'
+          types << 'code id_token token'
+        end
         types
       end
     end
