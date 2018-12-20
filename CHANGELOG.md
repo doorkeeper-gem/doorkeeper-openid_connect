@@ -2,6 +2,13 @@
 
 No changes yet.
 
+## v1.5.3 (2018-12-20)
+
+### Changes
+
+- Support 'Hybrid Flow'
+- Support 'form_post' response mode
+
 ## v1.5.2 (2018-09-04)
 
 ### Changes
