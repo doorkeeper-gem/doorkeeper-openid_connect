@@ -33,7 +33,7 @@ module Doorkeeper
 
           # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
-          response_modes_supported: [ 'query', 'fragment' ],
+          response_modes_supported: [ 'query', 'fragment', 'form_post' ],
 
           token_endpoint_auth_methods_supported: [
             'client_secret_basic',
