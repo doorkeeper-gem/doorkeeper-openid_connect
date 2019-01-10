@@ -1,4 +1,4 @@
-class CreateDoorkeeperOpenidConnectTables < ActiveRecord::Migration[5.2]
+class CreateDoorkeeperOpenidConnectTables < ActiveRecord::Migration[4.2]
   def change
     create_table :oauth_openid_requests do |t|
       t.integer :access_grant_id, null: false
