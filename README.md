@@ -253,14 +253,19 @@ Run `bundle install` to setup all development dependencies.
 To run all specs:
 
 ```sh
-bundle exec rspec
+bundle exec rake spec
+```
+
+To generate and run migrations in the test application:
+
+```sh
+bundle exec rake migrate
 ```
 
 To run the local engine server:
 
 ```sh
-cd spec/dummy
-bundle exec rails server
+bundle exec rake server
 ```
 
 By default, the latest Rails version is used. To use a specific version run:
