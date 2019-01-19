@@ -24,15 +24,17 @@ require 'rspec/rails'
 
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
-ActiveRecord::Migration.maintain_test_schema!
+Dir.chdir('spec/dummy') do
+  ActiveRecord::Migration.maintain_test_schema!
+end
 
 # Remove after dropping support of Rails 4.2
 require_relative 'support/http_method_shim.rb'
 
 require_relative 'support/doorkeeper_configuration.rb'
 
-require 'factory_girl'
-FactoryGirl.find_definitions
+require 'factory_bot'
+FactoryBot.find_definitions
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
@@ -48,7 +50,7 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
-  config.include FactoryGirl::Syntax::Methods
+  config.include FactoryBot::Syntax::Methods
 
   # Reinitialize configuration after each example
   config.after :each do

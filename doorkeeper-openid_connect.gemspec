@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'json-jwt', '~> 1.6'
 
   spec.add_development_dependency 'rspec-rails'
-  spec.add_development_dependency 'factory_girl'
+  spec.add_development_dependency 'factory_bot'
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'conventional-changelog', '~> 1.2'
