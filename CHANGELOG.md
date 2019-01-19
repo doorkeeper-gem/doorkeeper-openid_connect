@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.5.3 (2019-01-19)
+
+### Changes
+
+- Use versioned migrations for Rails 5.x (thanks to @tvongaza)
+
 ## v1.5.2 (2018-09-04)
 
 ### Changes
