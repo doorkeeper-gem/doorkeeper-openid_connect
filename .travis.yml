@@ -15,6 +15,7 @@ script:
 env:
   - rails=4.2.0
   - rails=5.0.0
+  - rails=5.2.0
 
 rvm:
   - 2.3

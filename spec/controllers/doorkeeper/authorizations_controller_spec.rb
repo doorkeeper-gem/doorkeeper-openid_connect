@@ -7,7 +7,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   let(:token_attributes) { { application_id: application.id, resource_owner_id: user.id, scopes: default_scopes } }
 
   def authorize!(params = {})
-    get :new, {
+    get :new, params: {
       current_user: user.id,
       client_id: application.uid,
       scope: default_scopes,

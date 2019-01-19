@@ -73,7 +73,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     end
 
     it 'returns the OpenID Connect relation' do
-      get :webfinger, resource: 'user@example.com'
+      get :webfinger, params: { resource: 'user@example.com' }
       data = JSON.parse(response.body)
 
       expect(data.sort).to eq({

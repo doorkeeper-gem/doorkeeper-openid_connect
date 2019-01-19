@@ -10,7 +10,7 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
       let(:token) { create :access_token, application: client, resource_owner_id: user.id, scopes: 'openid' }
 
       it 'returns the basic user information as JSON' do
-        get :show, access_token: token.token
+        get :show, params: { access_token: token.token }
 
         expect(response.status).to eq 200
         expect(JSON.parse(response.body)).to eq({
@@ -28,7 +28,7 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
       let(:token) { create :access_token, application: client, resource_owner_id: user.id, scopes: 'openid profile' }
 
       it 'returns the full user information as JSON' do
-        get :show, access_token: token.token
+        get :show, params: { access_token: token.token }
 
         expect(response.status).to eq 200
         expect(JSON.parse(response.body)).to eq({
@@ -46,7 +46,7 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
 
     context 'with a valid access token not authorized for the openid scope' do
       it 'returns an error' do
-        get :show, access_token: token.token
+        get :show, params: { access_token: token.token }
 
         expect(response.status).to eq 403
       end
@@ -54,7 +54,7 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
 
     context 'without a valid access token' do
       it 'returns an error' do
-        get :show, access_token: 'foobar'
+        get :show, params: { access_token: 'foobar' }
 
         expect(response.status).to eq 401
       end
