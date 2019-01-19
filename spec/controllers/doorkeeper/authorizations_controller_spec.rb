@@ -31,6 +31,14 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
       expect(response).to redirect_to '/login'
     end
+
+    it 'does not break native authorization' do
+      get :show, params: {
+        code: 'foo'
+      }
+
+      expect(response).to redirect_to '/login'
+    end
   end
 
   describe '#handle_prompt_param!' do
