@@ -169,10 +169,10 @@ Doorkeeper::OpenidConnect.configure do
       "#{resource_owner.first_name} #{resource_owner.last_name}"
     end
 
-    claim :preferred_username, scope: :openid do |resource_owner, application_scopes, access_token|
+    claim :preferred_username, scope: :openid do |resource_owner, scopes, access_token|
       # Pass the resource_owner's preferred_username if the application has
       # `profile` scope access. Otherwise, provide a more generic alternative.
-      application_scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
+      scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
     end
 
     claim :groups, response: [:id_token, :user_info] do |resource_owner|
@@ -181,6 +181,12 @@ Doorkeeper::OpenidConnect.configure do
   end
 end
 ```
+
+Each claim block will be passed:
+
+- the `resource_owner`, which is the return value of `resource_owner_authenticator` in your initializer
+- the `scopes` granted by the access token, which is an instance of `Doorkeeper::OAuth::Scopes`
+- the `access_token` itself, which is an instance of `Doorkeeper::AccessToken`
 
 By default all custom claims are only returned from the `UserInfo` endpoint and not included in the ID token. You can optionally pass a `response:` keyword with one or both of the symbols `:id_token` or `:user_info` to specify where the claim should be returned.
 
