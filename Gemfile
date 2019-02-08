@@ -4,4 +4,8 @@ source 'https://rubygems.org'
 ENV['rails'] ||= '5.2.0'
 gem 'rails', "~> #{ENV['rails']}"
 
+if ENV['rails'] =~ /^5./
+  gem 'rails-controller-testing'
+end
+
 gemspec
