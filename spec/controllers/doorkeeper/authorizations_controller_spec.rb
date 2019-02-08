@@ -8,6 +8,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
   def authorize!(params = {})
     get :new, params: {
+      response_type: 'code',
       current_user: user.id,
       client_id: application.uid,
       scope: default_scopes,
@@ -19,11 +20,21 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(application.redirect_uri, params)
   end
 
+  def expect_authorization_form!
+    expect(response).to be_successful
+    expect(response).to render_template('doorkeeper/authorizations/new')
+  end
+
+  def expect_successful_callback!
+    expect(response).to be_redirect
+    expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=\w+$/)
+  end
+
   describe '#resource_owner_authenticator' do
     it 'renders the authorization form if logged in' do
       authorize!
 
-      expect(response).to be_successful
+      expect_authorization_form!
     end
 
     it 'redirects to login form when not logged in' do
@@ -48,10 +59,10 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           create :access_token, token_attributes
         end
 
-        it 'renders the authorization form if logged in' do
+        it 'redirects to the callback if logged in' do
           authorize! prompt: 'none'
 
-          expect(response).to be_successful
+          expect_successful_callback!
         end
 
         it 'renders a login_required error when not logged in' do
@@ -114,7 +125,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect do
           authorize! prompt: 'consent'
 
-          expect(response).to be_successful
+          expect_authorization_form!
         end.to_not change { Doorkeeper::AccessToken.count }
       end
 
@@ -127,7 +138,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect do
           authorize! prompt: 'consent'
 
-          expect(response).to be_successful
+          expect_authorization_form!
         end.to change { Doorkeeper::AccessToken.count }.by(-2)
       end
     end
@@ -167,7 +178,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         %w[ 0 -1 -23 foobar ].each do |max_age|
           authorize! max_age: max_age
 
-          expect(response).to be_successful
+          expect_authorization_form!
         end
       end
     end
@@ -177,7 +188,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         user.update! current_sign_in_at: 5.seconds.ago
         authorize! max_age: 10
 
-        expect(response).to be_successful
+        expect_authorization_form!
       end
 
       it 'reauthenticates the user if the last login was longer than 10 seconds ago' do
