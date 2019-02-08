@@ -19,13 +19,22 @@ module Doorkeeper
           # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
           @_response_body = nil
 
-          error = ::Doorkeeper::OAuth::ErrorResponse.new(name: exception.error_name, state: params[:state], redirect_uri: params[:redirect_uri])
-          response.headers.merge!(error.headers)
-
-          if error.redirectable?
-            render json: error.body, status: :found, location: error.redirect_uri
+          error_response = if pre_auth.valid?
+            ::Doorkeeper::OAuth::ErrorResponse.new(
+              name: exception.error_name,
+              state: params[:state],
+              redirect_uri: params[:redirect_uri]
+            )
           else
-            render json: error.body, status: error.status
+            pre_auth.error_response
+          end
+
+          response.headers.merge!(error_response.headers)
+
+          if error_response.redirectable?
+            render json: error_response.body, status: :found, location: error_response.redirect_uri
+          else
+            render json: error_response.body, status: error_response.status
           end
         end
 
