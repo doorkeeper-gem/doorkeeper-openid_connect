@@ -91,6 +91,18 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
       end
 
+      context 'and a token with narrower scopes' do
+        before do
+          create :access_token, token_attributes
+        end
+
+        it 'redirects to the callback' do
+          authorize! prompt: 'none', scope: 'openid'
+
+          expect_successful_callback!
+        end
+      end
+
       context 'and no matching token' do
         it 'renders a consent_required error when logged in' do
           authorize! prompt: 'none'

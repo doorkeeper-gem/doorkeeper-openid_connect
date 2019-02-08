@@ -78,7 +78,24 @@ module Doorkeeper
 
         def matching_tokens_for_resource_owner(owner)
           Doorkeeper::AccessToken.authorized_tokens_for(pre_auth.client.id, owner.id).select do |token|
-            Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, pre_auth.client.scopes)
+            # FIXME: this is just an experiment to verify the behaviour of Doorkeeper::AccessToken.scopes_match?
+            # Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, pre_auth.client.scopes)
+
+            token_scopes = token.scopes
+            param_scopes = pre_auth.scopes
+            app_scopes = pre_auth.client.scopes
+
+            return true if token_scopes.empty? && param_scopes.empty?
+
+            Doorkeeper::OAuth::Helpers::ScopeChecker.valid?(
+              param_scopes.to_s,
+              token_scopes
+            ) &&
+            Doorkeeper::OAuth::Helpers::ScopeChecker.valid?(
+              param_scopes.to_s,
+              Doorkeeper.configuration.scopes,
+              app_scopes
+            )
           end
         end
       end
