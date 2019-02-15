@@ -2,29 +2,44 @@
 
 No changes yet.
 
-## v1.5.3 (2019-01-19)
+## v1.5.4 (2019-02-15)
+
+### Bugfixes
+
+- [#66] Fix an open redirect vulnerability (thanks to @meagar)
+- [#67] Don't delete existing tokens with `prompt=consent` (thanks to @nov)
 
 ### Changes
 
-- Use versioned migrations for Rails 5.x (thanks to @tvongaza)
+- [#62] Support customization of redirect params in `id_token` and `id_token token` responses (thanks to @meagar)
+
+## v1.5.3 (2019-01-19)
+
+### Bugfixes
+
+- [#60] Don't break native authorization in Doorkeeper 5.x
+
+### Changes
+
+- [#58] Use versioned migrations for Rails 5.x (thanks to @tvongaza)
 
 ## v1.5.2 (2018-09-04)
 
 ### Changes
 
-- The previous release was a bit premature, this fixes some compatibility issues with Doorkeeper 5.x
+- [#56] The previous release was a bit premature, this fixes some compatibility issues with Doorkeeper 5.x
 
 ## v1.5.1 (2018-09-04)
 
 ### Changes
 
-- This gem is now compatible with Doorkeeper 5.x
+- [#55] This gem is now compatible with Doorkeeper 5.x
 
 ## v1.5.0 (2018-06-27)
 
 ### Features
 
-- Custom claims can now also be returned directly in the ID token, see the updated README for usage instructions
+- [#52] Custom claims can now also be returned directly in the ID token, see the updated README for usage instructions
 
 ## v1.4.0 (2018-05-31)
 
