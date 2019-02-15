@@ -65,20 +65,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect_successful_callback!
         end
 
-        it 'renders a login_required error when not logged in' do
-          authorize! prompt: 'none', current_user: nil, state: 'somestate'
-
-          error_params = {
-            'error' => 'login_required',
-            'error_description' => 'The authorization server requires end-user authentication',
-            'state' => 'somestate'
-          }
-
-          expect(response).to redirect_to build_redirect_uri(error_params)
-          expect(JSON.parse(response.body)).to eq(error_params)
-        end
-
-        it 'renders an invalid_request error if another prompt value is present' do
+        it 'returns an invalid_request error if another prompt value is present' do
           authorize! prompt: 'none login'
 
           error_params = {
@@ -89,10 +76,38 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect(response.status).to redirect_to build_redirect_uri(error_params)
           expect(JSON.parse(response.body)).to eq(error_params)
         end
+
+        context 'when not logged in' do
+          let(:error_params) do
+            {
+              'error' => 'login_required',
+              'error_description' => 'The authorization server requires end-user authentication',
+              'state' => 'somestate'
+            }
+          end
+
+          it 'returns a login_required error' do
+            authorize! prompt: 'none', current_user: nil, state: 'somestate'
+
+            expect(response).to redirect_to build_redirect_uri(error_params)
+            expect(JSON.parse(response.body)).to eq(error_params)
+          end
+
+          it 'does not redirect to an invalid redirect_uri' do
+            authorize! prompt: 'none', current_user: nil, state: 'somestate', redirect_uri: 'https://evilapp.com'
+
+            expect(response).not_to be_redirect
+            expect(response.status).to eq 401
+            expect(JSON.parse(response.body)).to eq error_params.merge(
+              'error' => 'invalid_redirect_uri',
+              'error_description' => "The requested redirect uri is malformed or doesn't match client redirect URI."
+            )
+          end
+        end
       end
 
       context 'and no matching token' do
-        it 'renders a consent_required error when logged in' do
+        it 'returns a consent_required error when logged in' do
           authorize! prompt: 'none'
 
           error_params = {
@@ -144,7 +159,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with a prompt=select_account parameter' do
-      it 'renders an account_selection_required error' do
+      it 'returns an account_selection_required error' do
         authorize! prompt: 'select_account'
 
         error_params = {
@@ -158,7 +173,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with an unknown prompt parameter' do
-        it 'renders an invalid_request error' do
+        it 'returns an invalid_request error' do
           authorize! prompt: 'maybe'
 
           error_params = {
