@@ -11,7 +11,6 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 ## Table of Contents
 
 - [Status](#status)
-  - [Known Issues](#known-issues)
   - [Example Applications](#example-applications)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -36,10 +35,6 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 In addition we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
 Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_connect/discovery_controller.rb) for more details on supported features.
-
-### Known Issues
-
-- The implementation of `param=consent` is currently incomplete, it simply deletes all of the user's existing access tokens to trigger a reauthorization in Doorkeeper ([see issue](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/64))
 
 ### Example Applications
 

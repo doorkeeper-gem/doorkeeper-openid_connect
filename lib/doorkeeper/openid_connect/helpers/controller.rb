@@ -6,8 +6,9 @@ module Doorkeeper
 
         def authenticate_resource_owner!
           super.tap do |owner|
-            next unless respond_to?(:pre_auth, true)
-            next unless pre_auth.client && pre_auth.scopes.include?('openid')
+            next unless controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
+              action_name == 'new'
+            next unless pre_auth.scopes.include?('openid')
 
             handle_prompt_param!(owner)
             handle_max_age_param!(owner)
@@ -50,7 +51,7 @@ module Doorkeeper
             when 'login' then
               reauthenticate_resource_owner(owner) if owner
             when 'consent' then
-              matching_tokens_for_resource_owner(owner).map(&:destroy)
+              render :new
             when 'select_account' then
               # TODO: let the user implement this
               raise Errors::AccountSelectionRequired
