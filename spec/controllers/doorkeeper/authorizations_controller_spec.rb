@@ -53,6 +53,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   end
 
   describe '#handle_prompt_param!' do
+    it 'is ignored when the openid scope is not present' do
+      authorize! scope: 'profile', prompt: 'invalid'
+
+      expect_authorization_form!
+    end
+
     context 'with a prompt=none parameter' do
       context 'and a matching token' do
         before do

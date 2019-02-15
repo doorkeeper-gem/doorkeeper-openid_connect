@@ -6,8 +6,9 @@ module Doorkeeper
 
         def authenticate_resource_owner!
           super.tap do |owner|
-            next unless respond_to?(:pre_auth, true)
-            next unless pre_auth.client && pre_auth.scopes.include?('openid')
+            next unless controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
+              action_name == 'new'
+            next unless pre_auth.scopes.include?('openid')
 
             handle_prompt_param!(owner)
             handle_max_age_param!(owner)
