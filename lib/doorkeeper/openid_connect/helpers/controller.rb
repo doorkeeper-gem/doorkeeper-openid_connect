@@ -50,7 +50,7 @@ module Doorkeeper
             when 'login' then
               reauthenticate_resource_owner(owner) if owner
             when 'consent' then
-              matching_tokens_for_resource_owner(owner).map(&:destroy)
+              render :new
             when 'select_account' then
               # TODO: let the user implement this
               raise Errors::AccountSelectionRequired

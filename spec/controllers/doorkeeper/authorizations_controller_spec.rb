@@ -136,25 +136,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with a prompt=consent parameter' do
-      it 'renders the authorization form if no matching tokens are found' do
-        expect do
-          authorize! prompt: 'consent'
-
-          expect_authorization_form!
-        end.to_not change { Doorkeeper::AccessToken.count }
-      end
-
-      it 'deletes matching tokens and renders the authorization form' do
+      it 'renders the authorization form even if a matching token is present' do
         create :access_token, token_attributes
-        create :access_token, token_attributes
-        create :access_token, token_attributes.merge(scopes: 'openid')
-        create :access_token, token_attributes.merge(scopes: 'public')
+        authorize! prompt: 'consent'
 
-        expect do
-          authorize! prompt: 'consent'
-
-          expect_authorization_form!
-        end.to change { Doorkeeper::AccessToken.count }.by(-2)
+        expect_authorization_form!
       end
     end
 
