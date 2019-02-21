@@ -56,7 +56,7 @@ module Doorkeeper
       when :RSA
         key.slice(:kty, :kid, :e, :n)
       when :EC
-        key.slice(:kty, :kid, :x, :y)
+        key.slice(:kty, :kid, :crv, :x, :y)
       when :oct
         key.slice(:kty, :kid)
       end

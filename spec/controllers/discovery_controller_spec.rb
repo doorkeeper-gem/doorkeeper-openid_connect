@@ -108,7 +108,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context 'when using an EC key' do
       before { configure_ec }
 
-      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :x, :y, :use, :alg]
+      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :crv, :x, :y, :use, :alg]
     end
 
     context 'when using an HMAC key' do
