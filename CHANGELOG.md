@@ -2,6 +2,10 @@
 
 No changes yet.
 
+## v1.5.5 (2019-03-03)
+
+- [#69] Return `crv` parameter for EC keys (thanks to @marco-nicola)
+
 ## v1.5.4 (2019-02-15)
 
 ### Bugfixes
