@@ -33,6 +33,7 @@ describe Doorkeeper::OpenidConnect do
         expect(subject.signing_key_normalized).to eq(
           'kty' => :EC,
           'kid' => 'dOx_AhaepicN2r2M-sxZhgkYZMCX7dYhPsNOw1ZiFnI',
+          'crv' => :'P-521',
           'x' => 'AeYVvbl3zZcFCdE-0msqOowYODjzeXAhjsZKhdNjGlDREvko3UFOw6S43g-s8bvVBmBz3fCodEzFRYQqJVI4UFvF',
           'y' => 'AYJ7GYeBm_Fb6liN53xGASdbRSzF34h4BDSVYzjtQc7I-1LK17fwwS3VfQCJwaT6zX33HTrhR4VoUEUJHKwR3dNs'
         )
