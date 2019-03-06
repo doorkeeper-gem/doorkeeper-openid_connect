@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.6.0 (2019-03-06)
+
+### Changes
+
+- [#70] This gem now requires Doorkeeper 5.0, and actually has done so since v1.5.4 (thanks to @michaelglass)
+
 ## v1.5.5 (2019-03-03)
 
 - [#69] Return `crv` parameter for EC keys (thanks to @marco-nicola)
