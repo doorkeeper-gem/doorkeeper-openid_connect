@@ -16,7 +16,7 @@ No changes yet.
 
 ### Bugfixes
 
-- [#66] Fix an open redirect vulnerability (thanks to @meagar)
+- [#66] Fix an open redirect vulnerability ([CVE-2019-9837](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9837), thanks to @meagar)
 - [#67] Don't delete existing tokens with `prompt=consent` (thanks to @nov)
 
 ### Changes
