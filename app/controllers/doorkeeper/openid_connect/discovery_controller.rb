@@ -26,6 +26,8 @@ module Doorkeeper
           issuer: openid_connect.issuer,
           authorization_endpoint: oauth_authorization_url(protocol: protocol),
           token_endpoint: oauth_token_url(protocol: protocol),
+          revocation_endpoint: oauth_revoke_url(protocol: protocol),
+          introspection_endpoint: oauth_introspect_url(protocol: protocol),
           userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
           jwks_uri: oauth_discovery_keys_url(protocol: protocol),
 

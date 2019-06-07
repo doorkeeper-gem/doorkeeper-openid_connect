@@ -10,6 +10,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'issuer' => 'dummy',
         'authorization_endpoint' => 'http://test.host/oauth/authorize',
         'token_endpoint' => 'http://test.host/oauth/token',
+        'revocation_endpoint' => 'http://test.host/oauth/revoke',
+        'introspection_endpoint' => 'http://test.host/oauth/introspect',
         'userinfo_endpoint' => 'http://test.host/oauth/userinfo',
         'jwks_uri' => 'http://test.host/oauth/discovery/keys',
 
