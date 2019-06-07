@@ -2,6 +2,16 @@
 
 No changes yet.
 
+## v1.6.1 (2019-06-07)
+
+### Bugfixes
+
+- [#75] Fix return value for `after_successful_response` (thanks to @daveed)
+
+### Changes
+
+- [#72] Add `revocation_endpoint` and `introspection_endpoint` to discovery response (thanks to @scarfacedeb)
+
 ## v1.6.0 (2019-03-06)
 
 ### Changes
