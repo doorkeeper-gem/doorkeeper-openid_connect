@@ -27,7 +27,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
   def expect_successful_callback!
     expect(response).to be_redirect
-    expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=\w+$/)
+    expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=[-\w]+$/)
   end
 
   describe '#resource_owner_authenticator' do
@@ -103,7 +103,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
             authorize! prompt: 'none', current_user: nil, state: 'somestate', redirect_uri: 'https://evilapp.com'
 
             expect(response).not_to be_redirect
-            expect(response.status).to eq 401
+            expect(response.status).to eq 400
             expect(JSON.parse(response.body)).to eq error_params.merge(
               'error' => 'invalid_redirect_uri',
               'error_description' => "The requested redirect uri is malformed or doesn't match client redirect URI."
