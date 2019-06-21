@@ -188,13 +188,35 @@ module Gollum
         @repo.lookup(sha).read_raw
       end
 
-      def apply_patch(head_sha = 'HEAD', patch=nil)
-        false # Rewrite gollum-lib's revert so that it doesn't require a direct equivalent of Grit's apply_patch
+      def revert_path(path, sha1, sha2)
+        diff = @repo.diff(sha2, sha1, {:paths => [path]}).first.diff
+        begin
+          result = @repo.apply(diff, {:location => :index, :path => path})
+        rescue RuntimeError
+          return false
+        end
+        begin
+          return @repo.index.write_tree
+        rescue Rugged::IndexError
+          return false
+        end
       end
 
-      def revert(path, sha1, sha2, ref)
-        # FIXME: See https://github.com/gollum/grit_adapter/pull/14
-        fail NotImplementedError
+      def revert_commit(sha1, sha2)
+        diff = @repo.diff(sha2, sha1)
+        index = @repo.revert_commit(sha2, sha1)
+        return false unless index
+        paths = []
+        diff.each_delta do |delta|
+          paths << delta.new_file[:path]
+          paths << delta.old_file[:path]
+        end
+        paths.uniq!
+        begin
+          return index.write_tree(@repo), paths
+        rescue Rugged::IndexError
+          return false
+        end
       end
 
       def checkout(path, ref = 'HEAD', options = {})
@@ -310,7 +332,7 @@ module Gollum
         !!(str =~ /^[0-9a-f]{40}$/)
       end
 
-      # Return an array of log commits, given an SHA hash and a hash of
+      # Return an array of log commits, given a SHA hash and a hash of
       # options. From Gitlab::Git
       def build_log(sha, options)
         # Instantiate a Walker and add the SHA hash
@@ -527,13 +549,7 @@ module Gollum
     class Repo
 
       def initialize(path, options)
-        begin
-          @repo = Rugged::Repository.new(path, options)
-        #rescue Grit::InvalidGitRepositoryError
-         # raise Gollum::InvalidGitRepositoryError
-        #rescue Grit::NoSuchPathError
-         # raise Gollum::NoSuchPathError
-        end
+        @repo = Rugged::Repository.new(path, options)
       end
 
       def self.init(path)
