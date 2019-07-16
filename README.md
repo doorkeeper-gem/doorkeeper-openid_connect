@@ -291,3 +291,5 @@ Doorkeeper::OpenidConnect is released under the [MIT License](http://www.opensou
 ## Sponsors
 
 Initial development of this project was sponsored by [PlayOn! Sports](https://github.com/playon).
+
+Can I do this?
