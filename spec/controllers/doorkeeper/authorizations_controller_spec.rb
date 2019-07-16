@@ -262,4 +262,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
   end
+
+  describe 'when params are missing' do
+    it 'responds with 4xx' do
+      authorize!({ scope: nil, current_user: nil, client_id: nil })
+      expect(response.status).to be(401)
+    end
+  end
 end

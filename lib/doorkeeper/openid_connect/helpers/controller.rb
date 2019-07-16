@@ -8,6 +8,7 @@ module Doorkeeper
           super.tap do |owner|
             next unless controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
               action_name == 'new'
+            raise Errors::OpenidConnectError unless pre_auth.valid?
             next unless pre_auth.scopes.include?('openid')
 
             handle_prompt_param!(owner)
