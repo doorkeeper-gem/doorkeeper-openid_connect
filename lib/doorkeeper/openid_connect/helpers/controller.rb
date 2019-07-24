@@ -6,22 +6,34 @@ module Doorkeeper
 
         def authenticate_resource_owner!
           super.tap do |owner|
-            next unless controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
-              action_name == 'new'
-            raise Errors::OpenidConnectError unless pre_auth.valid?
-            next unless pre_auth.scopes.include?('openid')
+            next unless valid_controller_path?
+            next unless scopes.include?('openid')
 
             handle_prompt_param!(owner)
             handle_max_age_param!(owner)
           end
         rescue Errors::OpenidConnectError => exception
+          handle_error(exception)
+        end
+
+        def valid_controller_path?
+          controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] && action_name == 'new'
+        end
+
+        def scopes
+          pre_auth.scopes
+        rescue NoMethodError
+          []
+        end
+
+        def handle_error(exception = nil)
           # clear the previous response body to avoid a DoubleRenderError
           self.response_body = nil
 
           # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
           @_response_body = nil
 
-          error_response = if pre_auth.valid?
+          error_response = if pre_auth.valid? && exception.present?
             ::Doorkeeper::OAuth::ErrorResponse.new(
               name: exception.error_name,
               state: params[:state],
