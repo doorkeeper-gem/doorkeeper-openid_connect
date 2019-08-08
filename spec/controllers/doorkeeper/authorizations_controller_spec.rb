@@ -30,29 +30,54 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=[-\w]+$/)
   end
 
-  describe '#resource_owner_authenticator' do
-    it 'renders the authorization form if logged in' do
-      authorize!
+  describe '#authenticate_resource_owner!' do
+    context 'with OIDC requests' do
+      before do
+        expect(controller).to receive(:handle_oidc_prompt_param!)
+        expect(controller).to receive(:handle_oidc_max_age_param!)
+      end
 
-      expect_authorization_form!
+      it 'renders the authorization form if logged in' do
+        authorize!
+
+        expect_authorization_form!
+      end
+
+      it 'redirects to login form when not logged in' do
+        authorize! current_user: nil
+
+        expect(response).to redirect_to '/login'
+      end
     end
 
-    it 'redirects to login form when not logged in' do
-      authorize! current_user: nil
+    context 'with non-OIDC requests' do
+      before do
+        expect(controller).not_to receive(:handle_oidc_prompt_param!)
+        expect(controller).not_to receive(:handle_oidc_max_age_param!)
+      end
 
-      expect(response).to redirect_to '/login'
-    end
+      it 'when action is not :new' do
+        get :show
 
-    it 'does not break native authorization' do
-      get :show, params: {
-        code: 'foo'
-      }
+        expect(response).to redirect_to '/login'
+      end
 
-      expect(response).to redirect_to '/login'
+      it 'when openid scope is not present' do
+        authorize!(scope: 'profile')
+
+        expect_authorization_form!
+      end
+
+      it 'when client_id and scope are missing' do
+        authorize!(client_id: nil, scope: nil)
+
+        expect(response).to be_successful
+        expect(response).to render_template('doorkeeper/authorizations/error')
+      end
     end
   end
 
-  describe '#handle_prompt_param!' do
+  describe '#handle_oidc_prompt_param!' do
     it 'is ignored when the openid scope is not present' do
       authorize! scope: 'profile', prompt: 'invalid'
 
@@ -179,7 +204,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
-  describe '#handle_max_age_param!' do
+  describe '#handle_oidc_max_age_param!' do
     context 'with an invalid max_age parameter' do
       it 'renders the authorization form' do
         %w[ 0 -1 -23 foobar ].each do |max_age|
@@ -214,7 +239,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
-  describe '#reauthenticate_resource_owner' do
+  describe '#reauthenticate_oidc_resource_owner' do
     let(:performed) { true }
 
     before do
@@ -234,7 +259,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
       end
 
-      subject.send :reauthenticate_resource_owner, user
+      subject.send :reauthenticate_oidc_resource_owner, user
       passed_args
     end
 
