@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.6.2 (2019-08-09)
+
+### Bugfixes
+
+- [#80] Check for client presence in controller, fixes a 500 error when `client_id` is missing (thanks to @cincospenguinos @urnf @isabellechalhoub)
+
 ## v1.6.1 (2019-06-07)
 
 ### Bugfixes
