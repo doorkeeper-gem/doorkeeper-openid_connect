@@ -134,13 +134,20 @@ module Gollum
         files = []
         parent = @commit.parents.first
         diff = Rugged::Tree.diff(@commit.tree.repo, parent ? parent.tree : nil, @commit.tree)
+        diff.find_similar!
         diff = diff.each_patch do |patch|
           new_additions = patch.stat[1]
           new_deletions = patch.stat[0]
           additions += new_additions
           deletions += new_deletions
           total += patch.changes
-          files << [patch.delta.new_file[:path].force_encoding("UTF-8"), new_deletions, new_additions, patch.changes] # Rugged seems to generate the stat diffs in the other direciton than grit does by default, so switch the order of additions and deletions.
+          files << {
+            new_file: patch.delta.new_file[:path].force_encoding("UTF-8"),
+            old_file: patch.delta.renamed? ? patch.delta.old_file[:path].force_encoding("UTF-8") : nil,
+            new_deletions: new_deletions,
+            new_additions: new_additions,
+            changes: patch.changes
+          }
         end
         OpenStruct.new(:additions => additions, :deletions => deletions, :files => files, :id => id, :total => total)
       end
@@ -181,7 +188,8 @@ module Gollum
       def rm(path, options = {})
         index = @repo.index
         index.write
-        ::File.unlink ::File.join(@repo.workdir, path)
+        to_delete = ::File.join(@repo.workdir, path)
+        ::File.unlink to_delete if ::File.exist?(to_delete)
       end
 
       def cat_file(options, sha)
