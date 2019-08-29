@@ -138,6 +138,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
 
       context 'and no matching token' do
+        it 'redirects to the callback if skip_authorization is set to true' do
+          allow(controller).to receive(:skip_authorization?) { true }
+
+          authorize! prompt: 'none'
+          expect_successful_callback!
+        end
+
         it 'returns a consent_required error when logged in' do
           authorize! prompt: 'none'
 
