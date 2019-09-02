@@ -591,7 +591,11 @@ module Gollum
       end
 
       def head
-        Gollum::Git::Ref.new(@repo.head)
+        begin
+          return Gollum::Git::Ref.new(@repo.head)
+        rescue Rugged::ReferenceError
+          return nil
+        end
       end
 
       def index
