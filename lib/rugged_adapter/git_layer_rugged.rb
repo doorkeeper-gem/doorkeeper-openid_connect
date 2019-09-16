@@ -136,8 +136,8 @@ module Gollum
         diff = Rugged::Tree.diff(@commit.tree.repo, parent ? parent.tree : nil, @commit.tree)
         diff.find_similar!
         diff = diff.each_patch do |patch|
-          new_additions = patch.stat[1]
-          new_deletions = patch.stat[0]
+          new_additions = patch.additions
+          new_deletions = patch.deletions
           additions += new_additions
           deletions += new_deletions
           total += patch.changes
