@@ -101,7 +101,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
           error_params = {
             'error' => 'invalid_request',
-            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.'
+            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
           }
 
           expect(response.status).to redirect_to build_redirect_uri(error_params)
@@ -113,7 +113,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
             {
               'error' => 'login_required',
               'error_description' => 'The authorization server requires end-user authentication',
-              'state' => 'somestate'
+              'state' => 'somestate',
             }
           end
 
@@ -122,17 +122,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             expect(response).to redirect_to build_redirect_uri(error_params)
             expect(JSON.parse(response.body)).to eq(error_params)
-          end
-
-          it 'does not redirect to an invalid redirect_uri' do
-            authorize! prompt: 'none', current_user: nil, state: 'somestate', redirect_uri: 'https://evilapp.com'
-
-            expect(response).not_to be_redirect
-            expect(response.status).to eq(Doorkeeper.gem_version >= Gem::Version.new('5.1') ? 400 : 401)
-            expect(JSON.parse(response.body)).to eq error_params.merge(
-              'error' => 'invalid_redirect_uri',
-              'error_description' => "The requested redirect uri is malformed or doesn't match client redirect URI."
-            )
           end
         end
       end
@@ -150,7 +139,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
           error_params = {
             'error' => 'consent_required',
-            'error_description' => 'The authorization server requires end-user consent'
+            'error_description' => 'The authorization server requires end-user consent',
           }
 
           expect(response).to redirect_to build_redirect_uri(error_params)
@@ -188,7 +177,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         error_params = {
           'error' => 'account_selection_required',
-          'error_description' => 'The authorization server requires end-user account selection'
+          'error_description' => 'The authorization server requires end-user account selection',
         }
 
         expect(response.status).to redirect_to build_redirect_uri(error_params)
@@ -197,17 +186,23 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with an unknown prompt parameter' do
-        it 'returns an invalid_request error' do
-          authorize! prompt: 'maybe'
+      it 'returns an invalid_request error' do
+        authorize! prompt: 'maybe'
 
-          error_params = {
-            'error' => 'invalid_request',
-            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.'
-          }
+        error_params = {
+          'error' => 'invalid_request',
+          'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
+        }
 
-          expect(response.status).to redirect_to build_redirect_uri(error_params)
-          expect(JSON.parse(response.body)).to eq(error_params)
-        end
+        expect(response).to redirect_to build_redirect_uri(error_params)
+        expect(JSON.parse(response.body)).to eq(error_params)
+      end
+
+      it 'does not redirect to an invalid redirect_uri' do
+        authorize! prompt: 'maybe', redirect_uri: 'https://evilapp.com'
+
+        expect(response).not_to be_redirect
+      end
     end
   end
 

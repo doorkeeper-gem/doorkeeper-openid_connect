@@ -2,6 +2,12 @@
 
 No changes yet.
 
+## v1.7.0
+
+### Changes
+
+- [#85] This gem now requires Doorkeeper 5.2, Rails 5, and Ruby 2.4
+
 ## v1.6.3 (2019-09-24)
 
 ### Changes

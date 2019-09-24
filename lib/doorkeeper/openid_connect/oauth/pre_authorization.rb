@@ -4,7 +4,7 @@ module Doorkeeper
       module PreAuthorization
         attr_reader :nonce
 
-        def initialize(server, client, attrs = {})
+        def initialize(server, attrs = {})
           super
           @nonce = attrs[:nonce]
         end
