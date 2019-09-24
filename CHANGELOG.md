@@ -2,6 +2,13 @@
 
 No changes yet.
 
+## v1.6.3 (2019-09-24)
+
+### Changes
+
+- [#81] Allow silent authentication without user consent (thanks to @jarosan)
+- Don't support Doorkeeper >= 5.2 due to breaking changes
+
 ## v1.6.2 (2019-08-09)
 
 ### Bugfixes
