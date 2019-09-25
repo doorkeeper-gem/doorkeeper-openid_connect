@@ -165,24 +165,19 @@ module Gollum
         ::File.exists?(@repo.path)
       end
 
-      def grep(query, options={})
-        ref = options[:ref] ? options[:ref] : "HEAD"
-        tree = @repo.lookup(sha_from_ref(ref)).tree
-        tree = @repo.lookup(tree[options[:path]][:oid]) if options[:path]
-        enc = options.fetch(:encoding, 'utf-8')
+      def grep(search_terms, options={}, &block)
+        ref   = options[:ref] ? options[:ref] : "HEAD"
+        tree  = @repo.lookup(sha_from_ref(ref)).tree
+        tree  = @repo.lookup(tree[options[:path]][:oid]) if options[:path]
+        enc   = options.fetch(:encoding, 'utf-8')
         results = []
         tree.walk_blobs(:postorder) do |root, entry|
-          blob = @repo.lookup(entry[:oid])
-          count = 0
-          next if blob.binary?
-          blob.content.force_encoding(enc).each_line do |line|
-            next unless line.match(/#{query}/i)
-            count += 1
-          end
-          path = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
-          results << {:name => path, :count => count} unless count == 0
+          blob  = @repo.lookup(entry[:oid])
+          path  = options[:path] ? ::File.join(options[:path], root, entry[:name]) : "#{root}#{entry[:name]}"
+          data  = blob.binary? ? nil : blob.content.force_encoding(enc)
+          results << yield(path, data)
         end
-        results
+        results.compact
       end
 
       def rm(path, options = {})
