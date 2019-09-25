@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'factory_bot'
-  spec.add_development_dependency 'sqlite3', '~> 1.3.6'
+  spec.add_development_dependency 'sqlite3', '~> 1.4.1'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'conventional-changelog', '~> 1.2'
 end
