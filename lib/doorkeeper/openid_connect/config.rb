@@ -124,6 +124,8 @@ module Doorkeeper
       option :protocol, default: lambda { |*_|
         ::Rails.env.production? ? :https : :http
       }
+
+      option :authorization_url_host
     end
   end
 end

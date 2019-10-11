@@ -150,6 +150,16 @@ The following settings are optional:
   - Note that the OIDC specification mandates HTTPS, so you shouldn't change this
     for production environments unless you have a really good reason!
 
+- `authorization_url_host`
+  - The hostname to use when generating the `authorization_url` in the discovery response.
+  - The default is to use the request host, just like all the other URLs in the discovery response.
+  - This is useful when you want authorization requests to use a different URL than other requests.
+    For example, if your Doorkeeper server is behind a firewall with other servers, you might want
+    other servers to use an "internal" URL to communicate with Doorkeeper, but you want to present
+    an "external" URL to end-users for authentication requests. Note that this setting does not
+    actually change the URL that your Doorkeeper server responds on - that is outside the scope of
+    Doorkeeper.
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.

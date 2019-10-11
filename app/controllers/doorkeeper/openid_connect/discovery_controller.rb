@@ -24,7 +24,7 @@ module Doorkeeper
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
         {
           issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: protocol),
+          authorization_endpoint: oauth_authorization_url(authorization_url_options),
           token_endpoint: oauth_token_url(protocol: protocol),
           revocation_endpoint: oauth_revoke_url(protocol: protocol),
           introspection_endpoint: oauth_introspect_url(protocol: protocol),
@@ -97,6 +97,18 @@ module Doorkeeper
 
       def protocol
         Doorkeeper::OpenidConnect.configuration.protocol.call
+      end
+
+      def authorization_url_host
+        Doorkeeper::OpenidConnect.configuration.authorization_url_host
+      end
+
+      def authorization_url_options
+        {
+          protocol: protocol
+        }.tap do |opt|
+          opt[:host] = authorization_url_host if authorization_url_host
+        end
       end
     end
   end

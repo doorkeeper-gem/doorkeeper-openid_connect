@@ -65,6 +65,36 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
     end
+
+    context "when the authorization_url_host option is set" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          authorization_url_host "alternate-authorization-host"
+        end
+      end
+
+      it 'uses the authorization_url_host option when generating the authorization_url' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['authorization_endpoint']).to eq 'http://alternate-authorization-host/oauth/authorize'
+      end
+
+      it 'does not use the authorization_url_host option when generating other URLs' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        {
+          'token_endpoint' => 'http://test.host/oauth/token',
+          'revocation_endpoint' => 'http://test.host/oauth/revoke',
+          'introspection_endpoint' => 'http://test.host/oauth/introspect',
+          'userinfo_endpoint' => 'http://test.host/oauth/userinfo',
+          'jwks_uri' => 'http://test.host/oauth/discovery/keys',
+        }.each do |endpoint, expected_url|
+          expect(data[endpoint]).to eq expected_url
+        end
+      end
+    end
   end
 
   describe '#webfinger' do

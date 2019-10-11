@@ -162,4 +162,18 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       expect(subject.protocol.call).to eq(:ftp)
     end
   end
+
+  describe 'authorization_url_host' do
+    it 'defaults to nil' do
+      expect(subject.authorization_url_host).to be_nil
+    end
+
+    it 'can be set to other hosts' do
+      Doorkeeper::OpenidConnect.configure do
+        authorization_url_host "alternate-authorization-host"
+      end
+
+      expect(subject.authorization_url_host).to eq("alternate-authorization-host")
+    end
+  end
 end
