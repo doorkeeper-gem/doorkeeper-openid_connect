@@ -2,8 +2,8 @@ module Doorkeeper
   module OpenidConnect
     module Errors
       class OpenidConnectError < StandardError
-        def error_name
-          self.class.name.demodulize.underscore
+        def type
+          self.class.name.demodulize.underscore.to_sym
         end
       end
 

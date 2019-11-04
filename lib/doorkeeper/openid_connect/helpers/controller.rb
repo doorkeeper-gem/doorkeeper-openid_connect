@@ -18,6 +18,7 @@ module Doorkeeper
         def oidc_authorization_request?
           controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
             action_name == 'new' &&
+            pre_auth.valid? &&
             pre_auth.client &&
             pre_auth.scopes.include?('openid')
         end
@@ -29,14 +30,18 @@ module Doorkeeper
           # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
           @_response_body = nil
 
-          error_response = if pre_auth.valid?
-            ::Doorkeeper::OAuth::ErrorResponse.new(
-              name: exception.error_name,
+          error_response = if exception.type == :invalid_request
+            ::Doorkeeper::OAuth::InvalidRequestResponse.new(
+              name: exception.type,
               state: params[:state],
-              redirect_uri: params[:redirect_uri]
+              redirect_uri: params[:redirect_uri],
             )
           else
-            pre_auth.error_response
+            ::Doorkeeper::OAuth::ErrorResponse.new(
+              name: exception.type,
+              state: params[:state],
+              redirect_uri: params[:redirect_uri],
+            )
           end
 
           response.headers.merge!(error_response.headers)
@@ -53,15 +58,15 @@ module Doorkeeper
 
           prompt_values.each do |prompt|
             case prompt
-            when 'none' then
+            when 'none'
               raise Errors::InvalidRequest if (prompt_values - [ 'none' ]).any?
               raise Errors::LoginRequired unless owner
               raise Errors::ConsentRequired if oidc_consent_required?(owner)
-            when 'login' then
+            when 'login'
               reauthenticate_oidc_resource_owner(owner) if owner
-            when 'consent' then
+            when 'consent'
               render :new
-            when 'select_account' then
+            when 'select_account'
               # TODO: let the user implement this
               raise Errors::AccountSelectionRequired
             else
@@ -74,8 +79,10 @@ module Doorkeeper
           max_age = params[:max_age].to_i
           return unless max_age > 0 && owner
 
-          auth_time = instance_exec owner,
+          auth_time = instance_exec(
+            owner,
             &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
+          )
 
           if !auth_time || (Time.zone.now - auth_time) > max_age
             reauthenticate_oidc_resource_owner(owner)
@@ -89,8 +96,11 @@ module Doorkeeper
             params.delete('prompt') if params['prompt'].blank?
           end.to_query
 
-          instance_exec owner, return_to.to_s,
+          instance_exec(
+            owner,
+            return_to.to_s,
             &Doorkeeper::OpenidConnect.configuration.reauthenticate_resource_owner
+          )
 
           raise Errors::LoginRequired unless performed?
         end
@@ -103,6 +113,7 @@ module Doorkeeper
 
         def oidc_consent_required?(owner)
           return false if skip_authorization?
+
           matching_tokens_for_oidc_resource_owner(owner).blank?
         end
       end
