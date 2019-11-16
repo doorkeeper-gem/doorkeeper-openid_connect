@@ -105,15 +105,17 @@ module Doorkeeper
         end
 
         def matching_tokens_for_oidc_resource_owner(owner)
-          Doorkeeper::AccessToken.authorized_tokens_for(pre_auth.client.id, owner.id).select do |token|
-            Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, pre_auth.client.scopes)
-          end
+          AccessToken.matching_token_for(
+            pre_auth.client,
+            owner.id,
+            pre_auth.scopes
+          )
         end
 
         def oidc_consent_required?(owner)
           return false if skip_authorization?
 
-          matching_tokens_for_oidc_resource_owner(owner).blank?
+          matching_tokens_for_oidc_resource_owner(owner).nil?
         end
       end
     end
