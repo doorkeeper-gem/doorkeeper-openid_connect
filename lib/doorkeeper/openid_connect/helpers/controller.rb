@@ -19,7 +19,6 @@ module Doorkeeper
           controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
             action_name == 'new' &&
             pre_auth.valid? &&
-            pre_auth.client &&
             pre_auth.scopes.include?('openid')
         end
 

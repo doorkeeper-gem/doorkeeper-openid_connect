@@ -31,6 +31,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   end
 
   describe '#authenticate_resource_owner!' do
+    it 'redirects to login form when not logged in' do
+      authorize! current_user: nil
+
+      expect(response).to redirect_to '/login'
+    end
+
     context 'with OIDC requests' do
       before do
         expect(controller).to receive(:handle_oidc_prompt_param!)
@@ -42,12 +48,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         expect_authorization_form!
       end
-
-      it 'redirects to login form when not logged in' do
-        authorize! current_user: nil
-
-        expect(response).to redirect_to '/login'
-      end
     end
 
     context 'with non-OIDC requests' do
@@ -57,22 +57,37 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
 
       it 'when action is not :new' do
-        get :show
+        get :show, params: {
+          response_type: 'code',
+          current_user: user.id,
+          client_id: application.uid,
+          scope: default_scopes,
+          redirect_uri: application.redirect_uri,
+        }
 
-        expect(response).to redirect_to '/login'
+        expect(response).to render_template('doorkeeper/authorizations/show')
+      end
+
+      context 'when pre_authorization is invalid' do
+        it 'render error when client_id is missing' do
+          authorize!(client_id: nil)
+
+          expect(response).to be_successful
+          expect(response).to render_template('doorkeeper/authorizations/error')
+        end
+
+        it 'render error when response_type is missing' do
+          authorize!(response_type: nil)
+
+          expect(response).to be_successful
+          expect(response).to render_template('doorkeeper/authorizations/error')
+        end
       end
 
       it 'when openid scope is not present' do
         authorize!(scope: 'profile')
 
         expect_authorization_form!
-      end
-
-      it 'when client_id and scope are missing' do
-        authorize!(client_id: nil, scope: nil)
-
-        expect(response).to be_successful
-        expect(response).to render_template('doorkeeper/authorizations/error')
       end
     end
   end
