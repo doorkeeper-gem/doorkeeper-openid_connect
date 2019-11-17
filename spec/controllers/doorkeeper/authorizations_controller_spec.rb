@@ -304,4 +304,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
   end
+
+  describe '#pre_auth' do
+    it 'permits nonce parameter' do
+      authorize! nonce: '123456'
+      expect(assigns(:pre_auth).nonce).to eq '123456'
+    end
+  end
 end
