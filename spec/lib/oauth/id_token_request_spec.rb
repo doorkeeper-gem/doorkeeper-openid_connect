@@ -1,22 +1,27 @@
 require 'rails_helper'
 
 describe Doorkeeper::OAuth::IdTokenRequest do
-  let(:application) do
-    scopes = double(all: ['public'])
-    double(:application, id: 9990, scopes: scopes)
+  let :application do
+    FactoryBot.create(:application, scopes: 'public')
   end
 
-  let(:pre_auth) do
-    double(
-      :pre_auth,
-      client: application,
-      redirect_uri: 'http://tst.com/cb',
-      state: nil,
-      scopes: Doorkeeper::OAuth::Scopes.from_string('public'),
-      error: nil,
-      authorizable?: true,
-      nonce: '12345'
-    )
+  let :pre_auth do
+    server = Doorkeeper.configuration
+    allow(server).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+    client = Doorkeeper::OAuth::Client.new(application)
+
+    attributes = {
+      client_id: client.uid,
+      response_type: 'id_token',
+      redirect_uri: 'https://app.com/callback',
+      scope: 'public',
+      nonce: '12345',
+    }
+
+    pre_auth = Doorkeeper::OAuth::PreAuthorization.new(server, attributes)
+    pre_auth.authorizable? # triggers loading of pre_auth.client
+    pre_auth
   end
 
   let(:owner) do
@@ -25,6 +30,11 @@ describe Doorkeeper::OAuth::IdTokenRequest do
 
   subject do
     Doorkeeper::OAuth::IdTokenRequest.new(pre_auth, owner)
+  end
+
+  # just to make sure self created pre_auth is authorizable
+  it 'pre_auth should be valid' do
+    expect(pre_auth).to be_authorizable
   end
 
   it 'creates an access token' do
@@ -36,17 +46,6 @@ describe Doorkeeper::OAuth::IdTokenRequest do
   it 'returns id_token response' do
     expect(subject.authorize).to be_a(Doorkeeper::OAuth::IdTokenResponse)
   end
-
-  it 'does not create token when not authorizable' do
-    allow(pre_auth).to receive(:authorizable?).and_return(false)
-    expect { subject.authorize }.not_to change { Doorkeeper::AccessToken.count }
-  end
-
-  it 'returns a error response' do
-    allow(pre_auth).to receive(:authorizable?).and_return(false)
-    expect(subject.authorize).to be_a(Doorkeeper::OAuth::ErrorResponse)
-  end
-
 
   context 'token reuse' do
     it 'creates a new token if there are no matching tokens' do
