@@ -60,7 +60,7 @@ module Doorkeeper
             when 'none'
               raise Errors::InvalidRequest if (prompt_values - [ 'none' ]).any?
               raise Errors::LoginRequired unless owner
-              raise Errors::ConsentRequired if oidc_consent_required?(owner)
+              raise Errors::ConsentRequired if oidc_consent_required?
             when 'login'
               reauthenticate_oidc_resource_owner(owner) if owner
             when 'consent'
@@ -104,18 +104,8 @@ module Doorkeeper
           raise Errors::LoginRequired unless performed?
         end
 
-        def matching_tokens_for_oidc_resource_owner(owner)
-          AccessToken.matching_token_for(
-            pre_auth.client,
-            owner.id,
-            pre_auth.scopes
-          )
-        end
-
-        def oidc_consent_required?(owner)
-          return false if skip_authorization?
-
-          matching_tokens_for_oidc_resource_owner(owner).nil?
+        def oidc_consent_required?
+          !skip_authorization? && !matching_token?
         end
       end
     end
