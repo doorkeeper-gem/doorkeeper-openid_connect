@@ -46,7 +46,7 @@ module Doorkeeper
       end
 
       def audience
-        @access_token.application.uid
+        @access_token.application.try(:uid)
       end
 
       def expiration

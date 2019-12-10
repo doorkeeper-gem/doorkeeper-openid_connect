@@ -32,6 +32,23 @@ describe Doorkeeper::OpenidConnect::IdToken do
     end
   end
 
+  describe '#claims when access_token application is null' do
+    let(:access_token) { create :access_token, resource_owner_id: user.id, application: nil, scopes: 'openid' }
+    it 'returns all default claims' do
+      expect(subject.claims).to eq({
+        iss: 'dummy',
+        sub: user.id.to_s,
+        aud: nil,
+        exp: 180,
+        iat: 60,
+        nonce: nonce,
+        auth_time: 23,
+        both_responses: 'both',
+        id_token_response: 'id_token',
+      })
+    end
+  end
+
   describe '#as_json' do
     it 'returns claims with nil values and empty strings removed' do
       allow(subject).to receive(:issuer).and_return(nil)
