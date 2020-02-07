@@ -19,7 +19,6 @@ module Doorkeeper
           controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
             action_name == 'new' &&
             pre_auth.valid? &&
-            pre_auth.client &&
             pre_auth.scopes.include?('openid')
         end
 
@@ -61,7 +60,7 @@ module Doorkeeper
             when 'none'
               raise Errors::InvalidRequest if (prompt_values - [ 'none' ]).any?
               raise Errors::LoginRequired unless owner
-              raise Errors::ConsentRequired if oidc_consent_required?(owner)
+              raise Errors::ConsentRequired if oidc_consent_required?
             when 'login'
               reauthenticate_oidc_resource_owner(owner) if owner
             when 'consent'
@@ -105,16 +104,8 @@ module Doorkeeper
           raise Errors::LoginRequired unless performed?
         end
 
-        def matching_tokens_for_oidc_resource_owner(owner)
-          Doorkeeper::AccessToken.authorized_tokens_for(pre_auth.client.id, owner.id).select do |token|
-            Doorkeeper::AccessToken.scopes_match?(token.scopes, pre_auth.scopes, pre_auth.client.scopes)
-          end
-        end
-
-        def oidc_consent_required?(owner)
-          return false if skip_authorization?
-
-          matching_tokens_for_oidc_resource_owner(owner).blank?
+        def oidc_consent_required?
+          !skip_authorization? && !matching_token?
         end
       end
     end

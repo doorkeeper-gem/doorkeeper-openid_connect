@@ -1,6 +1,6 @@
 ## Unreleased
 
-No changes yet.
+- [#97] Update to make doorkeeper-oidc compatible with Doorkeeper 5.2
 
 ## v1.7.0 (2019-11-04)
 
