@@ -4,6 +4,8 @@
 [![Code Climate](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect.svg)](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect)
 [![Gem Version](https://badge.fury.io/rb/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
 
+#### :warning: **This project is looking for maintainers, see [this issue](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/89).**
+
 This library implements an [OpenID Connect](http://openid.net/connect/) authentication provider for Rails applications on top of the [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) OAuth 2.0 framework.
 
 OpenID Connect is a single-sign-on and identity layer with a [growing list of server and client implementations](http://openid.net/developers/libraries/). If you're looking for a client in Ruby check out [omniauth_openid_connect](https://github.com/m0n9oose/omniauth_openid_connect/).
