@@ -30,6 +30,7 @@ module Doorkeeper
           introspection_endpoint: oauth_introspect_url(protocol: protocol),
           userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
           jwks_uri: oauth_discovery_keys_url(protocol: protocol),
+          end_session_endpoint: Doorkeeper::OpenidConnect.configuration.end_session_endpoint.call(),
 
           scopes_supported: doorkeeper.scopes,
 
@@ -67,7 +68,7 @@ module Doorkeeper
             'exp',
             'iat',
           ] | openid_connect.claims.to_h.keys,
-        }
+        }.compact
       end
 
       def webfinger_response
