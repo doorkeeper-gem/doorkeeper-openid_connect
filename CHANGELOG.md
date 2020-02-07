@@ -1,6 +1,33 @@
 ## Unreleased
 
-- [#97] Update to make doorkeeper-oidc compatible with Doorkeeper 5.2
+## v1.7.1 (2020-02-07)
+
+### Upgrading
+
+This version adds `on_delete: :cascade` to the migration template for the `oauth_openid_requests` table, in order to fix #82.
+
+For existing installations, you should add a new migration in your application to drop the existing foreign key and replace it with a new one with `on_delete: :cascade` included. Depending on the database you're using and the size of your application this might bring up some concerns, but in most cases the following should be sufficient:
+
+```ruby
+class UpdateOauthOpenIdRequestsForeignKeys < ActiveRecord::Migration[5.2]
+  def up
+    remove_foreign_key(:oauth_openid_requests, column: :access_grant_id)
+    add_foreign_key(:oauth_openid_requests, :oauth_access_grants, column: :access_grant_id, on_delete: :cascade)
+  end
+
+  def down
+    remove_foreign_key(:oauth_openid_requests, column: :access_grant_id)
+    add_foreign_key(:oauth_openid_requests, :oauth_access_grants, column: :access_grant_id)
+  end
+end
+```
+
+### Bugfixes
+
+- [#96] Bump `json-jwt` because of CVE-2019-18848 (thanks to @leleabhinav)
+- [#97] Fixes for compatibility with Doorkeeper 5.2 (thanks to @linhdangduy)
+- [#98] Cascade deletes from `oauth_openid_requests` to `oauth_access_grants` (thanks to @manojmj92)
+- [#99] Fix `audience` claim when application is not set on access token (thanks to @ionut998)
 
 ## v1.7.0 (2019-11-04)
 
