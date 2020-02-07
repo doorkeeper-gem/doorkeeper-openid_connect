@@ -15,7 +15,7 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
 
   describe '#delete' do
     it 'cascades to oauth_openid_requests' do
-      pending('Rails 6 changes - https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/91')
+      pending('Needs Rails 6 for foreign key support with sqlite3 - https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/91')
 
       access_grant = create(:access_grant, application: create(:application))
       create(:openid_request, access_grant: access_grant)
