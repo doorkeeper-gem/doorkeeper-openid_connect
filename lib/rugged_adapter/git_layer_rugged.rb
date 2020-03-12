@@ -16,6 +16,7 @@ module Gollum
 
     DEFAULT_MIME_TYPE = "text/plain"
     class NoSuchShaFound < StandardError; end
+    class PathApplyError < StandardError; end
 
     class Actor
 
@@ -196,7 +197,7 @@ module Gollum
         diff = @repo.diff(sha2, sha1, {:paths => [path]}).first.diff
         begin
           result = @repo.apply(diff, {:location => :index, :path => path})
-        rescue RuntimeError
+        rescue RuntimeError, Rugged::PathError
           return false
         end
         begin
@@ -493,9 +494,13 @@ module Gollum
       def read_tree(id)
         id = Gollum::Git::Git.new(@rugged_repo).ref_to_sha(id)
         return nil if id.nil?
-        current_tree = @rugged_repo.lookup(id)
-        current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
-        @index.read_tree(current_tree)
+        begin
+          current_tree = @rugged_repo.lookup(id)
+          current_tree = current_tree.tree unless current_tree.is_a?(Rugged::Tree)
+          @index.read_tree(current_tree)
+        rescue
+          raise Gollum::Git::NoSuchShaFound
+        end
         @current_tree = Gollum::Git::Tree.new(current_tree)
       end
 
@@ -579,7 +584,11 @@ module Gollum
       end
 
       def commit(id)
-        git.commit_from_ref(id)
+        begin
+          git.commit_from_ref(id)
+        rescue
+          raise Gollum::Git::NoSuchShaFound
+        end
       end
 
       def commits(start = 'refs/heads/master', max_count = 10, skip = 0)
