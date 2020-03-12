@@ -16,7 +16,6 @@ module Gollum
 
     DEFAULT_MIME_TYPE = "text/plain"
     class NoSuchShaFound < StandardError; end
-    class PathApplyError < StandardError; end
 
     class Actor
 
