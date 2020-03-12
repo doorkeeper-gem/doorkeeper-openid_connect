@@ -359,8 +359,7 @@ module Gollum
                 next if c.parents.length > 1
               end
 
-              if !current_path ||
-                commit_touches_path?(c, current_path, options[:follow], walker)
+              if !current_path || commit_touches_path?(c, current_path, options[:follow], walker)
                 # This is a commit we care about, unless we haven't skipped enough
                 # yet
                 skipped += 1
@@ -392,7 +391,7 @@ module Gollum
 
           # Only follow the first TREESAME parent for merge commits
           if num_treesame > 0
-            walker.hide(parent)
+            walker.hide(parent.oid)
             next
           end
 
