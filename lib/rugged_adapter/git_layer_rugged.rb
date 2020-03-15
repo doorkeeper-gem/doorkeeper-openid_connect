@@ -346,6 +346,7 @@ module Gollum
         skipped = 0
         current_path = options[:path].dup if options[:path]
         current_path = nil if current_path == ''
+        renamed_path = current_path.dup
         track_pathnames = true if current_path && options[:follow]
         limit = options[:limit].to_i
         offset = options[:offset].to_i
@@ -358,12 +359,13 @@ module Gollum
                 # Skip merge commits
                 next if c.parents.length > 1
               end
-
               if !current_path || commit_touches_path?(c, current_path, options[:follow], walker)
                 # This is a commit we care about, unless we haven't skipped enough
                 # yet
                 skipped += 1
-                commits.push(Gollum::Git::Commit.new(c, track_pathnames ? current_path.dup : nil)) if skipped > offset
+                
+                commits.push(Gollum::Git::Commit.new(c, track_pathnames ? renamed_path : nil)) if skipped > offset
+                renamed_path = current_path.dup
               end
           end
         walker.reset
