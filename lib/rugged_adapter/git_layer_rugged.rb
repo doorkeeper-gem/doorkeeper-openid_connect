@@ -346,7 +346,7 @@ module Gollum
         skipped = 0
         current_path = options[:path].dup if options[:path]
         current_path = nil if current_path == ''
-        renamed_path = current_path.dup
+        renamed_path = current_path.nil? ? nil : current_path.dup
         track_pathnames = true if current_path && options[:follow]
         limit = options[:limit].to_i
         offset = options[:offset].to_i
@@ -365,7 +365,7 @@ module Gollum
                 skipped += 1
                 
                 commits.push(Gollum::Git::Commit.new(c, track_pathnames ? renamed_path : nil)) if skipped > offset
-                renamed_path = current_path.dup
+                renamed_path = current_path.nil? ? nil : current_path.dup
               end
           end
         walker.reset
