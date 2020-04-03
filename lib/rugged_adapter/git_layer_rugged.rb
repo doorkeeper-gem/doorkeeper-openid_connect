@@ -227,7 +227,7 @@ module Gollum
         path = path.nil? ? path : [path]
         options = options.merge({:paths => path, :strategy => :force})
         if ref == 'HEAD'
-          @repo.checkout_head(options)
+          @repo.checkout_head(**options)
         else
           ref = "refs/heads/#{ref}" unless ref =~ /^refs\/heads\//
           @repo.checkout_tree(sha_from_ref(ref), options)
@@ -559,7 +559,7 @@ module Gollum
     class Repo
 
       def initialize(path, options)
-        @repo = Rugged::Repository.new(path, options)
+        @repo = Rugged::Repository.new(path, **options)
       end
 
       def self.init(path)
