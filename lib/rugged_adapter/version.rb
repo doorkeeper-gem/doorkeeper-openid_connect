@@ -1,7 +1,7 @@
 module Gollum
   module Lib
     module Git
-    VERSION = '0.99.6'
+    VERSION = '1.0'
     end
   end
 end
