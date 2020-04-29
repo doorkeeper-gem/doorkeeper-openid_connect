@@ -19,15 +19,16 @@ module Gollum
 
     class Actor
 
-      attr_accessor :name, :email
+      attr_accessor :name, :email, :time
 
       def self.default_actor
         self.new("Gollum", "Gollum@wiki")
       end
 
-      def initialize(name, email)
+      def initialize(name, email, time = nil)
         @name = name
         @email = email
+        @time = time
       end
 
       def output(time)
@@ -42,7 +43,7 @@ module Gollum
       end
 
       def to_h
-        {:name => @name, :email => @email}
+        {:name => @name, :email => @email, :time => @time}
       end
 
     end
@@ -367,7 +368,7 @@ module Gollum
                 # This is a commit we care about, unless we haven't skipped enough
                 # yet
                 skipped += 1
-                
+
                 commits.push(Gollum::Git::Commit.new(c, track_pathnames ? renamed_path : nil)) if skipped > offset
                 renamed_path = current_path.nil? ? nil : current_path.dup
               end
