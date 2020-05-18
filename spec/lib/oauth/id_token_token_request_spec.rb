@@ -25,7 +25,7 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
   end
 
   let(:owner) do
-    double :owner, id: 7866
+    double :owner, id: 7866, to_i: 7866
   end
 
   subject do

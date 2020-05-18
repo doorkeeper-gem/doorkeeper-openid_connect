@@ -21,9 +21,15 @@ describe Doorkeeper::OAuth::IdTokenResponse do
     )
   end
 
+  let(:owner) { double(id: 1, to_i: 1) }
+
   let(:auth) do
-    Doorkeeper::OAuth::Authorization::Token.new(pre_auth, double(id: 1)).tap do |c|
-      c.issue_token
+    Doorkeeper::OAuth::Authorization::Token.new(pre_auth, owner).tap do |c|
+      if c.respond_to?(:issue_token!)
+        c.issue_token!
+      else
+        c.issue_token
+      end
     end
   end
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }

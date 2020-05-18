@@ -17,7 +17,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
   describe '#after_successful_response' do
     it 'adds the ID token to the response' do
       subject.instance_variable_set '@response', response
-      subject.access_token = token
+      subject.instance_variable_set '@access_token', token
       subject.send :after_successful_response
 
       expect(response.id_token).to be_a Doorkeeper::OpenidConnect::IdToken
