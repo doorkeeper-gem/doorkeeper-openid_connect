@@ -4,7 +4,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
   subject {
     Doorkeeper::OAuth::AuthorizationCodeRequest.new(server, grant, client).tap do |request|
       request.instance_variable_set '@response', response
-      request.access_token = token
+      request.instance_variable_set("@access_token", token)
     end
   }
 

@@ -12,6 +12,6 @@ module Doorkeeper
       end
     end
 
-    Doorkeeper::AuthorizationsController.send :prepend, AuthorizationsExtension
+    Doorkeeper::AuthorizationsController.prepend AuthorizationsExtension
   end
 end
