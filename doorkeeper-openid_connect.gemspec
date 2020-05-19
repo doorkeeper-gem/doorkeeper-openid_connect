@@ -24,9 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'factory_bot'
-  # We need to stick to this sqlite3 version for Rails 5.0
-  # https://github.com/rails/rails/pull/35154
-  spec.add_development_dependency 'sqlite3', '~> 1.3.6'
+  spec.add_development_dependency 'sqlite3', '~> 1.4'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'conventional-changelog', '~> 1.2'
 end
