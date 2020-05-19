@@ -4,7 +4,7 @@ module Doorkeeper
       module Controller
         private
 
-        # TODO: remove after Doorkeeper will merge it
+        # FIXME: remove after Doorkeeper will merge it
         def current_resource_owner
           return @current_resource_owner if defined?(@current_resource_owner)
           super
