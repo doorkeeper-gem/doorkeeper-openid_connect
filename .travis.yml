@@ -27,3 +27,8 @@ rvm:
   - 2.5
   - 2.6
   - 2.7
+
+matrix:
+  exclude:
+    - rvm: 2.4
+      env: rails=6.0.0
