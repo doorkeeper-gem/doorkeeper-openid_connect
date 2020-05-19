@@ -4,8 +4,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
   subject { Doorkeeper::OAuth::IdTokenTokenResponse.new(pre_auth, auth, id_token) }
   let(:token) { create :access_token }
   let(:application) do
-    scopes = double(all: ['public'])
-    double(:application, id: 9990, scopes: scopes)
+    create(:application, scopes: "public")
   end
   let(:pre_auth) do
     double(

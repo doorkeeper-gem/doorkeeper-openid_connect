@@ -15,12 +15,18 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
 
   describe '#delete' do
     it 'cascades to oauth_openid_requests' do
-      pending('Needs Rails 6 for foreign key support with sqlite3 - https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/91')
+      if Rails::VERSION::MAJOR >= 6
+        access_grant = create(:access_grant, application: create(:application))
+        create(:openid_request, access_grant: access_grant)
 
-      access_grant = create(:access_grant, application: create(:application))
-      create(:openid_request, access_grant: access_grant)
-
-      expect { access_grant.delete }.to change(Doorkeeper::OpenidConnect::Request, :count).by(-1)
+        expect { access_grant.delete }
+          .to(change { Doorkeeper::OpenidConnect::Request.count }.by(-1))
+      else
+        skip <<-MSG.strip
+          Needs Rails 6 for foreign key support with sqlite3:
+          https://blog.bigbinary.com/2019/09/24/rails-6-adds-add_foreign_key-and-remove_foreign_key-for-sqlite3.html
+        MSG
+      end
     end
   end
 end
