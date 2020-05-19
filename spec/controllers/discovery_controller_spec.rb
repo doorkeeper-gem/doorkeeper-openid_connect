@@ -65,6 +65,24 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
     end
+
+    it 'does not return an end session endpoint if none is configured' do
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data.key?('end_session_endpoint')).to be(false)
+    end
+
+    it 'uses the configured end session endpoint' do
+      Doorkeeper::OpenidConnect.configure do
+        end_session_endpoint { 'http://test.host/logout' }
+      end
+
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data['end_session_endpoint']).to eq 'http://test.host/logout'
+    end
   end
 
   describe '#webfinger' do

@@ -152,6 +152,10 @@ The following settings are optional:
   - Note that the OIDC specification mandates HTTPS, so you shouldn't change this
     for production environments unless you have a really good reason!
 
+- `end_session_endpoint`
+  - The URL that the user is redirected to after ending the session on the client.
+  - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.
