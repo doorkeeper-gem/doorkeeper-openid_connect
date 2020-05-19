@@ -1,5 +1,13 @@
 ## Unreleased
 
+## v1.7.2 (2020-05-20)
+
+### Changes
+
+- [#108] Add support for Doorkeeper 5.4
+- [#103] Add support for end_session_endpoint
+- [#109] Test against Ruby 2.7 & Rails 6.x
+
 ## v1.7.1 (2020-02-07)
 
 ### Upgrading
