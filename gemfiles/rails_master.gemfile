@@ -1,0 +1,7 @@
+source "https://rubygems.org"
+
+gem "rails", git: "https://github.com/rails/rails"
+gem "rails-controller-testing"
+gem "sqlite3", "~> 1.4", platform: [:ruby, :mswin, :mingw, :x64_mingw]
+
+gemspec path: "../"
