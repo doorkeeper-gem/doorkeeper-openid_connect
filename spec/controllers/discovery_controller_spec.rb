@@ -39,20 +39,20 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           'normal',
         ],
 
-        'claims_supported' => [
-          'iss',
-          'sub',
-          'aud',
-          'exp',
-          'iat',
-          'name',
-          'variable_name',
-          'created_at',
-          'updated_at',
-          'token_id',
-          'both_responses',
-          'id_token_response',
-          'user_info_response',
+        'claims_supported' => %w[
+          iss
+          sub
+          aud
+          exp
+          iat
+          name
+          variable_name
+          created_at
+          updated_at
+          token_id
+          both_responses
+          id_token_response
+          user_info_response
         ],
       }.sort)
     end

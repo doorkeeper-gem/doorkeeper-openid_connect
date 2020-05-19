@@ -6,11 +6,13 @@
 if Rails::VERSION::MAJOR >= 5
   Rails.application.config.active_record.belongs_to_required_by_default = true
 
-  Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true if Rails::VERSION::MINOR >= 2
+  if Rails::VERSION::MINOR >= 2
+    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+  end
 else
   # monkey-patch versioned migrations in Rails < 5.0
   class ActiveRecord::Migration
-    def self.[](version)
+    def self.[](_version)
       self
     end
   end

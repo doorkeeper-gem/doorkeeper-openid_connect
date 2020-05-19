@@ -25,11 +25,11 @@ FactoryBot.define do
   end
 
   factory :user do
-    current_sign_in_at { Time.at(23) }
+    current_sign_in_at { Time.zone.at(23) }
   end
 
   factory :openid_request, class: 'Doorkeeper::OpenidConnect::Request' do
     access_grant
-    sequence(:nonce) { |n| n.to_s }
+    sequence(:nonce, &:to_s)
   end
 end

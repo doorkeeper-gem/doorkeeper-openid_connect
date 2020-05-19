@@ -10,7 +10,7 @@ describe Doorkeeper::OpenidConnect::IdToken do
   let(:nonce) { '123456' }
 
   before do
-    allow(Time).to receive(:now) { Time.at 60 }
+    allow(Time).to receive(:now) { Time.zone.at 60 }
   end
 
   describe '#nonce' do
