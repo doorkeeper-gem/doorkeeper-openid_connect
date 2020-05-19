@@ -1,0 +1,69 @@
+inherit_from: .rubocop_todo.yml
+require:
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rspec
+AllCops:
+  TargetRubyVersion: 2.4
+  Exclude:
+    - "spec/dummy/bin/*"
+    - "spec/dummy/db/*"
+    - "spec/dummy/db/*/**"
+    - "spec/dummy/config/*"
+Layout/TrailingEmptyLines:
+  Enabled: true
+Layout/DotPosition:
+  EnforcedStyle: leading
+Layout/LineLength:
+  Exclude:
+    - spec/**/*
+  Max: 100
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+    - doorkeeper-openid_connect.gemspec
+Metrics/MethodLength:
+  Exclude:
+    - spec/dummy/db/**/*
+Style/FrozenStringLiteralComment:
+  Enabled: true
+Style/SymbolArray:
+  MinSize: 3
+Style/WordArray:
+  MinSize: 3
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Style/DoubleNegation:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: true
+Style/HashTransformKeys:
+  Enabled: true
+Style/HashTransformValues:
+  Enabled: true
+
+Rails/HttpPositionalArguments:
+  Exclude:
+    - spec/grape/*
+Rails/HttpStatus:
+  Enabled: false
+Rails/RakeEnvironment:
+  Exclude:
+    - Rakefile
+Rails/SkipsModelValidations:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Enabled: false
+RSpec/ExampleLength:
+  Enabled: false
+RSpec/FilePath:
+  Enabled: false
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/NestedGroups:
+  Enabled: false
+Capybara/FeatureMethods:
+  Enabled: false

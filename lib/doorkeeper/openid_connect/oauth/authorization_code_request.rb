@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module OAuth
@@ -8,7 +10,7 @@ module Doorkeeper
           super
 
           nonce =
-            if openid_request = grant.openid_request
+            if (openid_request = grant.openid_request)
               openid_request.destroy!
               openid_request.nonce
             end
@@ -20,5 +22,5 @@ module Doorkeeper
     end
   end
 
-  OAuth::AuthorizationCodeRequest.send :prepend, OpenidConnect::OAuth::AuthorizationCodeRequest
+  OAuth::AuthorizationCodeRequest.prepend OpenidConnect::OAuth::AuthorizationCodeRequest
 end

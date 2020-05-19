@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module OAuth
@@ -20,5 +22,5 @@ module Doorkeeper
     end
   end
 
-  OAuth::PasswordAccessTokenRequest.send :prepend, OpenidConnect::OAuth::PasswordAccessTokenRequest
+  OAuth::PasswordAccessTokenRequest.prepend OpenidConnect::OAuth::PasswordAccessTokenRequest
 end

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV['RAILS_ENV'] ||= 'test'
 require 'dummy/config/environment'
 # Prevent database truncation if the environment is production
-abort("The Rails environment is running in production mode!") if Rails.env.production?
+abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'spec_helper'
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
@@ -53,8 +55,8 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   # Reinitialize configuration after each example
-  config.after :each do
-    load "#{Rails.root}/config/initializers/doorkeeper.rb"
-    load "#{Rails.root}/config/initializers/doorkeeper_openid_connect.rb"
+  config.after do
+    load Rails.root.join("config/initializers/doorkeeper.rb")
+    load Rails.root.join("config/initializers/doorkeeper_openid_connect.rb")
   end
 end

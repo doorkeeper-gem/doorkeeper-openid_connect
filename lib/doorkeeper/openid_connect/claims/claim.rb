@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module Claims
@@ -11,9 +13,9 @@ module Doorkeeper
             name family_name given_name middle_name nickname preferred_username
             profile picture website gender birthdate zoneinfo locale updated_at
           ],
-          email: %i[ email email_verified ],
-          address: %i[ address ],
-          phone: %i[ phone_number phone_number_verified ],
+          email: %i[email email_verified],
+          address: %i[address],
+          phone: %i[phone_number phone_number_verified],
         }
 
         def initialize(options = {})

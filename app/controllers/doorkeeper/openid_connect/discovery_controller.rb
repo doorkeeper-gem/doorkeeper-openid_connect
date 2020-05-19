@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     class DiscoveryController < ::Doorkeeper::ApplicationController
@@ -36,15 +38,15 @@ module Doorkeeper
 
           # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
-          response_modes_supported: [ 'query', 'fragment' ],
+          response_modes_supported: ['query', 'fragment'],
 
           token_endpoint_auth_methods_supported: [
             'client_secret_basic',
             'client_secret_post',
 
             # TODO: look into doorkeeper-jwt_assertion for these
-            #'client_secret_jwt',
-            #'private_key_jwt'
+            # 'client_secret_jwt',
+            # 'private_key_jwt'
           ],
 
           subject_types_supported: openid_connect.subject_types_supported,
@@ -57,8 +59,8 @@ module Doorkeeper
             'normal',
 
             # TODO: support these
-            #'aggregated',
-            #'distributed',
+            # 'aggregated',
+            # 'distributed',
           ],
 
           claims_supported: [

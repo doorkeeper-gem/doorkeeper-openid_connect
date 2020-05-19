@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::IdToken do
   subject { described_class.new(access_token, nonce) }
+
   let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: 'openid' }
   let(:user) { create :user }
   let(:nonce) { '123456' }
@@ -60,8 +63,8 @@ describe Doorkeeper::OpenidConnect::IdToken do
 
       json = subject.as_json
 
-      expect(json).to_not include :iss
-      expect(json).to_not include :sub
+      expect(json).not_to include :iss
+      expect(json).not_to include :sub
       expect(json).to include :aud
     end
   end

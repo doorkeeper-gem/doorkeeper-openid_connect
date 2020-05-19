@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module Helpers
@@ -64,7 +66,7 @@ module Doorkeeper
           prompt_values.each do |prompt|
             case prompt
             when 'none'
-              raise Errors::InvalidRequest if (prompt_values - [ 'none' ]).any?
+              raise Errors::InvalidRequest if (prompt_values - ['none']).any?
               raise Errors::LoginRequired unless owner
               raise Errors::ConsentRequired if oidc_consent_required?
             when 'login'

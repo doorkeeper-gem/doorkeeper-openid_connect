@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module OAuth
@@ -27,11 +29,11 @@ module Doorkeeper
         private
 
         def response_on_fragment?
-          response_type == "token" || response_type == "id_token" || response_type == "id_token token"
+          response_type == 'token' || response_type == 'id_token' || response_type == 'id_token token'
         end
       end
     end
   end
 
-  OAuth::PreAuthorization.send :prepend, OpenidConnect::OAuth::PreAuthorization
+  OAuth::PreAuthorization.prepend OpenidConnect::OAuth::PreAuthorization
 end

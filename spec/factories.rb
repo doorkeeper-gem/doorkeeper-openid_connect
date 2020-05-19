@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :access_grant, class: Doorkeeper::AccessGrant do
+  factory :access_grant, class: 'Doorkeeper::AccessGrant' do
     resource_owner_id { create(:user).id }
     application
     redirect_uri { 'https://app.com/callback' }
@@ -7,7 +9,7 @@ FactoryBot.define do
     scopes { 'public write' }
   end
 
-  factory :access_token, class: Doorkeeper::AccessToken do
+  factory :access_token, class: 'Doorkeeper::AccessToken' do
     resource_owner_id { create(:user).id }
     application
     expires_in { 2.hours }
@@ -17,7 +19,7 @@ FactoryBot.define do
     end
   end
 
-  factory :application, class: Doorkeeper::Application do
+  factory :application, class: 'Doorkeeper::Application' do
     sequence(:name) { |n| "Application #{n}" }
     redirect_uri { 'https://app.com/callback' }
   end
@@ -26,7 +28,7 @@ FactoryBot.define do
     current_sign_in_at { Time.at(23) }
   end
 
-  factory :openid_request, class: Doorkeeper::OpenidConnect::Request do
+  factory :openid_request, class: 'Doorkeeper::OpenidConnect::Request' do
     access_grant
     sequence(:nonce) { |n| n.to_s }
   end

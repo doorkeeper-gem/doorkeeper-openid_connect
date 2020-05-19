@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DoorkeeperConfiguration
   def configure_doorkeeper(signing_key, signing_algorithm)
     Doorkeeper::OpenidConnect.configure do
@@ -20,15 +22,15 @@ module DoorkeeperConfiguration
   end
 
   def configure_ec
-    signing_key = <<-EOL
------BEGIN EC PRIVATE KEY-----
-MIHbAgEBBEF9VcxGjPKczrJlE1N3oEpZsauQfDXIjLeini7h4/3+DOKw2VWE4lCU
-rNJJL65EHT+2TriRg2xSb0l0rK/MAFAFraAHBgUrgQQAI6GBiQOBhgAEAeYVvbl3
-zZcFCdE+0msqOowYODjzeXAhjsZKhdNjGlDREvko3UFOw6S43g+s8bvVBmBz3fCo
-dEzFRYQqJVI4UFvFAYJ7GYeBm/Fb6liN53xGASdbRSzF34h4BDSVYzjtQc7I+1LK
-17fwwS3VfQCJwaT6zX33HTrhR4VoUEUJHKwR3dNs
------END EC PRIVATE KEY-----
-        EOL
+    signing_key = <<~EOL
+      -----BEGIN EC PRIVATE KEY-----
+      MIHbAgEBBEF9VcxGjPKczrJlE1N3oEpZsauQfDXIjLeini7h4/3+DOKw2VWE4lCU
+      rNJJL65EHT+2TriRg2xSb0l0rK/MAFAFraAHBgUrgQQAI6GBiQOBhgAEAeYVvbl3
+      zZcFCdE+0msqOowYODjzeXAhjsZKhdNjGlDREvko3UFOw6S43g+s8bvVBmBz3fCo
+      dEzFRYQqJVI4UFvFAYJ7GYeBm/Fb6liN53xGASdbRSzF34h4BDSVYzjtQc7I+1LK
+      17fwwS3VfQCJwaT6zX33HTrhR4VoUEUJHKwR3dNs
+      -----END EC PRIVATE KEY-----
+    EOL
     configure_doorkeeper(signing_key, :ES512)
   end
 

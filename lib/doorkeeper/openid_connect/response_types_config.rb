@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module ResponseTypeConfig
@@ -13,5 +15,5 @@ module Doorkeeper
     end
   end
 
-  Config.send :prepend, OpenidConnect::ResponseTypeConfig
+  Config.prepend OpenidConnect::ResponseTypeConfig
 end

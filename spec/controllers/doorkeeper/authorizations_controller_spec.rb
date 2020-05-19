@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::AuthorizationsController, type: :controller do
@@ -143,7 +145,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
       context 'and no matching token' do
         it 'redirects to the callback if skip_authorization is set to true' do
-          allow(controller).to receive(:skip_authorization?) { true }
+          allow(controller).to receive(:skip_authorization?).and_return(true)
 
           authorize! prompt: 'none'
           expect_successful_callback!
@@ -224,7 +226,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   describe '#handle_oidc_max_age_param!' do
     context 'with an invalid max_age parameter' do
       it 'renders the authorization form' do
-        %w[ 0 -1 -23 foobar ].each do |max_age|
+        %w[0 -1 -23 foobar].each do |max_age|
           authorize! max_age: max_age
 
           expect_authorization_form!
@@ -261,7 +263,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
     before do
       allow(subject).to receive(:performed?) { performed }
-      allow(subject.request).to receive(:path) { '/oauth/authorize' }
+      allow(subject.request).to receive(:path).and_return('/oauth/authorize')
       allow(subject.request).to receive(:query_parameters) {
         { client_id: 'foo', prompt: 'login consent select_account' }.with_indifferent_access
       }

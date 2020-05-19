@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module AccessGrant
@@ -12,5 +14,5 @@ module Doorkeeper
     end
   end
 
-  AccessGrant.send :prepend, OpenidConnect::AccessGrant
+  AccessGrant.prepend OpenidConnect::AccessGrant
 end

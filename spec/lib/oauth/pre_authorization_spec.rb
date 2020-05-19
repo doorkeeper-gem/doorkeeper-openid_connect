@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
   subject { Doorkeeper::OAuth::PreAuthorization.new server, attrs }
+
   let(:server) { double }
   let(:attrs) {}
 
@@ -19,7 +22,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     context 'with response_type = code' do
       let(:attrs) { { response_type: 'code', redirect_uri: 'client.com/callback' } }
 
-      it 'should redirect to redirect_uri with query parameter' do
+      it 'redirects to redirect_uri with query parameter' do
         expect(subject.error_response.redirect_uri).to match(/#{attrs[:redirect_uri]}\?/)
       end
     end
@@ -27,7 +30,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     context 'with response_type = token' do
       let(:attrs) { { response_type: 'token', redirect_uri: 'client.com/callback' } }
 
-      it 'should redirect to redirect_uri with fragment' do
+      it 'redirects to redirect_uri with fragment' do
         expect(subject.error_response.redirect_uri).to match(/#{attrs[:redirect_uri]}#/)
       end
     end
@@ -35,7 +38,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     context 'with response_type = id_token' do
       let(:attrs) { { response_type: 'id_token', redirect_uri: 'client.com/callback' } }
 
-      it 'should redirect to redirect_uri with fragment' do
+      it 'redirects to redirect_uri with fragment' do
         expect(subject.error_response.redirect_uri).to match(/#{attrs[:redirect_uri]}#/)
       end
     end
@@ -43,7 +46,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     context 'with response_type = id_token token' do
       let(:attrs) { { response_type: 'id_token token', redirect_uri: 'client.com/callback' } }
 
-      it 'should redirect to redirect_uri with fragment' do
+      it 'redirects to redirect_uri with fragment' do
         expect(subject.error_response.redirect_uri).to match(/#{attrs[:redirect_uri]}#/)
       end
     end

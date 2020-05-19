@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
   subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: '123456' } }
+
   let(:server) { double }
   let(:client) { double }
   let(:resource_owner) { create :user }

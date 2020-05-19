@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 Doorkeeper::OpenidConnect.configure do
   issuer 'issuer string'
 
-  signing_key <<-EOL
------BEGIN RSA PRIVATE KEY-----
-....
------END RSA PRIVATE KEY-----
-EOL
+  signing_key <<~KEY
+    -----BEGIN RSA PRIVATE KEY-----
+    ....
+    -----END RSA PRIVATE KEY-----
+  KEY
 
   subject_types_supported [:public]
 
