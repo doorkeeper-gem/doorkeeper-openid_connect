@@ -16,7 +16,7 @@ module Doorkeeper
           email: %i[email email_verified],
           address: %i[address],
           phone: %i[phone_number phone_number_verified],
-        }
+        }.freeze
 
         def initialize(options = {})
           @name = options[:name].to_sym

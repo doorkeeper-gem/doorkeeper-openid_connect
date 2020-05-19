@@ -10,6 +10,8 @@ Layout/HashAlignment:
   Enabled: false
 Layout/FirstHashElementIndentation:
   Enabled: false
+Layout/ArgumentAlignment:
+  Enabled: false
 
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine

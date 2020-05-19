@@ -33,7 +33,7 @@ module Doorkeeper
             generator: block
           )
       end
-      alias_method :claim, :normal_claim
+      alias claim normal_claim
     end
   end
 end

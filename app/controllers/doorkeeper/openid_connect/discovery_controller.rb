@@ -5,7 +5,7 @@ module Doorkeeper
     class DiscoveryController < ::Doorkeeper::ApplicationController
       include Doorkeeper::Helpers::Controller
 
-      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'.freeze
+      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
 
       def provider
         render json: provider_response
@@ -63,12 +63,12 @@ module Doorkeeper
             # 'distributed',
           ],
 
-          claims_supported: [
-            'iss',
-            'sub',
-            'aud',
-            'exp',
-            'iat',
+          claims_supported: %w[
+            iss
+            sub
+            aud
+            exp
+            iat
           ] | openid_connect.claims.to_h.keys,
         }.compact
       end

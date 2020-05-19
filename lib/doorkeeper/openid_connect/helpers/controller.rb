@@ -9,6 +9,7 @@ module Doorkeeper
         # FIXME: remove after Doorkeeper will merge it
         def current_resource_owner
           return @current_resource_owner if defined?(@current_resource_owner)
+
           super
         end
 
@@ -19,8 +20,8 @@ module Doorkeeper
             handle_oidc_prompt_param!(owner)
             handle_oidc_max_age_param!(owner)
           end
-        rescue Errors::OpenidConnectError => exception
-          handle_oidc_error!(exception)
+        rescue Errors::OpenidConnectError => e
+          handle_oidc_error!(e)
         end
 
         def oidc_authorization_request?
@@ -38,17 +39,17 @@ module Doorkeeper
           @_response_body = nil
 
           error_response = if exception.type == :invalid_request
-            ::Doorkeeper::OAuth::InvalidRequestResponse.new(
-              name: exception.type,
-              state: params[:state],
-              redirect_uri: params[:redirect_uri],
-            )
-          else
-            ::Doorkeeper::OAuth::ErrorResponse.new(
-              name: exception.type,
-              state: params[:state],
-              redirect_uri: params[:redirect_uri],
-            )
+                             ::Doorkeeper::OAuth::InvalidRequestResponse.new(
+                               name: exception.type,
+                               state: params[:state],
+                               redirect_uri: params[:redirect_uri],
+                             )
+                           else
+                             ::Doorkeeper::OAuth::ErrorResponse.new(
+                               name: exception.type,
+                               state: params[:state],
+                               redirect_uri: params[:redirect_uri],
+                             )
           end
 
           response.headers.merge!(error_response.headers)
