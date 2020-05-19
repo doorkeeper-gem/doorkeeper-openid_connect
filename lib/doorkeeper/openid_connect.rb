@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'doorkeeper'
 require 'active_model'
 require 'json/jwt'
@@ -42,7 +44,7 @@ module Doorkeeper
 
     def self.signing_key
       key =
-        if [:HS256, :HS384, :HS512].include?(signing_algorithm)
+        if %i[HS256 HS384 HS512].include?(signing_algorithm)
           configuration.signing_key
         else
           OpenSSL::PKey.read(configuration.signing_key)

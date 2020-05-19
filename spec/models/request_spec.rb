@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::Request do
@@ -5,14 +7,14 @@ describe Doorkeeper::OpenidConnect::Request do
     it 'requires an access grant' do
       subject.access_grant_id = nil
 
-      expect(subject).to_not be_valid
+      expect(subject).not_to be_valid
       expect(subject.errors).to include :access_grant_id
     end
 
     it 'requires a nonce' do
       subject.nonce = nil
 
-      expect(subject).to_not be_valid
+      expect(subject).not_to be_valid
       expect(subject.errors).to include :nonce
     end
   end

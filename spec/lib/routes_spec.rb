@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::Rails::Routes, type: :routing do

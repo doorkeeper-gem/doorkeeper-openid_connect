@@ -1,6 +1,12 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OAuth::IdTokenRequest do
+  subject do
+    described_class.new(pre_auth, owner)
+  end
+
   let :application do
     FactoryBot.create(:application, scopes: 'public')
   end
@@ -26,10 +32,6 @@ describe Doorkeeper::OAuth::IdTokenRequest do
 
   let(:owner) do
     double :owner, id: 7866, to_i: 7866
-  end
-
-  subject do
-    Doorkeeper::OAuth::IdTokenRequest.new(pre_auth, owner)
   end
 
   # just to make sure self created pre_auth is authorizable
@@ -72,7 +74,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
       create(:access_token, application_id: pre_auth.client.id,
              resource_owner_id: owner.id, scopes: 'public')
 
-      expect { subject.authorize }.not_to change { Doorkeeper::AccessToken.count }
+      expect { subject.authorize }.not_to(change { Doorkeeper::AccessToken.count })
     end
   end
 end

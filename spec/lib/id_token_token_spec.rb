@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::IdTokenToken do
   subject { described_class.new(access_token, nonce) }
+
   let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: 'openid' }
   let(:user) { create :user }
   let(:nonce) { '123456' }
 
   before do
-    allow(Time).to receive(:now) { Time.at 60 }
+    allow(Time).to receive(:now) { Time.zone.at 60 }
   end
 
   describe '#claims' do

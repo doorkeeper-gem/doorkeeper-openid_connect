@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OAuth::IdTokenResponse do
-  subject { Doorkeeper::OAuth::IdTokenResponse.new(pre_auth, auth, id_token) }
+  subject { described_class.new(pre_auth, auth, id_token) }
+
   let(:token) { create :access_token }
   let(:application) do
-    create(:application, scopes: "public")
+    create(:application, scopes: 'public')
   end
 
   let(:pre_auth) do

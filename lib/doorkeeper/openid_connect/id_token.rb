@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     class IdToken
@@ -9,7 +11,7 @@ module Doorkeeper
         @access_token = access_token
         @nonce = nonce
         @resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
-        @issued_at = Time.now
+        @issued_at = Time.zone.now
       end
 
       def claims

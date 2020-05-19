@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     class UserinfoController < ::Doorkeeper::ApplicationController

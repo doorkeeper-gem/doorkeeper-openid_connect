@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'doorkeeper/openid_connect/rails/routes/mapping'
 require 'doorkeeper/openid_connect/rails/routes/mapper'
 
@@ -12,7 +14,7 @@ module Doorkeeper
         end
 
         def self.install!
-          ActionDispatch::Routing::Mapper.send :include, Doorkeeper::OpenidConnect::Rails::Routes::Helper
+          ActionDispatch::Routing::Mapper.include Doorkeeper::OpenidConnect::Rails::Routes::Helper
         end
 
         attr_accessor :routes

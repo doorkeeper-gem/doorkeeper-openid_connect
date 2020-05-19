@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
@@ -37,20 +39,20 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           'normal',
         ],
 
-        'claims_supported' => [
-          'iss',
-          'sub',
-          'aud',
-          'exp',
-          'iat',
-          'name',
-          'variable_name',
-          'created_at',
-          'updated_at',
-          'token_id',
-          'both_responses',
-          'id_token_response',
-          'user_info_response',
+        'claims_supported' => %w[
+          iss
+          sub
+          aud
+          exp
+          iat
+          name
+          variable_name
+          created_at
+          updated_at
+          token_id
+          both_responses
+          id_token_response
+          user_info_response
         ],
       }.sort)
     end
@@ -122,19 +124,19 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     end
 
     context 'when using an RSA key' do
-      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :e, :n, :use, :alg]
+      it_behaves_like 'a key response', expected_parameters: %i[kty kid e n use alg]
     end
 
     context 'when using an EC key' do
       before { configure_ec }
 
-      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :crv, :x, :y, :use, :alg]
+      it_behaves_like 'a key response', expected_parameters: %i[kty kid crv x y use alg]
     end
 
     context 'when using an HMAC key' do
       before { configure_hmac }
 
-      it_behaves_like 'a key response', expected_parameters: [:kty, :kid, :use, :alg]
+      it_behaves_like 'a key response', expected_parameters: %i[kty kid use alg]
     end
   end
 end
