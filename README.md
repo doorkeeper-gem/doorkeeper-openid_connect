@@ -139,6 +139,10 @@ The following settings are optional, but recommended for better client compatibi
   - Defines how to trigger reauthentication for the current user (e.g. display a password prompt, or sign-out the user and redirect to the login form).
   - Required to support the `max_age` and `prompt=login` parameters.
   - The block is executed in the controller's scope, so you have access to methods like `params`, `redirect_to` etc.
+- `select_account_for_resource_owner`
+  - Defines how to trigger account selecting to choose the current login user
+  - Required to support the `prompt=select_account` parameter.
+  - The block is executed in the controller's scope, so you have access to methods like `params`, `redirect_to` etc.
 
 The following settings are optional:
 

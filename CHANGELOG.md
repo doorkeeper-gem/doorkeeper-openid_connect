@@ -2,6 +2,7 @@
 
 - [#114] Fix user_info endpoint when used in api mode
 - [#112] Add grant_types_supported to discovery response
+- [#111] Add configuration callbacks `select_account_for_resource_owner` to support param prompt=select_account
 
 ## v1.7.2 (2020-05-20)
 

@@ -75,8 +75,7 @@ module Doorkeeper
             when 'consent'
               render :new
             when 'select_account'
-              # TODO: let the user implement this
-              raise Errors::AccountSelectionRequired
+              select_account_for_oidc_resource_owner(owner)
             else
               raise Errors::InvalidRequest
             end
@@ -97,16 +96,21 @@ module Doorkeeper
           end
         end
 
-        def reauthenticate_oidc_resource_owner(owner)
+        def return_without_prompt_param(prompt_value)
           return_to = URI.parse(request.path)
           return_to.query = request.query_parameters.tap do |params|
-            params['prompt'] = params['prompt'].to_s.sub(/\blogin\s*\b/, '').strip
+            params['prompt'] = params['prompt'].to_s.sub(/\b#{prompt_value}\s*\b/, '').strip
             params.delete('prompt') if params['prompt'].blank?
           end.to_query
+          return_to.to_s
+        end
+
+        def reauthenticate_oidc_resource_owner(owner)
+          return_to = return_without_prompt_param('login')
 
           instance_exec(
             owner,
-            return_to.to_s,
+            return_to,
             &Doorkeeper::OpenidConnect.configuration.reauthenticate_resource_owner
           )
 
@@ -115,6 +119,16 @@ module Doorkeeper
 
         def oidc_consent_required?
           !skip_authorization? && !matching_token?
+        end
+
+        def select_account_for_oidc_resource_owner(owner)
+          return_to = return_without_prompt_param('select_account')
+
+          instance_exec(
+            owner,
+            return_to,
+            &Doorkeeper::OpenidConnect.configuration.select_account_for_resource_owner
+          )
         end
       end
     end

@@ -105,6 +105,24 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
     end
   end
 
+  describe 'select_account_for_resource_owner' do
+    it 'sets the block that is accessible via select_account_for_resource_owner' do
+      block = proc {}
+      described_class.configure do
+        select_account_for_resource_owner(&block)
+      end
+      expect(subject.select_account_for_resource_owner).to eq(block)
+    end
+
+    it 'fails if unset' do
+      described_class.configure {}
+
+      expect do
+        subject.select_account_for_resource_owner.call
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+    end
+  end
+
   describe 'subject' do
     it 'sets the block that is accessible via subject' do
       block = proc {}

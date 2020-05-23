@@ -115,6 +115,10 @@ module Doorkeeper
         raise Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured')
       }
 
+      option :select_account_for_resource_owner, default: lambda { |*_|
+        raise Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.select_account_for_resource_owner_not_configured')
+      }
+
       option :subject, default: lambda { |*_|
         raise Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.subject_not_configured')
       }
