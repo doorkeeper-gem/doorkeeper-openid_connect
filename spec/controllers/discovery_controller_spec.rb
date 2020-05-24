@@ -21,6 +21,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
         'response_types_supported' => ['code'],
         'response_modes_supported' => ['query', 'fragment'],
+        'grant_types_supported' => %w[authorization_code client_credentials],
 
         'token_endpoint_auth_methods_supported' => [
           'client_secret_basic',
@@ -55,6 +56,17 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           user_info_response
         ],
       }.sort)
+    end
+
+    context 'when refresh_token grant type is enabled' do
+      before { Doorkeeper.configure { use_refresh_token } }
+
+      it 'add refresh_token to grant_types_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['grant_types_supported']).to eq %w[authorization_code client_credentials refresh_token]
+      end
     end
 
     it 'uses the protocol option for generating URLs' do

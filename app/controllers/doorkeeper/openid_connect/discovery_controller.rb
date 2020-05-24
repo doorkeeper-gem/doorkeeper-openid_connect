@@ -39,6 +39,7 @@ module Doorkeeper
           # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
           response_modes_supported: ['query', 'fragment'],
+          grant_types_supported: grant_types_supported(doorkeeper),
 
           token_endpoint_auth_methods_supported: [
             'client_secret_basic',
@@ -71,6 +72,12 @@ module Doorkeeper
             iat
           ] | openid_connect.claims.to_h.keys,
         }.compact
+      end
+
+      def grant_types_supported(doorkeeper)
+        grant_types_supported = doorkeeper.grant_flows
+        grant_types_supported << 'refresh_token' if doorkeeper.refresh_token_enabled?
+        grant_types_supported
       end
 
       def webfinger_response
