@@ -38,17 +38,13 @@ module Doorkeeper
 
           # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
-          response_modes_supported: ['query', 'fragment'],
+          response_modes_supported: %w[query fragment],
           grant_types_supported: grant_types_supported(doorkeeper),
 
-          token_endpoint_auth_methods_supported: [
-            'client_secret_basic',
-            'client_secret_post',
-
-            # TODO: look into doorkeeper-jwt_assertion for these
-            # 'client_secret_jwt',
-            # 'private_key_jwt'
-          ],
+          # TODO: look into doorkeeper-jwt_assertion for these
+          #  'client_secret_jwt',
+          #  'private_key_jwt'
+          token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
 
           subject_types_supported: openid_connect.subject_types_supported,
 

@@ -20,13 +20,10 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'scopes_supported' => ['openid'],
 
         'response_types_supported' => ['code'],
-        'response_modes_supported' => ['query', 'fragment'],
+        'response_modes_supported' => %w[query fragment],
         'grant_types_supported' => %w[authorization_code client_credentials],
 
-        'token_endpoint_auth_methods_supported' => [
-          'client_secret_basic',
-          'client_secret_post',
-        ],
+        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
 
         'subject_types_supported' => [
           'public',
