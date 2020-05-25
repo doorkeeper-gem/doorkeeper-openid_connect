@@ -96,7 +96,7 @@ module Doorkeeper
           end
         end
 
-        def return_without_prompt_param(prompt_value)
+        def return_without_oidc_prompt_param(prompt_value)
           return_to = URI.parse(request.path)
           return_to.query = request.query_parameters.tap do |params|
             params['prompt'] = params['prompt'].to_s.sub(/\b#{prompt_value}\s*\b/, '').strip
@@ -106,7 +106,7 @@ module Doorkeeper
         end
 
         def reauthenticate_oidc_resource_owner(owner)
-          return_to = return_without_prompt_param('login')
+          return_to = return_without_oidc_prompt_param('login')
 
           instance_exec(
             owner,
@@ -122,7 +122,7 @@ module Doorkeeper
         end
 
         def select_account_for_oidc_resource_owner(owner)
-          return_to = return_without_prompt_param('select_account')
+          return_to = return_without_oidc_prompt_param('select_account')
 
           instance_exec(
             owner,

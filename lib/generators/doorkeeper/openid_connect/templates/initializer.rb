@@ -28,10 +28,10 @@ Doorkeeper::OpenidConnect.configure do
     # redirect_to new_user_session_url
   end
 
-  # Depend on the configuration, the DoubleRenderError could be occurred
-  #  because of render/redirect is called at some configuration before this configure is called.
-  # To avoid DoubleRenderError, you could adding these two lines at the beginning
-  #  of this configuration: (Reference: https://github.com/rails/rails/issues/25106)
+  # Depending on your configuration, a DoubleRenderError could be raised
+  # if render/redirect_to is called at some point before this callback is executed.
+  # To avoid the DoubleRenderError, you could add these two lines at the beginning
+  #  of this callback: (Reference: https://github.com/rails/rails/issues/25106)
   #   self.response_body = nil
   #   @_response_body = nil
   select_account_for_resource_owner do |resource_owner, return_to|
