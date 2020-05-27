@@ -47,6 +47,10 @@ Doorkeeper::OpenidConnect.configure do
     redirect_to '/reauthenticate'
   end
 
+  select_account_for_resource_owner do |_resource_owner, _return_to|
+    redirect_to '/select_account'
+  end
+
   subject do |resource_owner|
     resource_owner.id
   end

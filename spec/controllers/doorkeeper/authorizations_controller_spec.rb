@@ -189,16 +189,10 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with a prompt=select_account parameter' do
-      it 'returns an account_selection_required error' do
+      it 'redirects to the select account screen' do
         authorize! prompt: 'select_account'
 
-        error_params = {
-          'error' => 'account_selection_required',
-          'error_description' => 'The authorization server requires end-user account selection',
-        }
-
-        expect(response.status).to redirect_to build_redirect_uri(error_params)
-        expect(JSON.parse(response.body)).to eq(error_params)
+        expect(response).to redirect_to('/select_account')
       end
     end
 
@@ -304,6 +298,42 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           reauthenticate!
         end.to raise_error(Doorkeeper::OpenidConnect::Errors::LoginRequired)
       end
+    end
+  end
+
+  describe '#select_account_for_resource_owner' do
+    before do
+      allow(subject.request).to receive(:path).and_return('/oauth/authorize')
+      allow(subject.request).to receive(:query_parameters) {
+        { client_id: 'foo', prompt: 'login consent select_account' }.with_indifferent_access
+      }
+    end
+
+    def select_account!
+      passed_args = nil
+
+      Doorkeeper::OpenidConnect.configure do
+        select_account_for_resource_owner do |*args|
+          passed_args = args
+        end
+      end
+
+      subject.send :select_account_for_oidc_resource_owner, user
+      passed_args
+    end
+
+    it 'calls select_account_for_resource_owner with the current user and the return path' do
+      resource_owner, return_to = select_account!
+
+      expect(resource_owner).to eq user
+      expect(return_to).to eq '/oauth/authorize?client_id=foo&prompt=login+consent'
+    end
+
+    it 'removes select_account from the prompt parameter and keeps other values' do
+      _, return_to = select_account!
+      return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
+
+      expect(return_params['prompt']).to eq 'login consent'
     end
   end
 
