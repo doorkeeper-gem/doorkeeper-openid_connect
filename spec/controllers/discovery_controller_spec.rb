@@ -18,10 +18,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'jwks_uri' => 'http://test.host/oauth/discovery/keys',
 
         'scopes_supported' => ['openid'],
-
         'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
         'response_modes_supported' => %w[query fragment],
-        'grant_types_supported' => %w[authorization_code client_credentials],
+        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
 
         'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
 

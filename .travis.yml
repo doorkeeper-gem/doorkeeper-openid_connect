@@ -16,6 +16,7 @@ gemfile:
   - gemfiles/rails_5.2.gemfile
   - gemfiles/rails_6.0.gemfile
   - gemfiles/rails_master.gemfile
+  - gemfiles/doorkeeper_master.gemfile
 
 rvm:
   - 2.4
@@ -31,3 +32,4 @@ matrix:
       rvm: 2.4
   allow_failures:
     - gemfile: gemfiles/rails_master.gemfile
+    - gemfile: gemfiles/doorkeeper_master.gemfile
