@@ -8,7 +8,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       get :provider
       data = JSON.parse(response.body)
 
-      expect(data.sort).to eq({
+      expect(data.sort).to match({
         'issuer' => 'dummy',
         'authorization_endpoint' => 'http://test.host/oauth/authorize',
         'token_endpoint' => 'http://test.host/oauth/token',
@@ -19,7 +19,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
         'scopes_supported' => ['openid'],
 
-        'response_types_supported' => ['code'],
+        'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
         'response_modes_supported' => %w[query fragment],
         'grant_types_supported' => %w[authorization_code client_credentials],
 

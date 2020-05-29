@@ -63,5 +63,33 @@ module Doorkeeper
         key.slice(:kty, :kid)
       end
     end
+
+    if defined?(::Doorkeeper::GrantFlow)
+      Doorkeeper::GrantFlow.register(
+        :token,
+        response_type_matches: 'token',
+        response_type_strategy: Doorkeeper::Request::Token,
+      )
+
+      Doorkeeper::GrantFlow.register(
+        :id_token,
+        response_type_matches: 'id_token',
+        response_type_strategy: Doorkeeper::OpenidConnect::IdToken,
+      )
+
+      Doorkeeper::GrantFlow.register(
+        'id_token token',
+        response_type_matches: 'id_token token',
+        response_type_strategy: Doorkeeper::OpenidConnect::IdTokenToken,
+      )
+
+      Doorkeeper::GrantFlow.register_alias(
+        'implicit_oidc', as: ['token', 'id_token', 'id_token token']
+      )
+    else
+      # TODO: drop this and corresponding file when we will set minimal
+      # required Doorkeeper version to 5.5.
+      Doorkeeper::Config.prepend OpenidConnect::ResponseTypeConfig
+    end
   end
 end
