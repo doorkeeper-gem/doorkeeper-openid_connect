@@ -66,12 +66,6 @@ module Doorkeeper
 
     if defined?(::Doorkeeper::GrantFlow)
       Doorkeeper::GrantFlow.register(
-        :token,
-        response_type_matches: 'token',
-        response_type_strategy: Doorkeeper::Request::Token,
-      )
-
-      Doorkeeper::GrantFlow.register(
         :id_token,
         response_type_matches: 'id_token',
         response_type_strategy: Doorkeeper::OpenidConnect::IdToken,
@@ -84,7 +78,7 @@ module Doorkeeper
       )
 
       Doorkeeper::GrantFlow.register_alias(
-        'implicit_oidc', as: ['token', 'id_token', 'id_token token']
+        'implicit_oidc', as: ['implicit', 'id_token', 'id_token token']
       )
     else
       # TODO: drop this and corresponding file when we will set minimal
