@@ -1,7 +1,7 @@
 class CreateDoorkeeperOpenidConnectTables < ActiveRecord::Migration<%= migration_version %>
   def change
     create_table :oauth_openid_requests do |t|
-      t.integer :access_grant_id, null: false
+      t.references :access_grant, null: false, index: true
       t.string :nonce, null: false
     end
 

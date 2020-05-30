@@ -3,6 +3,7 @@
 - [#114] Fix user_info endpoint when used in api mode
 - [#112] Add grant_types_supported to discovery response
 - [#111] Add configuration callback `select_account_for_resource_owner` to support the `prompt=select_account` param
+- [#117] Fix migration template to use Rails migrations DSL for association.
 
 ## v1.7.2 (2020-05-20)
 
