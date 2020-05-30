@@ -23,7 +23,7 @@ describe Doorkeeper::OAuth::IdTokenResponse do
     )
   end
 
-  let(:owner) { double(id: 1, to_i: 1) }
+  let(:owner) { build_stubbed(:user) }
 
   let(:auth) do
     Doorkeeper::OAuth::Authorization::Token.new(pre_auth, owner).tap do |c|
