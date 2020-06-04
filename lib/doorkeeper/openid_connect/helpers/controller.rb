@@ -49,7 +49,7 @@ module Doorkeeper
                                name: exception.type,
                                state: params[:state],
                                redirect_uri: params[:redirect_uri],
-                               response_on_fragment: pre_auth.response_on_fragment?,
+                               response_on_fragment: Doorkeeper::OpenidConnect::ResponseMode.new(pre_auth.response_type).fragment?,
                              )
           end
 
