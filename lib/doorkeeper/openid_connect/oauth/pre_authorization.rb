@@ -26,8 +26,6 @@ module Doorkeeper
           end
         end
 
-        private
-
         def response_on_fragment?
           response_type == 'token' || response_type == 'id_token' || response_type == 'id_token token'
         end
