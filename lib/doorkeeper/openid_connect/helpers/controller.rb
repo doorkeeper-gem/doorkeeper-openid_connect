@@ -38,18 +38,20 @@ module Doorkeeper
           # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
           @_response_body = nil
 
+          should_respond_on_fragment = Doorkeeper::OpenidConnect::ResponseMode.new(pre_auth.response_type).fragment?
           error_response = if exception.type == :invalid_request
                              ::Doorkeeper::OAuth::InvalidRequestResponse.new(
                                name: exception.type,
                                state: params[:state],
                                redirect_uri: params[:redirect_uri],
+                               response_on_fragment: should_respond_on_fragment,
                              )
                            else
                              ::Doorkeeper::OAuth::ErrorResponse.new(
                                name: exception.type,
                                state: params[:state],
                                redirect_uri: params[:redirect_uri],
-                               response_on_fragment: Doorkeeper::OpenidConnect::ResponseMode.new(pre_auth.response_type).fragment?,
+                               response_on_fragment: should_respond_on_fragment,
                              )
           end
 

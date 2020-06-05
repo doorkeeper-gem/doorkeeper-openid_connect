@@ -132,6 +132,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect(JSON.parse(response.body)).to eq(error_params)
         end
 
+        it 'uses the fragment style uris when redirecting an invalid request error for implicit flow request' do
+          allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+          authorize! response_type: 'id_token token', prompt: 'none login'
+
+          error_params = {
+            'error' => 'invalid_request',
+            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
+          }
+
+          expect(response.status).to redirect_to build_redirect_uri(error_params, type: 'fragment')
+          expect(JSON.parse(response.body)).to eq(error_params)
+        end
+
         context 'when not logged in' do
           let(:error_params) do
             {
@@ -145,6 +159,15 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
             authorize! prompt: 'none', current_user: nil, state: 'somestate'
 
             expect(response).to redirect_to build_redirect_uri(error_params)
+            expect(JSON.parse(response.body)).to eq(error_params)
+          end
+
+          it 'uses the fragment style uris when redirecting an error for implicit flow request' do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+            authorize! response_type: 'id_token token', prompt: 'none', current_user: nil, state: 'somestate'
+
+            expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
             expect(JSON.parse(response.body)).to eq(error_params)
           end
         end
