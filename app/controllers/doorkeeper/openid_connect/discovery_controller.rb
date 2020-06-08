@@ -32,7 +32,7 @@ module Doorkeeper
           introspection_endpoint: oauth_introspect_url(protocol: protocol),
           userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
           jwks_uri: oauth_discovery_keys_url(protocol: protocol),
-          end_session_endpoint: openid_connect.end_session_endpoint.call,
+          end_session_endpoint: openid_connect.end_session_endpoint.call(self),
 
           scopes_supported: doorkeeper.scopes,
 

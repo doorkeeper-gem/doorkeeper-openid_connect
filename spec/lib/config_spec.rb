@@ -195,5 +195,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
       expect(subject.end_session_endpoint.call).to eq('http://test.host/logout')
     end
+
+    it 'can be called with a context' do
+      described_class.configure do
+        end_session_endpoint ->(c) { c.url }
+      end
+
+      builder = double(url: 'http://test.host/logout')
+      expect(subject.end_session_endpoint.call(builder)).to eq('http://test.host/logout')
+    end
   end
 end
