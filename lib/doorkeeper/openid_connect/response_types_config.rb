@@ -14,6 +14,4 @@ module Doorkeeper
       end
     end
   end
-
-  Config.prepend OpenidConnect::ResponseTypeConfig
 end

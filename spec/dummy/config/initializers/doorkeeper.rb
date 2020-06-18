@@ -11,4 +11,6 @@ Doorkeeper.configure do
       nil
     end
   end
+
+  grant_flows %w[authorization_code client_credentials implicit_oidc]
 end

@@ -21,7 +21,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
       nonce: '12345'
     )
   end
-  let(:owner) { double(id: 1, to_i: 1) }
+  let(:owner) { build_stubbed(:user) }
   let(:auth) do
     Doorkeeper::OAuth::Authorization::Token.new(pre_auth, owner).tap do |c|
       if c.respond_to?(:issue_token!)
