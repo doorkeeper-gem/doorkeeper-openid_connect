@@ -26,8 +26,6 @@ module Doorkeeper
           end
         end
 
-        private
-
         def response_on_fragment?
           Doorkeeper::OpenidConnect::ResponseMode.new(response_type).fragment?
         end
