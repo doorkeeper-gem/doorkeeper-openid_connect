@@ -86,7 +86,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
     it 'uses the configured end session endpoint with self as context' do
       Doorkeeper::OpenidConnect.configure do
-        end_session_endpoint ->(c) { c.logout_url }
+        end_session_endpoint -> { logout_url }
       end
 
       def controller.logout_url
