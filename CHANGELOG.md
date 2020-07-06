@@ -1,5 +1,9 @@
 ## Unreleased
 
+## v1.7.4 (2020-07-06)
+
+- [#119] Execute end_session_endpoint in the controllers context (thanks to @joeljunstrom)
+
 ## v1.7.3 (2020-07-06)
 
 - [#111] Add configuration callback `select_account_for_resource_owner` to support the `prompt=select_account` param
@@ -8,7 +12,6 @@
 - [#116] Support Doorkeeper API (> 5.4) for registering custom grant flows.
 - [#117] Fix migration template to use Rails migrations DSL for association.
 - [#118] Use fragment urls for implicit flow error redirects (thanks to @joeljunstrom)
-- [#119] Execute end_session_endpoint in the controllers context (thanks to @joeljunstrom)
 
 ## v1.7.2 (2020-05-20)
 
