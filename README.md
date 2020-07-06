@@ -159,6 +159,7 @@ The following settings are optional:
 - `end_session_endpoint`
   - The URL that the user is redirected to after ending the session on the client.
   - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
+  - The block is executed in the controller's scope, so you have access to your route helpers.
 
 ### Scopes
 

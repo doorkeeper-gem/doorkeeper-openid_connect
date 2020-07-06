@@ -1,10 +1,14 @@
 ## Unreleased
 
-- [#114] Fix user_info endpoint when used in api mode
-- [#112] Add grant_types_supported to discovery response
+## v1.7.3 (2020-07-06)
+
 - [#111] Add configuration callback `select_account_for_resource_owner` to support the `prompt=select_account` param
-- [#117] Fix migration template to use Rails migrations DSL for association.
+- [#112] Add grant_types_supported to discovery response
+- [#114] Fix user_info endpoint when used in api mode
 - [#116] Support Doorkeeper API (> 5.4) for registering custom grant flows.
+- [#117] Fix migration template to use Rails migrations DSL for association.
+- [#118] Use fragment urls for implicit flow error redirects (thanks to @joeljunstrom)
+- [#119] Execute end_session_endpoint in the controllers context (thanks to @joeljunstrom)
 
 ## v1.7.2 (2020-05-20)
 
