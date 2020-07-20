@@ -2,7 +2,7 @@
 
 module Doorkeeper
   module OpenidConnect
-    class Request < ApplicationRecord
+    class Request < ::ActiveRecord::Base
       self.table_name = "#{table_name_prefix}oauth_openid_requests#{table_name_suffix}".to_sym
 
       validates :access_grant_id, :nonce, presence: true
