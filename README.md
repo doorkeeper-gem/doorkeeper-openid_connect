@@ -161,6 +161,21 @@ The following settings are optional:
   - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
   - The block is executed in the controller's scope, so you have access to your route helpers.
 
+- `discovery_url_options`
+  - The URL options for every available endpoint to use when generating the endpoint URL in the
+    discovery response. Available endpoints: `authorization`, `token`, `revocation`,
+    `introspection`, `userinfo`, `jwks`, `webfinger`.
+  - This option requires option keys with an available endpoint and
+    [URL options](https://api.rubyonrails.org/v6.0.3.3/classes/ActionDispatch/Routing/UrlFor.html#method-i-url_for)
+    as value.
+  - The default is to use the request host, just like all the other URLs in the discovery response.
+  - This is useful when you want endpoints to use a different URL than other requests.
+    For example, if your Doorkeeper server is behind a firewall with other servers, you might want
+    other servers to use an "internal" URL to communicate with Doorkeeper, but you want to present
+    an "external" URL to end-users for authentication requests. Note that this setting does not
+    actually change the URL that your Doorkeeper server responds on - that is outside the scope of
+    Doorkeeper.
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.

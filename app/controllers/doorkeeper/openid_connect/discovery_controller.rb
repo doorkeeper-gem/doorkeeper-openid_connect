@@ -26,12 +26,12 @@ module Doorkeeper
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
         {
           issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: protocol),
-          token_endpoint: oauth_token_url(protocol: protocol),
-          revocation_endpoint: oauth_revoke_url(protocol: protocol),
-          introspection_endpoint: oauth_introspect_url(protocol: protocol),
-          userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
-          jwks_uri: oauth_discovery_keys_url(protocol: protocol),
+          authorization_endpoint: oauth_authorization_url(authorization_url_options),
+          token_endpoint: oauth_token_url(token_url_options),
+          revocation_endpoint: oauth_revoke_url(revocation_url_options),
+          introspection_endpoint: oauth_introspect_url(introspection_url_options),
+          userinfo_endpoint: oauth_userinfo_url(userinfo_url_options),
+          jwks_uri: oauth_discovery_keys_url(jwks_url_options),
           end_session_endpoint: instance_exec(&openid_connect.end_session_endpoint),
 
           scopes_supported: doorkeeper.scopes,
@@ -82,7 +82,7 @@ module Doorkeeper
           links: [
             {
               rel: WEBFINGER_RELATION,
-              href: root_url(protocol: protocol),
+              href: root_url(webfinger_url_options),
             }
           ]
         }
@@ -103,6 +103,22 @@ module Doorkeeper
 
       def protocol
         Doorkeeper::OpenidConnect.configuration.protocol.call
+      end
+
+      def discovery_url_options
+        Doorkeeper::OpenidConnect.configuration.discovery_url_options
+      end
+
+      def discovery_url_default_options
+        {
+          protocol: protocol
+        }
+      end
+
+      %i[authorization token revocation introspection userinfo jwks webfinger].each do |endpoint|
+        define_method :"#{endpoint}_url_options" do
+          discovery_url_default_options.merge(discovery_url_options[endpoint.to_sym] || {})
+        end
       end
     end
   end
