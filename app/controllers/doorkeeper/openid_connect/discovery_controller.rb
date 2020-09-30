@@ -71,7 +71,7 @@ module Doorkeeper
       end
 
       def grant_types_supported(doorkeeper)
-        grant_types_supported = doorkeeper.grant_flows
+        grant_types_supported = doorkeeper.grant_flows.dup
         grant_types_supported << 'refresh_token' if doorkeeper.refresh_token_enabled?
         grant_types_supported
       end
