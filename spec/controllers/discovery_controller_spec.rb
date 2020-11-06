@@ -79,12 +79,16 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context 'when the discovery_url_options option is set for all endpoints' do
       before do
         Doorkeeper::OpenidConnect.configure do
-          discovery_url_options authorization: { host: 'alternate-authorization.host' },
-                                token: { host: 'alternate-token.host' },
-                                revocation: { host: 'alternate-revocation.host' },
-                                introspection: { host: 'alternate-introspection.host' },
-                                userinfo: { host: 'alternate-userinfo.host' },
-                                jwks: { host: 'alternate-jwks.host' }
+          discovery_url_options do |request|
+            {
+              authorization: { host: 'alternate-authorization.host' },
+              token: { host: 'alternate-token.host' },
+              revocation: { host: 'alternate-revocation.host' },
+              introspection: { host: 'alternate-introspection.host' },
+              userinfo: { host: 'alternate-userinfo.host' },
+              jwks: { host: 'alternate-jwks.host' }
+            }
+          end
         end
       end
 
@@ -104,7 +108,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context 'when the discovery_url_options option is only set for some endpoints' do
       before do
         Doorkeeper::OpenidConnect.configure do
-          discovery_url_options authorization: { host: 'alternate-authorization.host' }
+          discovery_url_options do |request|
+            { authorization: { host: 'alternate-authorization.host' } }
+          end
         end
       end
 
@@ -170,7 +176,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context 'when the discovery_url_options option is set for webfinger endpoint' do
       before do
         Doorkeeper::OpenidConnect.configure do
-          discovery_url_options webfinger: { host: 'alternate-webfinger.host' }
+          discovery_url_options do |request|
+            { webfinger: { host: 'alternate-webfinger.host' } }
+          end
         end
       end
 
@@ -179,6 +187,26 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         data = JSON.parse(response.body)
 
         expect(data['links'].first['href']).to eq 'http://alternate-webfinger.host/'
+      end
+    end
+
+    context 'when the discovery_url_options option uses the request for an endpoint' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          discovery_url_options do |request|
+            {
+              authorization: { host: 'alternate-authorization.host',
+                               protocol: request.ssl? ? :https : :testing }
+            }
+          end
+        end
+      end
+
+      it 'uses the discovery_url_options option when generating the webfinger endpoint url' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['authorization_endpoint']).to eq 'testing://alternate-authorization.host/oauth/authorize'
       end
     end
   end

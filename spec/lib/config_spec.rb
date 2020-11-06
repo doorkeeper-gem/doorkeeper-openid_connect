@@ -199,21 +199,25 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
 
   describe 'discovery_url_options' do
     it 'defaults to empty hash' do
-      expect(subject.discovery_url_options).to be_kind_of(Hash)
-      expect(subject.discovery_url_options).to be_empty
+      expect(subject.discovery_url_options.call).to be_kind_of(Hash)
+      expect(subject.discovery_url_options.call).to be_empty
     end
 
     it 'can be set to other hosts' do
       Doorkeeper::OpenidConnect.configure do
-        discovery_url_options authorization: { host: 'alternate-authorization-host' },
-                              token: { host: 'alternate-token-host' },
-                              revocation: { host: 'alternate-revocation-host' },
-                              introspection: { host: 'alternate-introspection-host' },
-                              userinfo: { host: 'alternate-userinfo-host' },
-                              jwks: { host: 'alternate-jwks-host' }
+        discovery_url_options do |request|
+          {
+            authorization: { host: 'alternate-authorization-host' },
+            token: { host: 'alternate-token-host' },
+            revocation: { host: 'alternate-revocation-host' },
+            introspection: { host: 'alternate-introspection-host' },
+            userinfo: { host: 'alternate-userinfo-host' },
+            jwks: { host: 'alternate-jwks-host' }
+          }
+        end
       end
 
-      expect(subject.discovery_url_options[:authorization]).to eq(host: 'alternate-authorization-host')
+      expect(subject.discovery_url_options.call[:authorization]).to eq(host: 'alternate-authorization-host')
     end
   end
 end
