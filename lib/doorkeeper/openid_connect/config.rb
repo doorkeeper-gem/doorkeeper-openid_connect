@@ -135,7 +135,9 @@ module Doorkeeper
         nil
       }
 
-      option :discovery_url_options, default: {}
+      option :discovery_url_options, default: lambda { |*_|
+        {}
+      }
     end
   end
 end

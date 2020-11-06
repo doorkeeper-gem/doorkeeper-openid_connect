@@ -106,7 +106,7 @@ module Doorkeeper
       end
 
       def discovery_url_options
-        Doorkeeper::OpenidConnect.configuration.discovery_url_options
+        Doorkeeper::OpenidConnect.configuration.discovery_url_options.call(request)
       end
 
       def discovery_url_default_options

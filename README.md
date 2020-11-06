@@ -176,6 +176,20 @@ The following settings are optional:
     actually change the URL that your Doorkeeper server responds on - that is outside the scope of
     Doorkeeper.
 
+    ```ruby
+    # config/initializers/doorkeeper_openid_connect.rb
+    Doorkeeper::OpenidConnect.configure do
+    # ...
+      discovery_url_options do |request|
+        {
+          authorization: { host: 'host.example.com' },
+          jwks:          { protocol: request.ssl? ? :https : :http }
+        }
+      end
+    # ...
+    end
+    ```
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.
