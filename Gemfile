@@ -7,7 +7,7 @@ ENV['rails'] ||= '6.0.0'
 gem 'rails', "~> #{ENV['rails']}"
 gem 'rails-controller-testing'
 
-gem 'rubocop', '~> 0.80'
+gem 'rubocop', '~> 1.4'
 gem 'rubocop-performance', require: false
 gem 'rubocop-rails', require: false
 gem 'rubocop-rspec', require: false
