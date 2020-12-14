@@ -1,6 +1,9 @@
 language: ruby
 cache: bundler
 sudo: false
+arch:
+  - amd64
+  - ppc64le
 
 before_install:
   - gem install bundler
@@ -30,6 +33,16 @@ matrix:
       rvm: 2.4
     - gemfile: gemfiles/rails_master.gemfile
       rvm: 2.4
+    - gemfile: gemfiles/rails_6.0.gemfile
+      rvm: 2.4
+      arch: ppc64le
+    - gemfile: gemfiles/rails_master.gemfile
+      rvm: 2.4
+      arch: ppc64le
   allow_failures:
     - gemfile: gemfiles/rails_master.gemfile
     - gemfile: gemfiles/doorkeeper_master.gemfile
+    - gemfile: gemfiles/rails_master.gemfile
+      arch: ppc64le
+    - gemfile: gemfiles/doorkeeper_master.gemfile
+      arch: ppc64le
