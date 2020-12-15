@@ -3,7 +3,7 @@
 module Doorkeeper
   module OpenidConnect
     class UserinfoController < ::Doorkeeper::ApplicationController
-      unless Doorkeeper.config.api_only
+      unless Doorkeeper.configuration.api_only
         skip_before_action :verify_authenticity_token
       end
       before_action -> { doorkeeper_authorize! :openid }
