@@ -76,6 +76,60 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
     end
 
+    context 'when the discovery_url_options option is set for all endpoints' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          discovery_url_options do |request|
+            {
+              authorization: { host: 'alternate-authorization.host' },
+              token: { host: 'alternate-token.host' },
+              revocation: { host: 'alternate-revocation.host' },
+              introspection: { host: 'alternate-introspection.host' },
+              userinfo: { host: 'alternate-userinfo.host' },
+              jwks: { host: 'alternate-jwks.host' }
+            }
+          end
+        end
+      end
+
+      it 'uses the discovery_url_options option when generating the endpoint urls' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['authorization_endpoint']).to eq 'http://alternate-authorization.host/oauth/authorize'
+        expect(data['token_endpoint']).to eq 'http://alternate-token.host/oauth/token'
+        expect(data['revocation_endpoint']).to eq 'http://alternate-revocation.host/oauth/revoke'
+        expect(data['introspection_endpoint']).to eq 'http://alternate-introspection.host/oauth/introspect'
+        expect(data['userinfo_endpoint']).to eq 'http://alternate-userinfo.host/oauth/userinfo'
+        expect(data['jwks_uri']).to eq 'http://alternate-jwks.host/oauth/discovery/keys'
+      end
+    end
+
+    context 'when the discovery_url_options option is only set for some endpoints' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          discovery_url_options do |request|
+            { authorization: { host: 'alternate-authorization.host' } }
+          end
+        end
+      end
+
+      it 'does not use the discovery_url_options option when generating other URLs' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        {
+          'token_endpoint' => 'http://test.host/oauth/token',
+          'revocation_endpoint' => 'http://test.host/oauth/revoke',
+          'introspection_endpoint' => 'http://test.host/oauth/introspect',
+          'userinfo_endpoint' => 'http://test.host/oauth/userinfo',
+          'jwks_uri' => 'http://test.host/oauth/discovery/keys',
+        }.each do |endpoint, expected_url|
+          expect(data[endpoint]).to eq expected_url
+        end
+      end
+    end
+
     it 'does not return an end session endpoint if none is configured' do
       get :provider
       data = JSON.parse(response.body)
@@ -117,6 +171,43 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           'href' => 'http://test.host/',
         ],
       }.sort)
+    end
+
+    context 'when the discovery_url_options option is set for webfinger endpoint' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          discovery_url_options do |request|
+            { webfinger: { host: 'alternate-webfinger.host' } }
+          end
+        end
+      end
+
+      it 'uses the discovery_url_options option when generating the webfinger endpoint url' do
+        get :webfinger, params: { resource: 'user@example.com' }
+        data = JSON.parse(response.body)
+
+        expect(data['links'].first['href']).to eq 'http://alternate-webfinger.host/'
+      end
+    end
+
+    context 'when the discovery_url_options option uses the request for an endpoint' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          discovery_url_options do |request|
+            {
+              authorization: { host: 'alternate-authorization.host',
+                               protocol: request.ssl? ? :https : :testing }
+            }
+          end
+        end
+      end
+
+      it 'uses the discovery_url_options option when generating the webfinger endpoint url' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['authorization_endpoint']).to eq 'testing://alternate-authorization.host/oauth/authorize'
+      end
     end
   end
 

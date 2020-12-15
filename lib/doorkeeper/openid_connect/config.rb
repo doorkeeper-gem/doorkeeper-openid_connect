@@ -134,6 +134,10 @@ module Doorkeeper
       option :end_session_endpoint, default: lambda { |*_|
         nil
       }
+
+      option :discovery_url_options, default: lambda { |*_|
+        {}
+      }
     end
   end
 end
