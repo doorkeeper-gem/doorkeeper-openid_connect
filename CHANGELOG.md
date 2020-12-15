@@ -1,5 +1,17 @@
 ## Unreleased
 
+## v1.7.5 (2020-12-15)
+
+### Changes
+
+- [#126] Add discovery_url_options option for discovery endpoints URL generation (thanks to @phlegx)
+
+### Bugfixes
+
+- [#123] Remove reference to ApplicationRecord (thanks to @wheeyls)
+- [#124] Clone doorkeeper.grant_flows array before appending 'refresh_token' (thanks to @davidbasalla)
+- [#129] Avoid to use the config alias while supporting Doorkeeper 5.2 (thanks to @kymmt90)
+
 ## v1.7.4 (2020-07-06)
 
 - [#119] Execute end_session_endpoint in the controllers context (thanks to @joeljunstrom)
