@@ -1,5 +1,7 @@
 ## Unreleased
 
+- [#138] Support form_post response mode
+
 ## v1.7.5 (2020-12-15)
 
 ### Changes

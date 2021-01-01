@@ -15,7 +15,7 @@ describe Doorkeeper::OAuth::IdTokenResponse do
       :pre_auth,
       client: application,
       redirect_uri: 'http://tst.com/cb',
-      state: nil,
+      state: 'state',
       scopes: Doorkeeper::OAuth::Scopes.from_string('public'),
       error: nil,
       authorizable?: true,
@@ -36,9 +36,21 @@ describe Doorkeeper::OAuth::IdTokenResponse do
   end
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }
 
+  describe '#body' do
+    it 'return body response for id_token' do
+      expect(subject.body).to eq({
+        expires_in: auth.token.expires_in_seconds,
+        state: pre_auth.state,
+        id_token: id_token.as_jws_token
+      })
+    end
+  end
+
   describe '#redirect_uri' do
-    it 'includes id_token' do
-      expect(subject.redirect_uri).to include('id_token')
+    it 'includes expires_in, id_token and state' do
+      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#expires_in=#{auth.token.expires_in_seconds}&" \
+        "state=#{pre_auth.state}&" \
+        "id_token=#{id_token.as_jws_token}")
     end
 
     it 'does not include access_token' do
