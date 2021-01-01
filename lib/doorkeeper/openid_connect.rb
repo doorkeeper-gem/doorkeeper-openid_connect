@@ -69,12 +69,14 @@ module Doorkeeper
       Doorkeeper::GrantFlow.register(
         :id_token,
         response_type_matches: 'id_token',
+        response_mode_matches: %w[fragment form_post],
         response_type_strategy: Doorkeeper::OpenidConnect::IdToken,
       )
 
       Doorkeeper::GrantFlow.register(
         'id_token token',
         response_type_matches: 'id_token token',
+        response_mode_matches: %w[fragment form_post],
         response_type_strategy: Doorkeeper::OpenidConnect::IdTokenToken,
       )
 
