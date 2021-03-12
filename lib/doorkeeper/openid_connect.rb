@@ -16,7 +16,6 @@ require 'doorkeeper/openid_connect/claims_builder'
 require 'doorkeeper/openid_connect/claims/claim'
 require 'doorkeeper/openid_connect/claims/normal_claim'
 require 'doorkeeper/openid_connect/config'
-require 'doorkeeper/openid_connect/response_types_config'
 require 'doorkeeper/openid_connect/engine'
 require 'doorkeeper/openid_connect/errors'
 require 'doorkeeper/openid_connect/id_token'
@@ -65,28 +64,22 @@ module Doorkeeper
       end
     end
 
-    if defined?(::Doorkeeper::GrantFlow)
-      Doorkeeper::GrantFlow.register(
-        :id_token,
-        response_type_matches: 'id_token',
-        response_mode_matches: %w[fragment form_post],
-        response_type_strategy: Doorkeeper::OpenidConnect::IdToken,
-      )
+    Doorkeeper::GrantFlow.register(
+      :id_token,
+      response_type_matches: 'id_token',
+      response_mode_matches: %w[fragment form_post],
+      response_type_strategy: Doorkeeper::OpenidConnect::IdToken,
+    )
 
-      Doorkeeper::GrantFlow.register(
-        'id_token token',
-        response_type_matches: 'id_token token',
-        response_mode_matches: %w[fragment form_post],
-        response_type_strategy: Doorkeeper::OpenidConnect::IdTokenToken,
-      )
+    Doorkeeper::GrantFlow.register(
+      'id_token token',
+      response_type_matches: 'id_token token',
+      response_mode_matches: %w[fragment form_post],
+      response_type_strategy: Doorkeeper::OpenidConnect::IdTokenToken,
+    )
 
-      Doorkeeper::GrantFlow.register_alias(
-        'implicit_oidc', as: ['implicit', 'id_token', 'id_token token']
-      )
-    else
-      # TODO: drop this and corresponding file when we will set minimal
-      # required Doorkeeper version to 5.5.
-      Doorkeeper::Config.prepend OpenidConnect::ResponseTypeConfig
-    end
+    Doorkeeper::GrantFlow.register_alias(
+      'implicit_oidc', as: ['implicit', 'id_token', 'id_token token']
+    )
   end
 end
