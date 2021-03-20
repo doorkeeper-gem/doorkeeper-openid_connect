@@ -7,12 +7,7 @@ module Doorkeeper
         attr_reader :nonce
 
         def initialize(server, attrs = {}, resource_owner = nil)
-          if (Doorkeeper::VERSION::MAJOR >= 5 && Doorkeeper::VERSION::MINOR >= 4) ||
-             Doorkeeper::VERSION::MAJOR >= 6
-            super
-          else
-            super(server, attrs)
-          end
+          super
           @nonce = attrs[:nonce]
         end
 
