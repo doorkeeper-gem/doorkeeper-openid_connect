@@ -52,15 +52,16 @@ module Doorkeeper
                                redirect_uri: params[:redirect_uri],
                                response_on_fragment: pre_auth.response_on_fragment?,
                              )
-          end
+                           end
 
           response.headers.merge!(error_response.headers)
 
-          if error_response.redirectable?
-            render json: error_response.body, status: :found, location: error_response.redirect_uri
-          else
-            render json: error_response.body, status: error_response.status
-          end
+          # NOTE: Assign error_response to @authorize_response then use redirect_or_render method that are defined at
+          #   doorkeeper's authorizations_controller.
+          # - https://github.com/doorkeeper-gem/doorkeeper/blob/v5.5.0/app/controllers/doorkeeper/authorizations_controller.rb#L110
+          # - https://github.com/doorkeeper-gem/doorkeeper/blob/v5.5.0/app/controllers/doorkeeper/authorizations_controller.rb#L52
+          @authorize_response = error_response
+          redirect_or_render(@authorize_response)
         end
 
         def handle_oidc_prompt_param!(owner)

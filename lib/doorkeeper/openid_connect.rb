@@ -21,7 +21,6 @@ require 'doorkeeper/openid_connect/errors'
 require 'doorkeeper/openid_connect/id_token'
 require 'doorkeeper/openid_connect/id_token_token'
 require 'doorkeeper/openid_connect/user_info'
-require 'doorkeeper/openid_connect/response_mode'
 require 'doorkeeper/openid_connect/version'
 
 require 'doorkeeper/openid_connect/helpers/controller'

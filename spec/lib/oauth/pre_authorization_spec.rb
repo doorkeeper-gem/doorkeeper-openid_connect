@@ -5,7 +5,7 @@ require 'rails_helper'
 describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
   subject { Doorkeeper::OAuth::PreAuthorization.new server, attrs }
 
-  let(:server) { double }
+  let(:server) { Doorkeeper.configuration }
   let(:attrs) {}
 
   describe '#initialize' do

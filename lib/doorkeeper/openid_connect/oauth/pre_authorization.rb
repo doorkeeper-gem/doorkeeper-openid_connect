@@ -11,18 +11,16 @@ module Doorkeeper
           @nonce = attrs[:nonce]
         end
 
-        # This method will be updated when doorkeeper move to version > 5.2.2
-        # TODO: delete this method and refactor response_on_fragment? method (below) when doorkeeper gem version constrains is > 5.2.2
-        def error_response
-          if error == :invalid_request
-            Doorkeeper::OAuth::InvalidRequestResponse.from_request(self, response_on_fragment: response_on_fragment?)
-          else
-            Doorkeeper::OAuth::ErrorResponse.from_request(self, response_on_fragment: response_on_fragment?)
-          end
-        end
-
+        # NOTE: Auto get default response_mode of specified response_type if response_mode is not
+        #   yet present. We can delete this method after Doorkeeper's minimize version support it.
         def response_on_fragment?
-          Doorkeeper::OpenidConnect::ResponseMode.new(response_type).fragment?
+          return response_mode == 'fragment' if response_mode.present?
+
+          grant_flow = server.authorization_response_flows.detect do |flow|
+            flow.matches_response_type?(response_type)
+          end
+
+          grant_flow&.default_response_mode == 'fragment'
         end
       end
     end
