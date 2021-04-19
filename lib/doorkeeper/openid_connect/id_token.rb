@@ -40,7 +40,11 @@ module Doorkeeper
       private
 
       def issuer
-        Doorkeeper::OpenidConnect.configuration.issuer
+        if Doorkeeper::OpenidConnect.configuration.issuer.respond_to?(:call)
+          Doorkeeper::OpenidConnect.configuration.issuer.call(@resource_owner, @access_token.application).to_s
+        else
+          Doorkeeper::OpenidConnect.configuration.issuer
+        end
       end
 
       def subject
