@@ -1,7 +1,16 @@
 ## Unreleased
 
-- [#138] Support form_post response mode (This gem now requires Doorkeeper v5.5)
-- [#146] Require at least Ruby 2.5
+## v1.8.0-rc1 (2021-04-20)
+
+### Upgrading
+
+This gem now requires Doorkeeper 5.5 and Ruby 2.5.
+
+### Changes
+
+- [#138] Support form_post response mode (thanks to @linhdangduy)
+- [#144] Support block syntax for `issuer` configuration (thanks to @maxxsnake)
+- [#145] Register token flows with the strategy instead of the token class (thanks to @paukul)
 
 ## v1.7.5 (2020-12-15)
 

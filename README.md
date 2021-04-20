@@ -104,6 +104,7 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 
 - `issuer`
   - Identifier for the issuer of the response (i.e. your application URL). The value is a case sensitive URL using the `https` scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
+  - You can either pass a string value, or a block to generate the issuer dynamically based on the `resource_owner` and `application` passed to the block.
 - `subject`
   - Identifier for the resource owner (i.e. the authenticated user). A locally unique and never reassigned identifier within the issuer for the end-user, which is intended to be consumed by the client. The value is a case-sensitive string and must not exceed 255 ASCII characters in length.
   - The database ID of the user is an acceptable choice if you don't mind leaking that information.
