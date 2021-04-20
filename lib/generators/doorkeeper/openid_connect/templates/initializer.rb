@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 Doorkeeper::OpenidConnect.configure do
-  issuer 'issuer string'
+  issuer do |resource_owner, application|
+    'issuer string'
+  end
 
   signing_key <<~KEY
     -----BEGIN RSA PRIVATE KEY-----

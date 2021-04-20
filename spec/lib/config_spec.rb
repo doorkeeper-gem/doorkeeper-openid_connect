@@ -49,6 +49,14 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       end
       expect(subject.issuer).to eq(value)
     end
+
+    it 'sets the block that is accessible via issuer' do
+      block = proc {}
+      described_class.configure do
+        issuer(&block)
+      end
+      expect(subject.issuer).to eq(block)
+    end
   end
 
   describe 'resource_owner_from_access_token' do
