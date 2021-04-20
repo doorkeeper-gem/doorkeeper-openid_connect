@@ -22,23 +22,11 @@ gemfile:
   - gemfiles/doorkeeper_master.gemfile
 
 rvm:
-  - 2.4
   - 2.5
   - 2.6
   - 2.7
 
 matrix:
-  exclude:
-    - gemfile: gemfiles/rails_6.0.gemfile
-      rvm: 2.4
-    - gemfile: gemfiles/rails_master.gemfile
-      rvm: 2.4
-    - gemfile: gemfiles/rails_6.0.gemfile
-      rvm: 2.4
-      arch: ppc64le
-    - gemfile: gemfiles/rails_master.gemfile
-      rvm: 2.4
-      arch: ppc64le
   allow_failures:
     - gemfile: gemfiles/rails_master.gemfile
     - gemfile: gemfiles/doorkeeper_master.gemfile
