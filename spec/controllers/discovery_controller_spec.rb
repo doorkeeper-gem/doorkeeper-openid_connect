@@ -19,7 +19,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
         'scopes_supported' => ['openid'],
         'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
-        'response_modes_supported' => %w[query fragment],
+        'response_modes_supported' => %w[query fragment form_post],
         'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
 
         'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
@@ -62,6 +62,39 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         data = JSON.parse(response.body)
 
         expect(data['grant_types_supported']).to eq %w[authorization_code client_credentials refresh_token]
+      end
+    end
+
+    context 'when grant_flows is configed with only client_credentials' do
+      before { Doorkeeper.configure { grant_flows %w[client_credentials] } }
+
+      it 'return empty response_modes_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['response_modes_supported']).to eq []
+      end
+    end
+
+    context 'when grant_flows is configed only implicit flow' do
+      before { Doorkeeper.configure { grant_flows %w[implicit_oidc] } }
+
+      it 'return fragment and form_post as response_modes_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['response_modes_supported']).to eq %w[fragment form_post]
+      end
+    end
+
+    context 'when grant_flows is configed with authorization_code and implicit flow' do
+      before { Doorkeeper.configure { grant_flows %w[authorization_code implicit_oidc] } }
+
+      it 'return query, fragment and form_post as response_modes_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['response_modes_supported']).to eq %w[query fragment form_post]
       end
     end
 

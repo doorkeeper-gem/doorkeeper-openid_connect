@@ -14,7 +14,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
       :pre_auth,
       client: application,
       redirect_uri: 'http://tst.com/cb',
-      state: nil,
+      state: 'state',
       scopes: Doorkeeper::OAuth::Scopes.from_string('public'),
       error: nil,
       authorizable?: true,
@@ -33,17 +33,24 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
   end
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }
 
+  describe '#body' do
+    it 'return body response for id_token and access_token' do
+      expect(subject.body).to eq({
+        expires_in: auth.token.expires_in_seconds,
+        state: pre_auth.state,
+        id_token: id_token.as_jws_token,
+        access_token: auth.token.token,
+        token_type: auth.token.token_type
+      })
+    end
+  end
+
   describe '#redirect_uri' do
-    it 'includes id_token' do
-      expect(subject.redirect_uri).to include('id_token')
-    end
-
-    it 'includes access_token' do
-      expect(subject.redirect_uri).to include('access_token')
-    end
-
-    it 'includes token_type' do
-      expect(subject.redirect_uri).to include('token_type')
+    it 'includes id_token, info of access_token and state' do
+      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#expires_in=#{auth.token.expires_in_seconds}&" \
+        "state=#{pre_auth.state}&" \
+        "id_token=#{id_token.as_jws_token}&" \
+        "access_token=#{auth.token.token}&token_type=#{auth.token.token_type}")
     end
   end
 end

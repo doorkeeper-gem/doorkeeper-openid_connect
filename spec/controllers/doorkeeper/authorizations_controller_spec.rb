@@ -11,6 +11,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   def authorize!(params = {})
     get :new, params: {
       response_type: 'code',
+      response_mode: '',
       current_user: user.id,
       client_id: application.uid,
       scope: default_scopes,
@@ -120,30 +121,38 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect_successful_callback!
         end
 
-        it 'returns an invalid_request error if another prompt value is present' do
-          authorize! prompt: 'none login'
+        context 'when another prompt value is present' do
+          let(:error_params) do
+            {
+              'error' => 'invalid_request',
+              'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
+            }
+          end
+          let(:request_param) { { prompt: 'none login' } }
 
-          error_params = {
-            'error' => 'invalid_request',
-            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
-          }
+          it 'redirect as the query uri with an invalid_request error' do
+            authorize! request_param
 
-          expect(response.status).to redirect_to build_redirect_uri(error_params)
-          expect(JSON.parse(response.body)).to eq(error_params)
-        end
+            expect(response).to redirect_to build_redirect_uri(error_params)
+          end
 
-        it 'uses the fragment style uris when redirecting an invalid request error for implicit flow request' do
-          allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+          it 'redirect as the fragment style uri when response_type is implicit flow request' do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-          authorize! response_type: 'id_token token', prompt: 'none login'
+            authorize! request_param.merge(response_type: 'id_token token')
 
-          error_params = {
-            'error' => 'invalid_request',
-            'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
-          }
+            expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
+          end
 
-          expect(response.status).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-          expect(JSON.parse(response.body)).to eq(error_params)
+          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post')
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
+          end
         end
 
         context 'when not logged in' do
@@ -154,21 +163,30 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
               'state' => 'somestate',
             }
           end
+          let(:request_param) { { current_user: nil } }
 
           it 'returns a login_required error' do
-            authorize! prompt: 'none', current_user: nil, state: 'somestate'
+            authorize! request_param.merge(prompt: 'none', state: 'somestate')
 
             expect(response).to redirect_to build_redirect_uri(error_params)
-            expect(JSON.parse(response.body)).to eq(error_params)
           end
 
-          it 'uses the fragment style uris when redirecting an error for implicit flow request' do
+          it 'redirect as the fragment style uri when response_type is implicit flow request' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! response_type: 'id_token token', prompt: 'none', current_user: nil, state: 'somestate'
+            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate')
 
             expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-            expect(JSON.parse(response.body)).to eq(error_params)
+          end
+
+          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate')
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
           end
         end
       end
@@ -182,32 +200,37 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
 
         context 'when not logged in' do
-          it 'returns the login_required error when not logged in' do
-            error_params = {
+          let(:error_params) do
+            {
               'error' => 'login_required',
               'error_description' => 'The authorization server requires end-user authentication',
               'state' => 'somestate',
             }
+          end
+          let(:request_param) { { current_user: nil } }
 
-            authorize! prompt: 'none', current_user: nil, state: 'somestate'
+          it 'returns the login_required error when not logged in' do
+            authorize! request_param.merge(prompt: 'none', state: 'somestate')
 
             expect(response).to redirect_to build_redirect_uri(error_params)
-            expect(JSON.parse(response.body)).to eq(error_params)
           end
 
           it 'uses the fragment style uris when redirecting an error for implicit flow request' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            error_params = {
-              'error' => 'login_required',
-              'error_description' => 'The authorization server requires end-user authentication',
-              'state' => 'somestate',
-            }
-
-            authorize! response_type: 'id_token token', prompt: 'none', current_user: nil, state: 'somestate'
+            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate')
 
             expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-            expect(JSON.parse(response.body)).to eq(error_params)
+          end
+
+          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate')
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
           end
         end
 
@@ -220,7 +243,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           }
 
           expect(response).to redirect_to build_redirect_uri(error_params)
-          expect(JSON.parse(response.body)).to eq(error_params)
         end
       end
     end
@@ -266,7 +288,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         }
 
         expect(response).to redirect_to build_redirect_uri(error_params)
-        expect(JSON.parse(response.body)).to eq(error_params)
       end
 
       it 'does not redirect to an invalid redirect_uri' do
