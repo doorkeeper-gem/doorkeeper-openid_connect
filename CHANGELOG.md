@@ -1,5 +1,9 @@
 ## Unreleased
 
+## v1.8.0 (2021-05-11)
+
+No changes from v1.8.0-rc1.
+
 ## v1.8.0-rc1 (2021-04-20)
 
 ### Upgrading
