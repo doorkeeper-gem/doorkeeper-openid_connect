@@ -62,6 +62,7 @@ module Doorkeeper
         def discovery_well_known_routes
           routes.scope path: '.well-known' do
             routes.get :provider, path: 'openid-configuration'
+            routes.get :provider, path: 'oauth-authorization-server'
             routes.get :webfinger
           end
         end
