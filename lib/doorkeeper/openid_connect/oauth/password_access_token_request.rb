@@ -6,7 +6,7 @@ module Doorkeeper
       module PasswordAccessTokenRequest
         attr_reader :nonce
 
-        def initialize(server, client, resource_owner, parameters = {})
+        def initialize(server, client, credentials, resource_owner, parameters = {})
           super
           @nonce = parameters[:nonce]
         end
