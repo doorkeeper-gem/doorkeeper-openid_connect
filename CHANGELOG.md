@@ -1,5 +1,7 @@
 ## Unreleased
 
+- [#153] Fix ArgumentError caused by client credential validation introduced in Doorkeeper 5.5.1
+
 ## v1.8.0 (2021-05-11)
 
 No changes from v1.8.0-rc1.
