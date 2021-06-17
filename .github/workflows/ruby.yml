@@ -1,0 +1,25 @@
+name: Build and Test
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        gemfile: [rails_5.0, rails_5.2, rails_6.0]
+        ruby: ["2.4", "2.5", "2.6", "2.7"]
+        exclude:
+          - gemfile: rails_6.0
+            ruby: "2.4"
+          - gemfile: rails_master
+            ruby: "2.4"
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle exec rake migrate
+      - run: bundle exec rake spec
