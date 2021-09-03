@@ -6,9 +6,16 @@ module Doorkeeper
       module PasswordAccessTokenRequest
         attr_reader :nonce
 
-        def initialize(server, client, resource_owner, parameters = {})
-          super
-          @nonce = parameters[:nonce]
+        if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.1')
+          def initialize(server, client, credentials, resource_owner, parameters = {})
+            super
+            @nonce = parameters[:nonce]
+          end
+        else
+          def initialize(server, client, resource_owner, parameters = {})
+            super
+            @nonce = parameters[:nonce]
+          end
         end
 
         private

@@ -3,10 +3,15 @@
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
-  subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: '123456' } }
+  if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.1')
+    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, credentials, resource_owner, { nonce: '123456' } }
+  else
+    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: '123456' } }
+  end
 
   let(:server) { double }
   let(:client) { double }
+  let(:credentials) { }
   let(:resource_owner) { create :user }
   let(:token) { create :access_token }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
