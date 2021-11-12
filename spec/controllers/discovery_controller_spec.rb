@@ -65,6 +65,17 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
+    context 'when issuer block' do
+      before { Doorkeeper::OpenidConnect.configure { issuer do |r, a| "test-issuer" end } }
+
+      it 'return blocks result' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['issuer']).to eq "test-issuer"
+      end
+    end
+
     context 'when grant_flows is configed with only client_credentials' do
       before { Doorkeeper.configure { grant_flows %w[client_credentials] } }
 
