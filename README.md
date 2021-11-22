@@ -1,6 +1,6 @@
 # Doorkeeper::OpenidConnect
 
-[![Build Status](https://travis-ci.org/doorkeeper-gem/doorkeeper-openid_connect.svg?branch=master)](https://travis-ci.org/doorkeeper-gem/doorkeeper-openid_connect)
+[![Build Status](https://app.travis-ci.com/doorkeeper-gem/doorkeeper-openid_connect.svg?branch=master)](https://app.travis-ci.com/github/doorkeeper-gem/doorkeeper-openid_connect)
 [![Code Climate](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect.svg)](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect)
 [![Gem Version](https://badge.fury.io/rb/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
 
