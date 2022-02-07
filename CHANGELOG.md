@@ -1,6 +1,7 @@
 ## Unreleased
 
 - [#153] Fix ArgumentError caused by client credential validation introduced in Doorkeeper 5.5.1
+- [#161] Fix .well-known/openid-connect issuer (respond to block if provided).
 
 ## v1.8.0 (2021-05-11)
 
