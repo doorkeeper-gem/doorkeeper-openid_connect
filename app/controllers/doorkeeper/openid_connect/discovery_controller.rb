@@ -24,8 +24,9 @@ module Doorkeeper
       def provider_response
         doorkeeper = ::Doorkeeper.configuration
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
+
         {
-          issuer: openid_connect.issuer,
+          issuer: issuer,
           authorization_endpoint: oauth_authorization_url(authorization_url_options),
           token_endpoint: oauth_token_url(token_url_options),
           revocation_endpoint: oauth_revoke_url(revocation_url_options),
@@ -117,6 +118,14 @@ module Doorkeeper
         {
           protocol: protocol
         }
+      end
+
+      def issuer
+        if Doorkeeper::OpenidConnect.configuration.issuer.respond_to?(:call)
+          Doorkeeper::OpenidConnect.configuration.issuer.call(request).to_s
+        else
+          Doorkeeper::OpenidConnect.configuration.issuer
+        end
       end
 
       %i[authorization token revocation introspection userinfo jwks webfinger].each do |endpoint|
