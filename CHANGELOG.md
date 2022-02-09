@@ -1,5 +1,9 @@
 ## Unreleased
 
+- [#] Add here
+
+## v1.8.1 (2022-02-09)
+
 - [#153] Fix ArgumentError caused by client credential validation introduced in Doorkeeper 5.5.1 (thanks to @CircumnavigatingFlatEarther)
 - [#161] Fix .well-known/openid-connect issuer (respond to block if provided) (thanks to @fkowal).
 - [#152] Expose oauth-authorization-server in routes (thanks to @mitar)
