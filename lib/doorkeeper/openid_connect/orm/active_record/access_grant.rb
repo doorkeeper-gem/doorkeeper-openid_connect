@@ -13,6 +13,4 @@ module Doorkeeper
       end
     end
   end
-
-  AccessGrant.prepend OpenidConnect::AccessGrant
 end
