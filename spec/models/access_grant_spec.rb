@@ -15,6 +15,10 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
     })
   end
 
+  it 'extends the base doorkeeper AccessGrant' do
+    expect(subject).to respond_to(:"openid_request=")
+  end
+
   describe '#delete' do
     it 'cascades to oauth_openid_requests' do
       if Rails::VERSION::MAJOR >= 6
