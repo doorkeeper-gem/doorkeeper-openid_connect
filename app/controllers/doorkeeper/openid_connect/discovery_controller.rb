@@ -2,7 +2,7 @@
 
 module Doorkeeper
   module OpenidConnect
-    class DiscoveryController < ::Doorkeeper::ApplicationController
+    class DiscoveryController < ::Doorkeeper::ApplicationMetalController
       include Doorkeeper::Helpers::Controller
 
       WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
