@@ -166,7 +166,7 @@ The following settings are optional:
 - `discovery_url_options`
   - The URL options for every available endpoint to use when generating the endpoint URL in the
     discovery response. Available endpoints: `authorization`, `token`, `revocation`,
-    `introspection`, `userinfo`, `jwks`, `webfinger`.
+    `introspection`, `userinfo`, `jwks`.
   - This option requires option keys with an available endpoint and
     [URL options](https://api.rubyonrails.org/v6.0.3.3/classes/ActionDispatch/Routing/UrlFor.html#method-i-url_for)
     as value.
