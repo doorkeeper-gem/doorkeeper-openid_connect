@@ -1,6 +1,9 @@
 ## Unreleased
 
 - [#] Add here
+- [#168] Allow to use custom doorkeeper access grant model (thanks @nov).
+- [#170] Controllers inherit `Doorkeeper::AppliactionMetalController` (thanks @sato11).
+- [#171] Correctly override `AuthorizationsController` params (thanks to @nbulaj).
 
 ## v1.8.1 (2022-02-09)
 

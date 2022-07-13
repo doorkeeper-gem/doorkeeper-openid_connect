@@ -6,6 +6,10 @@ module Doorkeeper
       initializer 'doorkeeper.openid_connect.routes' do
         Doorkeeper::OpenidConnect::Rails::Routes.install!
       end
+
+      config.to_prepare do
+        Doorkeeper::AuthorizationsController.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
+      end
     end
   end
 end
