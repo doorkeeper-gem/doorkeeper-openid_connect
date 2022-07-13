@@ -11,6 +11,7 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
     expect(association.options).to eq({
       class_name: 'Doorkeeper::OpenidConnect::Request',
       inverse_of: :access_grant,
+      foreign_key: "access_grant_id",
       dependent: :delete,
     })
   end
