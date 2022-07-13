@@ -195,6 +195,28 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       expect(data['end_session_endpoint']).to eq 'http://test.host/logout'
     end
+
+    context 'when token inspection is disallowed' do
+      let(:doorkeeper_config) { Doorkeeper.config }
+      let!(:allow_token_introspection) { doorkeeper_config.allow_token_introspection }
+
+      before do
+        allow(doorkeeper_config).to receive(:allow_token_introspection).and_return(false)
+        Rails.application.reload_routes!
+      end
+
+      after do
+        allow(doorkeeper_config).to receive(:allow_token_introspection).and_return(allow_token_introspection)
+        Rails.application.reload_routes!
+      end
+
+      it 'does not return introspection_endpoint' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data.key?('introspection_endpoint')).to be(false)
+      end
+    end
   end
 
   describe '#webfinger' do

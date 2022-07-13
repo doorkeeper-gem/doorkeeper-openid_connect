@@ -30,7 +30,7 @@ module Doorkeeper
           authorization_endpoint: oauth_authorization_url(authorization_url_options),
           token_endpoint: oauth_token_url(token_url_options),
           revocation_endpoint: oauth_revoke_url(revocation_url_options),
-          introspection_endpoint: oauth_introspect_url(introspection_url_options),
+          introspection_endpoint: respond_to?(:oauth_introspect_url) ? oauth_introspect_url(introspection_url_options) : nil,
           userinfo_endpoint: oauth_userinfo_url(userinfo_url_options),
           jwks_uri: oauth_discovery_keys_url(jwks_url_options),
           end_session_endpoint: instance_exec(&openid_connect.end_session_endpoint),
