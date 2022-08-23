@@ -30,9 +30,6 @@ Dir.chdir('spec/dummy') do
   ActiveRecord::Migration.maintain_test_schema!
 end
 
-# Remove after dropping support of Rails 4.2
-require_relative 'support/http_method_shim.rb'
-
 require_relative 'support/doorkeeper_configuration.rb'
 
 require 'factory_bot'
