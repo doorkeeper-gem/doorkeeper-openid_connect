@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.6'
 
   spec.add_runtime_dependency 'doorkeeper', '>= 5.5', '< 5.7'
-  spec.add_runtime_dependency 'json-jwt', '>= 1.11.0'
+  spec.add_runtime_dependency 'json-jwt', '>= 1.15.0'
 
   spec.add_development_dependency 'conventional-changelog', '~> 1.2'
   spec.add_development_dependency 'factory_bot'
