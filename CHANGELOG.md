@@ -2,6 +2,10 @@
 
 - [#] Add here
 
+## Unreleased next
+
+- [#???] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt.
+
 ## v1.8.2 (2022-07-13)
 
 - [#168] Allow to use custom doorkeeper access grant model (thanks @nov).
