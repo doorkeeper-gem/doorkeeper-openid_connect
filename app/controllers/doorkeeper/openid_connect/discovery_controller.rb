@@ -68,6 +68,8 @@ module Doorkeeper
             exp
             iat
           ] | openid_connect.claims.to_h.keys,
+
+          code_challenge_methods_supported: code_challenge_methods_supported(doorkeeper),
         }.compact
       end
 
@@ -79,6 +81,12 @@ module Doorkeeper
 
       def response_modes_supported(doorkeeper)
         doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq
+      end
+
+      def code_challenge_methods_supported(doorkeeper)
+        return unless doorkeeper.access_grant_model.pkce_supported?
+
+        %w[plain S256]
       end
 
       def webfinger_response

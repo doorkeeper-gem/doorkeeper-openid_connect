@@ -16,6 +16,8 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       allow(pre_auth).to receive(:redirect_uri).and_return('redirect_uri')
       allow(pre_auth).to receive(:scopes).and_return('scopes')
       allow(pre_auth).to receive(:nonce).and_return('123456')
+      allow(pre_auth).to receive(:code_challenge).and_return('987654')
+      allow(pre_auth).to receive(:code_challenge_method).and_return('plain')
       allow(client).to receive(:id).and_return('client_id')
 
       allow(Doorkeeper::AccessGrant).to receive(:create!) { access_grant }
