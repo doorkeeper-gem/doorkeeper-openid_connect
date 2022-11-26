@@ -51,6 +51,11 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           id_token_response
           user_info_response
         ],
+
+        'code_challenge_methods_supported' => %w[
+          plain
+          S256
+        ],
       }.sort)
     end
 
