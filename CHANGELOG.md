@@ -1,6 +1,10 @@
 ## Unreleased
 
-- [#180] Add PKCE support to OpenID discovery endpoint
+- [#PR ID] Add your changelog entry here.
+
+## v1.8.3 (2022-12-02)
+
+- [#180] Add PKCE support to OpenID discovery endpoint.
 
 ## v1.8.2 (2022-07-13)
 
