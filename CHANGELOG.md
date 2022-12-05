@@ -4,7 +4,7 @@
 
 ## Unreleased next
 
-- [#???] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt.
+- [#177] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt.
 
 ## v1.8.2 (2022-07-13)
 
