@@ -2,6 +2,7 @@
 
 - [#PR ID] Add your changelog entry here.
 - [#186] Simplify gem configuration reusing Doorkeeper configuration option DSL (thanks to @nbulaj).
+- [#182] Drop support for Ruby 2.6 and Rails 5.
 
 ## v1.8.4 (2023-02-01)
 
