@@ -262,6 +262,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context 'with a prompt=consent parameter' do
+      it 'redirects to the sign in form if not logged in' do
+        authorize! prompt: 'consent', current_user: nil
+
+        expect(response).to redirect_to('/login')
+      end
+
       it 'renders the authorization form even if a matching token is present' do
         create :access_token, token_attributes
         authorize! prompt: 'consent'
