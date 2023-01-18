@@ -1,6 +1,7 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+- [#183] stop render consent screen when user is not logged-in
 
 ## v1.8.3 (2022-12-02)
 
