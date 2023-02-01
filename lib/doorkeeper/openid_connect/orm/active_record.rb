@@ -18,7 +18,7 @@ module Doorkeeper
             Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
           end
 
-          if Doorkeeper.configuration.active_record_options[:establish_connection]
+          if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
             [Doorkeeper::OpenidConnect::Request].each do |c|
               c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
             end
