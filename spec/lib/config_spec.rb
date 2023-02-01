@@ -10,6 +10,7 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       # stub ORM setup to avoid Doorkeeper exceptions
       allow(Doorkeeper).to receive(:setup_orm_adapter)
       allow(Doorkeeper).to receive(:setup_orm_models)
+      allow(Doorkeeper).to receive(:setup_application_owner)
 
       Doorkeeper.configure do
         orm :mongoid

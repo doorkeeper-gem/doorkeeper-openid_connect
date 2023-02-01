@@ -1,7 +1,8 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
-- [#183] stop render consent screen when user is not logged-in
+- [#185] Don't call active_record_options for Doorkeeper >= 5.6.3.
+- [#183] stop render consent screen when user is not logged-in.
 
 ## v1.8.3 (2022-12-02)
 
