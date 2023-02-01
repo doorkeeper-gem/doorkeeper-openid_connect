@@ -11,7 +11,7 @@ describe Doorkeeper::OpenidConnect do
 
   describe '.signing_key' do
     it 'returns the private key as JWK instance' do
-      expect(subject.signing_key).to be_a JWT::JWK::KeyBase
+      expect(subject.signing_key).to be_a ::JWT::JWK::KeyBase
       expect(subject.signing_key.kid).to eq 'IqYwZo2cE6hsyhs48cU8QHH4GanKIx0S4Dc99kgTIMA'
     end
   end

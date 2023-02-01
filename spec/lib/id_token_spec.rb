@@ -74,7 +74,7 @@ describe Doorkeeper::OpenidConnect::IdToken do
       it 'returns claims encoded as JWT' do
         algorithms = [Doorkeeper::OpenidConnect.signing_algorithm.to_s]
 
-        data, headers = JWT.decode subject.as_jws_token, Doorkeeper::OpenidConnect.signing_key.keypair, true, { algorithms: algorithms }
+        data, headers = ::JWT.decode subject.as_jws_token, Doorkeeper::OpenidConnect.signing_key.keypair, true, { algorithms: algorithms }
 
         expect(data.to_hash).to eq subject.as_json.stringify_keys
         expect(headers["kid"]).to eq Doorkeeper::OpenidConnect.signing_key.kid
