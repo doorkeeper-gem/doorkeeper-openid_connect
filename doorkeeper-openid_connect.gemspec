@@ -6,8 +6,8 @@ require 'doorkeeper/openid_connect/version'
 Gem::Specification.new do |spec|
   spec.name          = 'doorkeeper-openid_connect'
   spec.version       = Doorkeeper::OpenidConnect::VERSION
-  spec.authors       = ['Sam Dengler', 'Markus Koller']
-  spec.email         = ['sam.dengler@playonsports.com', 'markus-koller@gmx.ch']
+  spec.authors       = ['Sam Dengler', 'Markus Koller', 'Nikita Bulai']
+  spec.email         = ['sam.dengler@playonsports.com', 'markus-koller@gmx.ch', 'bulajnikita@gmail.com']
   spec.homepage      = 'https://github.com/doorkeeper-gem/doorkeeper-openid_connect'
   spec.summary       = 'OpenID Connect extension for Doorkeeper.'
   spec.description   = 'OpenID Connect extension for Doorkeeper.'
