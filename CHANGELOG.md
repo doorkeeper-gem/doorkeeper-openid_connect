@@ -10,16 +10,13 @@
 
 ## v1.8.4 (2023-02-01)
 
+- [#177] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt (thanks to @kristof-mattei).
 - [#185] Don't call active_record_options for Doorkeeper >= 5.6.3 (thanks to @zavan).
 - [#183] Stop render consent screen when user is not logged-in (thanks to @nov).
 
 ## v1.8.3 (2022-12-02)
 
 - [#180] Add PKCE support to OpenID discovery endpoint (thanks to @stanhu).
-
-## Unreleased next
-
-- [#177] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt (thanks to @kristof-mattei).
 
 ## v1.8.2 (2022-07-13)
 
