@@ -1,8 +1,12 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+
+## v1.8.5 (2023-02-02)
+
 - [#186] Simplify gem configuration reusing Doorkeeper configuration option DSL (thanks to @nbulaj).
-- [#182] Drop support for Ruby 2.6 and Rails 5.
+- [#182] Drop support for Ruby 2.6 and Rails 5 (thanks to @sato11).
+- [#188] Fix dookeeper-jwt compatibility (thanks to @zavan).
 
 ## v1.8.4 (2023-02-01)
 
