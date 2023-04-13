@@ -48,7 +48,7 @@ module Doorkeeper
         else
           OpenSSL::PKey.read(configuration.signing_key)
         end
-      ::JWT::JWK.new(key)
+      ::JWT::JWK.new(key, { kid_generator: JWT::JWK::Thumbprint })
     end
 
     def self.signing_key_normalized

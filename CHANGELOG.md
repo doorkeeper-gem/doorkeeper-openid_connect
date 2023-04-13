@@ -1,6 +1,7 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+- [#194] Default to RFC 7638 kid fingerprint generation (thanks to @stanhu).
 
 ## v1.8.5 (2023-02-02)
 
@@ -9,6 +10,9 @@
 - [#188] Fix dookeeper-jwt compatibility (thanks to @zavan).
 
 ## v1.8.4 (2023-02-01)
+
+Note that v1.8.4 changed the default kid fingerprint generation from RFC 7638 to a format
+based on the SHA256 digest of the key element. To restore the previous behavior, upgrade to v1.8.6.
 
 - [#177] Replace `json-jwt` with `ruby-jwt` to align with doorkeeper-jwt (thanks to @kristof-mattei).
 - [#185] Don't call active_record_options for Doorkeeper >= 5.6.3 (thanks to @zavan).
