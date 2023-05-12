@@ -53,7 +53,6 @@ RSpec.configure do |config|
 
   # Reinitialize configuration after each example
   config.after do
-    load Rails.root.join('config/initializers/jwt.rb')
     load Rails.root.join('config/initializers/doorkeeper.rb')
     load Rails.root.join('config/initializers/doorkeeper_openid_connect.rb')
   end
