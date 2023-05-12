@@ -1,6 +1,7 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+- [#198] Fully qualify `JWT::JWK::Thumbprint` constant with :: (thanks to @stanhu)
 
 ## v1.8.6 (2023-05-12)
 
