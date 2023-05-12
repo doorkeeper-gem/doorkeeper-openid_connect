@@ -1,6 +1,9 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+
+## v1.8.6 (2023-05-12)
+
 - [#194] Default to RFC 7638 kid fingerprint generation (thanks to @stanhu).
 
 ## v1.8.5 (2023-02-02)
