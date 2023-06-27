@@ -1,11 +1,18 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
   subject { Doorkeeper::OAuth::TokenResponse.new token }
+
   let(:token) { create :access_token }
   let(:client) { Doorkeeper::OAuth::Client.new create(:application) }
-  let(:pre_auth) { Doorkeeper::OAuth::PreAuthorization.new(Doorkeeper.configuration, client, nonce: '123456')}
+  let(:pre_auth) { Doorkeeper::OAuth::PreAuthorization.new(Doorkeeper.configuration, client_id: client.uid, nonce: '123456') }
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new token, pre_auth }
+
+  before do
+    pre_auth.valid? # triggers loading of pre_auth.client
+  end
 
   describe '#body' do
     before do
@@ -39,7 +46,7 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
       end
 
       it 'does not add the ID token to the response' do
-        expect(subject.body).to_not include :id_token
+        expect(subject.body).not_to include :id_token
       end
     end
   end

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'doorkeeper'
 require 'active_model'
-require 'json/jwt'
+require 'jwt'
 
 require 'doorkeeper/request'
 
@@ -26,7 +28,6 @@ require 'doorkeeper/openid_connect/claims_builder'
 require 'doorkeeper/openid_connect/claims/claim'
 require 'doorkeeper/openid_connect/claims/normal_claim'
 require 'doorkeeper/openid_connect/config'
-require 'doorkeeper/openid_connect/response_types_config'
 require 'doorkeeper/openid_connect/engine'
 require 'doorkeeper/openid_connect/errors'
 
@@ -58,24 +59,34 @@ module Doorkeeper
 
     def self.signing_key
       key =
-        if [:HS256, :HS384, :HS512].include?(signing_algorithm)
+        if %i[HS256 HS384 HS512].include?(signing_algorithm)
           configuration.signing_key
         else
           OpenSSL::PKey.read(configuration.signing_key)
         end
-      JSON::JWK.new(key)
+      ::JWT::JWK.new(key, { kid_generator: ::JWT::JWK::Thumbprint })
     end
 
     def self.signing_key_normalized
-      key = signing_key
-      case key[:kty].to_sym
-      when :RSA
-        key.slice(:kty, :kid, :e, :n)
-      when :EC
-        key.slice(:kty, :kid, :x, :y)
-      when :oct
-        key.slice(:kty, :kid)
-      end
+      signing_key.export
     end
+
+    Doorkeeper::GrantFlow.register(
+      :id_token,
+      response_type_matches: 'id_token',
+      response_mode_matches: %w[fragment form_post],
+      response_type_strategy: Doorkeeper::Request::IdToken,
+    )
+
+    Doorkeeper::GrantFlow.register(
+      'id_token token',
+      response_type_matches: 'id_token token',
+      response_mode_matches: %w[fragment form_post],
+      response_type_strategy: Doorkeeper::Request::IdTokenToken,
+    )
+
+    Doorkeeper::GrantFlow.register_alias(
+      'implicit_oidc', as: ['implicit', 'id_token', 'id_token token']
+    )
   end
 end

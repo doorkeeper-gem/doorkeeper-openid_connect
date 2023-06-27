@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Doorkeeper.configure do
   optional_scopes :openid
 
@@ -9,4 +11,6 @@ Doorkeeper.configure do
       nil
     end
   end
+
+  grant_flows %w[authorization_code client_credentials implicit_oidc]
 end

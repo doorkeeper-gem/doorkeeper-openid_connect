@@ -1,11 +1,15 @@
-Doorkeeper::OpenidConnect.configure do
-  issuer 'issuer string'
+# frozen_string_literal: true
 
-  signing_key <<-EOL
------BEGIN RSA PRIVATE KEY-----
-....
------END RSA PRIVATE KEY-----
-EOL
+Doorkeeper::OpenidConnect.configure do
+  issuer do |resource_owner, application|
+    'issuer string'
+  end
+
+  signing_key <<~KEY
+    -----BEGIN RSA PRIVATE KEY-----
+    ....
+    -----END RSA PRIVATE KEY-----
+  KEY
 
   subject_types_supported [:public]
 
@@ -24,6 +28,18 @@ EOL
     # store_location_for resource_owner, return_to
     # sign_out resource_owner
     # redirect_to new_user_session_url
+  end
+
+  # Depending on your configuration, a DoubleRenderError could be raised
+  # if render/redirect_to is called at some point before this callback is executed.
+  # To avoid the DoubleRenderError, you could add these two lines at the beginning
+  #  of this callback: (Reference: https://github.com/rails/rails/issues/25106)
+  #   self.response_body = nil
+  #   @_response_body = nil
+  select_account_for_resource_owner do |resource_owner, return_to|
+    # Example implementation:
+    # store_location_for resource_owner, return_to
+    # redirect_to account_select_url
   end
 
   subject do |resource_owner, application|

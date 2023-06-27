@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
-    class UserinfoController < ::Doorkeeper::ApplicationController
-      skip_before_action :verify_authenticity_token
+    class UserinfoController < ::Doorkeeper::ApplicationMetalController
       before_action -> { doorkeeper_authorize! :openid }
 
       def show

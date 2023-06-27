@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
-    class DiscoveryController < ::Doorkeeper::ApplicationController
+    class DiscoveryController < ::Doorkeeper::ApplicationMetalController
       include Doorkeeper::Helpers::Controller
 
-      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'.freeze
+      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
 
       def provider
         render json: provider_response
@@ -22,27 +24,28 @@ module Doorkeeper
       def provider_response
         doorkeeper = ::Doorkeeper.configuration
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
+
         {
-          issuer: openid_connect.issuer,
-          authorization_endpoint: oauth_authorization_url(protocol: protocol),
-          token_endpoint: oauth_token_url(protocol: protocol),
-          userinfo_endpoint: oauth_userinfo_url(protocol: protocol),
-          jwks_uri: oauth_discovery_keys_url(protocol: protocol),
+          issuer: issuer,
+          authorization_endpoint: oauth_authorization_url(authorization_url_options),
+          token_endpoint: oauth_token_url(token_url_options),
+          revocation_endpoint: oauth_revoke_url(revocation_url_options),
+          introspection_endpoint: respond_to?(:oauth_introspect_url) ? oauth_introspect_url(introspection_url_options) : nil,
+          userinfo_endpoint: oauth_userinfo_url(userinfo_url_options),
+          jwks_uri: oauth_discovery_keys_url(jwks_url_options),
+          end_session_endpoint: instance_exec(&openid_connect.end_session_endpoint),
 
           scopes_supported: doorkeeper.scopes,
 
           # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
-          response_modes_supported: [ 'query', 'fragment', 'form_post' ],
+          response_modes_supported: response_modes_supported(doorkeeper),
+          grant_types_supported: grant_types_supported(doorkeeper),
 
-          token_endpoint_auth_methods_supported: [
-            'client_secret_basic',
-            'client_secret_post',
-
-            # TODO: look into doorkeeper-jwt_assertion for these
-            #'client_secret_jwt',
-            #'private_key_jwt'
-          ],
+          # TODO: look into doorkeeper-jwt_assertion for these
+          #  'client_secret_jwt',
+          #  'private_key_jwt'
+          token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
 
           subject_types_supported: openid_connect.subject_types_supported,
 
@@ -54,18 +57,36 @@ module Doorkeeper
             'normal',
 
             # TODO: support these
-            #'aggregated',
-            #'distributed',
+            # 'aggregated',
+            # 'distributed',
           ],
 
-          claims_supported: [
-            'iss',
-            'sub',
-            'aud',
-            'exp',
-            'iat',
+          claims_supported: %w[
+            iss
+            sub
+            aud
+            exp
+            iat
           ] | openid_connect.claims.to_h.keys,
-        }
+
+          code_challenge_methods_supported: code_challenge_methods_supported(doorkeeper),
+        }.compact
+      end
+
+      def grant_types_supported(doorkeeper)
+        grant_types_supported = doorkeeper.grant_flows.dup
+        grant_types_supported << 'refresh_token' if doorkeeper.refresh_token_enabled?
+        grant_types_supported
+      end
+
+      def response_modes_supported(doorkeeper)
+        doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq
+      end
+
+      def code_challenge_methods_supported(doorkeeper)
+        return unless doorkeeper.access_grant_model.pkce_supported?
+
+        %w[plain S256]
       end
 
       def webfinger_response
@@ -74,7 +95,7 @@ module Doorkeeper
           links: [
             {
               rel: WEBFINGER_RELATION,
-              href: root_url(protocol: protocol),
+              href: root_url(webfinger_url_options),
             }
           ]
         }
@@ -95,6 +116,30 @@ module Doorkeeper
 
       def protocol
         Doorkeeper::OpenidConnect.configuration.protocol.call
+      end
+
+      def discovery_url_options
+        Doorkeeper::OpenidConnect.configuration.discovery_url_options.call(request)
+      end
+
+      def discovery_url_default_options
+        {
+          protocol: protocol
+        }
+      end
+
+      def issuer
+        if Doorkeeper::OpenidConnect.configuration.issuer.respond_to?(:call)
+          Doorkeeper::OpenidConnect.configuration.issuer.call(request).to_s
+        else
+          Doorkeeper::OpenidConnect.configuration.issuer
+        end
+      end
+
+      %i[authorization token revocation introspection userinfo jwks webfinger].each do |endpoint|
+        define_method :"#{endpoint}_url_options" do
+          discovery_url_default_options.merge(discovery_url_options[endpoint.to_sym] || {})
+        end
       end
     end
   end

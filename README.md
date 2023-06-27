@@ -1,9 +1,10 @@
 # Doorkeeper::OpenidConnect
 
-[![Build Status](https://travis-ci.org/doorkeeper-gem/doorkeeper-openid_connect.svg?branch=master)](https://travis-ci.org/doorkeeper-gem/doorkeeper-openid_connect)
-[![Dependency Status](https://gemnasium.com/doorkeeper-gem/doorkeeper-openid_connect.svg?travis)](https://gemnasium.com/doorkeeper-gem/doorkeeper-openid_connect)
+[![Build Status](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/workflows/CI/badge.svg?branch=master)](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/actions)
 [![Code Climate](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect.svg)](https://codeclimate.com/github/doorkeeper-gem/doorkeeper-openid_connect)
 [![Gem Version](https://badge.fury.io/rb/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
+
+#### :warning: **This project is looking for maintainers, see [this issue](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/89).**
 
 This library implements an [OpenID Connect](http://openid.net/connect/) authentication provider for Rails applications on top of the [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) OAuth 2.0 framework.
 
@@ -12,6 +13,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 ## Table of Contents
 
 - [Status](#status)
+  - [Known Issues](#known-issues)
   - [Example Applications](#example-applications)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -32,10 +34,15 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 - [Requesting Claims using Scope Values](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
 - [UserInfo Endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
+- [OAuth 2.0 Form Post Response Mode](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
 
 In addition we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
 Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_connect/discovery_controller.rb) for more details on supported features.
+
+### Known Issues
+
+- Doorkeeper's API mode (`Doorkeeper.configuration.api_only`) is not properly supported yet
 
 ### Example Applications
 
@@ -97,6 +104,7 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 
 - `issuer`
   - Identifier for the issuer of the response (i.e. your application URL). The value is a case sensitive URL using the `https` scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
+  - You can either pass a string value, or a block to generate the issuer dynamically based on the `resource_owner` and `application` or [request](app/controllers/doorkeeper/openid_connect/discovery_controller.rb#L123) passed to the block.
 - `subject`
   - Identifier for the resource owner (i.e. the authenticated user). A locally unique and never reassigned identifier within the issuer for the end-user, which is intended to be consumed by the client. The value is a case-sensitive string and must not exceed 255 ASCII characters in length.
   - The database ID of the user is an acceptable choice if you don't mind leaking that information.
@@ -133,6 +141,10 @@ The following settings are optional, but recommended for better client compatibi
   - Defines how to trigger reauthentication for the current user (e.g. display a password prompt, or sign-out the user and redirect to the login form).
   - Required to support the `max_age` and `prompt=login` parameters.
   - The block is executed in the controller's scope, so you have access to methods like `params`, `redirect_to` etc.
+- `select_account_for_resource_owner`
+  - Defines how to trigger account selection to choose the current login user.
+  - Required to support the `prompt=select_account` parameter.
+  - The block is executed in the controller's scope, so you have access to methods like `params`, `redirect_to` etc.
 
 The following settings are optional:
 
@@ -145,6 +157,40 @@ The following settings are optional:
   - The default is `https` for production, and `http` for all other environments
   - Note that the OIDC specification mandates HTTPS, so you shouldn't change this
     for production environments unless you have a really good reason!
+
+- `end_session_endpoint`
+  - The URL that the user is redirected to after ending the session on the client.
+  - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
+  - The block is executed in the controller's scope, so you have access to your route helpers.
+
+- `discovery_url_options`
+  - The URL options for every available endpoint to use when generating the endpoint URL in the
+    discovery response. Available endpoints: `authorization`, `token`, `revocation`,
+    `introspection`, `userinfo`, `jwks`, `webfinger`.
+  - This option requires option keys with an available endpoint and
+    [URL options](https://api.rubyonrails.org/v6.0.3.3/classes/ActionDispatch/Routing/UrlFor.html#method-i-url_for)
+    as value.
+  - The default is to use the request host, just like all the other URLs in the discovery response.
+  - This is useful when you want endpoints to use a different URL than other requests.
+    For example, if your Doorkeeper server is behind a firewall with other servers, you might want
+    other servers to use an "internal" URL to communicate with Doorkeeper, but you want to present
+    an "external" URL to end-users for authentication requests. Note that this setting does not
+    actually change the URL that your Doorkeeper server responds on - that is outside the scope of
+    Doorkeeper.
+
+    ```ruby
+    # config/initializers/doorkeeper_openid_connect.rb
+    Doorkeeper::OpenidConnect.configure do
+    # ...
+      discovery_url_options do |request|
+        {
+          authorization: { host: 'host.example.com' },
+          jwks:          { protocol: request.ssl? ? :https : :http }
+        }
+      end
+    # ...
+    end
+    ```
 
 ### Scopes
 
@@ -169,10 +215,10 @@ Doorkeeper::OpenidConnect.configure do
       "#{resource_owner.first_name} #{resource_owner.last_name}"
     end
 
-    claim :preferred_username, scope: :openid do |resource_owner, application_scopes, access_token|
+    claim :preferred_username, scope: :openid do |resource_owner, scopes, access_token|
       # Pass the resource_owner's preferred_username if the application has
       # `profile` scope access. Otherwise, provide a more generic alternative.
-      application_scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
+      scopes.exists?(:profile) ? resource_owner.preferred_username : "summer-sun-9449"
     end
 
     claim :groups, response: [:id_token, :user_info] do |resource_owner|
@@ -181,6 +227,12 @@ Doorkeeper::OpenidConnect.configure do
   end
 end
 ```
+
+Each claim block will be passed:
+
+- the `resource_owner`, which is the return value of `resource_owner_authenticator` in your initializer
+- the `scopes` granted by the access token, which is an instance of `Doorkeeper::OAuth::Scopes`
+- the `access_token` itself, which is an instance of `Doorkeeper::AccessToken`
 
 By default all custom claims are only returned from the `UserInfo` endpoint and not included in the ID token. You can optionally pass a `response:` keyword with one or both of the symbols `:id_token` or `:user_info` to specify where the claim should be returned.
 
@@ -253,14 +305,19 @@ Run `bundle install` to setup all development dependencies.
 To run all specs:
 
 ```sh
-bundle exec rspec
+bundle exec rake spec
+```
+
+To generate and run migrations in the test application:
+
+```sh
+bundle exec rake migrate
 ```
 
 To run the local engine server:
 
 ```sh
-cd spec/dummy
-bundle exec rails server
+bundle exec rake server
 ```
 
 By default, the latest Rails version is used. To use a specific version run:

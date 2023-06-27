@@ -39,7 +39,8 @@ Things to avoid when creating commits:
 
 ## Release process
 
-- Bump version in `lib/doorkeeper/openid_connect/version.rb`
-- Update `CHANGELOG.md`
-- Commit all changes
-- Tag release and publish gem with `rake release`
+- Bump version in `lib/doorkeeper/openid_connect/version.rb`.
+- Update `CHANGELOG.md`.
+- Commit all changes.
+- Tag release and publish gem with `rake release`.
+- [Publish a new release on GitHub](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/releases/new), using the created tag and the new entries in `CHANGELOG.md`.

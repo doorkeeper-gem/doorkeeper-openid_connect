@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
-  subject {
+  subject do
     Doorkeeper::OAuth::AuthorizationCodeRequest.new(server, grant, client).tap do |request|
       request.instance_variable_set '@response', response
-      request.access_token = token
+      request.instance_variable_set('@access_token', token)
     end
-  }
+  end
 
   let(:server) { double }
   let(:client) { double }

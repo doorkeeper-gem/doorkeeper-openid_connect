@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     class IdToken
@@ -9,7 +11,7 @@ module Doorkeeper
         @access_token = access_token
         @nonce = nonce
         @resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
-        @issued_at = Time.now
+        @issued_at = Time.zone.now
       end
 
       def claims
@@ -29,16 +31,21 @@ module Doorkeeper
       end
 
       def as_jws_token
-        JSON::JWT.new(as_json).sign(
-          Doorkeeper::OpenidConnect.signing_key,
-          Doorkeeper::OpenidConnect.signing_algorithm
+        ::JWT.encode(as_json,
+          Doorkeeper::OpenidConnect.signing_key.keypair,
+          Doorkeeper::OpenidConnect.signing_algorithm.to_s,
+          { kid: Doorkeeper::OpenidConnect.signing_key.kid }
         ).to_s
       end
 
       private
 
       def issuer
-        Doorkeeper::OpenidConnect.configuration.issuer
+        if Doorkeeper::OpenidConnect.configuration.issuer.respond_to?(:call)
+          Doorkeeper::OpenidConnect.configuration.issuer.call(@resource_owner, @access_token.application).to_s
+        else
+          Doorkeeper::OpenidConnect.configuration.issuer
+        end
       end
 
       def subject
@@ -46,7 +53,7 @@ module Doorkeeper
       end
 
       def audience
-        @access_token.application.uid
+        @access_token.application.try(:uid)
       end
 
       def expiration

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OAuth
     class IdTokenRequest
@@ -9,18 +11,18 @@ module Doorkeeper
       end
 
       def authorize
-        if pre_auth.authorizable?
-          @auth = Authorization::Token.new(pre_auth, resource_owner)
-          @auth.issue_token
-          @response = response
+        @auth = Authorization::Token.new(pre_auth, resource_owner)
+        if @auth.respond_to?(:issue_token!)
+          @auth.issue_token!
         else
-          @response = error_response
+          @auth.issue_token
         end
+        response
       end
 
       def deny
         pre_auth.error = :access_denied
-        error_response
+        pre_auth.error_response
       end
 
       private
@@ -29,12 +31,6 @@ module Doorkeeper
         id_token = Doorkeeper::OpenidConnect::IdToken.new(auth.token, pre_auth.nonce)
 
         IdTokenResponse.new(pre_auth, auth, id_token)
-      end
-
-      def error_response
-        ErrorResponse.from_request pre_auth,
-                                   redirect_uri: pre_auth.redirect_uri,
-                                   response_on_fragment: true
       end
     end
   end

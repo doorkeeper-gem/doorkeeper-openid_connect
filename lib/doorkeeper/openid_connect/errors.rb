@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module Errors
       class OpenidConnectError < StandardError
-        def error_name
-          self.class.name.demodulize.underscore
+        def type
+          self.class.name.demodulize.underscore.to_sym
         end
       end
 
@@ -24,7 +26,6 @@ module Doorkeeper
       class LoginRequired < OpenidConnectError; end
       class ConsentRequired < OpenidConnectError; end
       class InteractionRequired < OpenidConnectError; end
-      class AccountSelectionRequired < OpenidConnectError; end
     end
   end
 end

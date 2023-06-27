@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'doorkeeper/openid_connect/rails/routes/mapping'
 require 'doorkeeper/openid_connect/rails/routes/mapper'
 
@@ -12,7 +14,7 @@ module Doorkeeper
         end
 
         def self.install!
-          ActionDispatch::Routing::Mapper.send :include, Doorkeeper::OpenidConnect::Rails::Routes::Helper
+          ActionDispatch::Routing::Mapper.include Doorkeeper::OpenidConnect::Rails::Routes::Helper
         end
 
         attr_accessor :routes
@@ -66,6 +68,7 @@ module Doorkeeper
         def discovery_well_known_routes
           routes.scope path: '.well-known' do
             routes.get :provider, path: 'openid-configuration'
+            routes.get :provider, path: 'oauth-authorization-server'
             routes.get :webfinger
           end
         end
