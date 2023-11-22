@@ -8,3 +8,5 @@
 /pkg
 gemfiles/*.lock
 *.gem
+
+.idea/
