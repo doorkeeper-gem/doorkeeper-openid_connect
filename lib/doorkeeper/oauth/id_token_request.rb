@@ -21,7 +21,7 @@ module Doorkeeper
       end
 
       def deny
-        pre_auth.error = :access_denied
+        pre_auth.error = Errors::AccessDenied
         pre_auth.error_response
       end
 
