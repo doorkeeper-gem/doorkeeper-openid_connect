@@ -2,6 +2,6 @@
 
 module Doorkeeper
   module OpenidConnect
-    VERSION = '1.8.7'
+    VERSION = '1.8.8'
   end
 end

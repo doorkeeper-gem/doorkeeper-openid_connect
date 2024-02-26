@@ -1,6 +1,9 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+
+## v1.8.8 (2024-02-26)
+
 - [#201] Add back typ=JWT to header
 
 ## v1.8.7 (2023-05-18)
