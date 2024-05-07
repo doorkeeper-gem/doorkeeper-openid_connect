@@ -2,6 +2,10 @@
 
 - [#PR ID] Add your changelog entry here.
 
+## v1.8.9 (2024-05-07)
+
+- Support Doorkeeper 5.7
+
 ## v1.8.8 (2024-02-26)
 
 - [#201] Add back typ=JWT to header
