@@ -34,6 +34,16 @@ describe Doorkeeper::OpenidConnect::IdToken do
       )
     end
 
+    context 'when expires_in is specified for the token' do
+      subject { described_class.new(access_token, nonce, expires_in) }
+
+      let(:expires_in) { 10 }
+
+      it 'returns expiration claim with the specified value' do
+        expect(subject.claims[:exp]).to eq(subject.claims[:iat] + expires_in)
+      end
+    end
+
     context 'when application is not set on the access token' do
       before do
         access_token.application = nil
