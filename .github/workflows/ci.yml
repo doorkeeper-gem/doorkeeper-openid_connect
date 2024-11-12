@@ -11,6 +11,7 @@ jobs:
       Ruby ${{ matrix.ruby }} (${{ matrix.gemfile }})
     env:
       CI: true
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
 
     runs-on: ${{ matrix.os }}
     if: |
