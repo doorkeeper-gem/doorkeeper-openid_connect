@@ -82,14 +82,14 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         it 'render error when client_id is missing' do
           authorize!(client_id: nil)
 
-          expect(response).to be_successful
+          expect(response).to have_http_status(:bad_request)
           expect(response).to render_template('doorkeeper/authorizations/error')
         end
 
         it 'render error when response_type is missing' do
           authorize!(response_type: nil)
 
-          expect(response).to be_successful
+          expect(response).to have_http_status(:bad_request)
           expect(response).to render_template('doorkeeper/authorizations/error')
         end
       end
