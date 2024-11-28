@@ -19,7 +19,10 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
 
   # Raise exceptions instead of rendering exception templates.
-  config.action_dispatch.show_exceptions = false
+  # Rails 7.1 deprecated false in favor of :none, but we need to use false for
+  # backwards compatibility: https://github.com/rails/rails/pull/45867
+  config.action_dispatch.show_exceptions =
+    Rails.gem_version >= Gem::Version.new('7.1.0') ? :none : false
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
