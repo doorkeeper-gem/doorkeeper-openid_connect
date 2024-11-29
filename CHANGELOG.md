@@ -1,7 +1,11 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+
+## v1.8.10 (2024-12-29)
+
 - [#215] Drop support for Ruby 2.7, 3.0 and Rails 6.
+- [#209] Configuration per IdToken expiration (thanks to @martinezcoder)
 
 ## v1.8.9 (2024-05-07)
 
