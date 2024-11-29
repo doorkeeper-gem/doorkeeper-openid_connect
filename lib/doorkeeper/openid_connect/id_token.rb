@@ -7,11 +7,12 @@ module Doorkeeper
 
       attr_reader :nonce
 
-      def initialize(access_token, nonce = nil)
+      def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
         @access_token = access_token
         @nonce = nonce
         @resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
         @issued_at = Time.zone.now
+        @expires_in = expires_in
       end
 
       def claims
@@ -57,7 +58,7 @@ module Doorkeeper
       end
 
       def expiration
-        (@issued_at.utc + Doorkeeper::OpenidConnect.configuration.expiration).to_i
+        (@issued_at.utc + @expires_in).to_i
       end
 
       def issued_at
