@@ -1,6 +1,7 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+- [#215] Drop support for Ruby 2.7, 3.0 and Rails 6.
 
 ## v1.8.9 (2024-05-07)
 
