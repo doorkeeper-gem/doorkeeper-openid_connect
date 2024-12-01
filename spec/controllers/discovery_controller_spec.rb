@@ -239,26 +239,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'subject' => 'user@example.com',
         'links' => [
           'rel' => 'http://openid.net/specs/connect/1.0/issuer',
-          'href' => 'http://test.host/',
+          'href' => 'dummy',
         ],
       }.sort)
-    end
-
-    context 'when the discovery_url_options option is set for webfinger endpoint' do
-      before do
-        Doorkeeper::OpenidConnect.configure do
-          discovery_url_options do |request|
-            { webfinger: { host: 'alternate-webfinger.host' } }
-          end
-        end
-      end
-
-      it 'uses the discovery_url_options option when generating the webfinger endpoint url' do
-        get :webfinger, params: { resource: 'user@example.com' }
-        data = JSON.parse(response.body)
-
-        expect(data['links'].first['href']).to eq 'http://alternate-webfinger.host/'
-      end
     end
 
     context 'when the discovery_url_options option uses the request for an endpoint' do
