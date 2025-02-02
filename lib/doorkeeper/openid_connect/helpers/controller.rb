@@ -69,7 +69,7 @@ module Doorkeeper
 
           priority = ['none', 'login', 'consent', 'select_account']
           prompt_values.sort_by! do |prompt|
-            priority.find_index(prompt)
+            priority.find_index(prompt).to_i
           end
 
           prompt_values.each do |prompt|
