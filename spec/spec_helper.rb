@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'pry-byebug'
+require 'pry-byebug' unless ENV['CI']
 
 puts "====> Doorkeeper version: #{Doorkeeper::VERSION::STRING}"
 
