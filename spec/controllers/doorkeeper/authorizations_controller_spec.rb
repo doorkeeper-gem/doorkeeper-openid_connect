@@ -307,9 +307,8 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
       # FIXME:
       it 'when login+consent' do
-        expect do
-          authorize! prompt: 'login consent'
-        end.to raise_error AbstractController::DoubleRenderError
+        authorize! prompt: 'login consent'
+        expect(response).to redirect_to('/reauthenticate')
       end
     end
 
