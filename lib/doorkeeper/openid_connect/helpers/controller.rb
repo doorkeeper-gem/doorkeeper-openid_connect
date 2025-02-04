@@ -87,7 +87,7 @@ module Doorkeeper
 
         def handle_oidc_max_age_param!(owner)
           max_age = params[:max_age].to_i
-          return unless max_age > 0 && owner
+          return unless (params[:max_age].to_s == '0' || max_age > 0) && owner
 
           auth_time = instance_exec(
             owner,

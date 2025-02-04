@@ -307,11 +307,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   describe '#handle_oidc_max_age_param!' do
     context 'with an invalid max_age parameter' do
       it 'renders the authorization form' do
-        %w[0 -1 -23 foobar].each do |max_age|
+        %w[-1 -23 foobar].each do |max_age|
           authorize! max_age: max_age
 
           expect_authorization_form!
         end
+      end
+    end
+
+    context 'with a max_age=0 parameter' do
+      it 'renders the authorization form if the users last login was within 10 seconds' do
+        user.update! current_sign_in_at: 5.seconds.ago
+        authorize! max_age: 0
+
+        expect(response).to redirect_to '/reauthenticate'
       end
     end
 
