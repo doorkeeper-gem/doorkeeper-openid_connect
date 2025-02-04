@@ -17,8 +17,8 @@ module Doorkeeper
           super.tap do |owner|
             next unless oidc_authorization_request?
 
-            handle_oidc_prompt_param!(owner)
             handle_oidc_max_age_param!(owner)
+            handle_oidc_prompt_param!(owner)
           end
         rescue Errors::OpenidConnectError => e
           handle_oidc_error!(e)
