@@ -94,6 +94,9 @@ module Doorkeeper
             &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
           )
 
+          # NOTE: clock skew
+          max_age = [1, max_age].max
+
           if !auth_time || (Time.zone.now - auth_time) > max_age
             reauthenticate_oidc_resource_owner(owner)
           end
