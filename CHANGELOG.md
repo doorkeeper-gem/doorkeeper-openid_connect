@@ -5,6 +5,7 @@
 - [#216] Test against Rails 7.1, 7.2, 8.0.
 - [#221] Avoid raising invalid_request error on prompt=create
 - [#220] Define priority on possible prompt values to statically & successfully process multiple prompt values
+- [#224] Define priority between max_age & prompt
 
 ## v1.8.10 (2024-11-29)
 
