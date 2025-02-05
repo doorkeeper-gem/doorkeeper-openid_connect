@@ -313,7 +313,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(response).to redirect_to('/select_account')
       end
 
-      # FIXME:
       it 'when login+consent' do
         authorize! prompt: 'login consent'
         expect(response).to redirect_to('/reauthenticate')
