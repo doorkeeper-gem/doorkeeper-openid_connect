@@ -284,6 +284,14 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
 
+    context 'with a prompt=create parameter' do
+      it 'ignore it w/o returinig invalid_request error' do
+        authorize! prompt: 'create'
+
+        expect(response).to render_template('doorkeeper/authorizations/new')
+      end
+    end
+
     context 'with multiple prompt values' do
       it 'when select_account+login' do
         authorize! prompt: 'select_account login'
