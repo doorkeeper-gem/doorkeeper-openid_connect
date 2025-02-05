@@ -292,6 +292,34 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
 
+    context 'with multiple prompt values' do
+      it 'when select_account+login' do
+        authorize! prompt: 'select_account login'
+        expect(response).to redirect_to('/select_account')
+      end
+
+      it 'when login+select_account' do
+        authorize! prompt: 'login select_account'
+        expect(response).to redirect_to('/select_account')
+      end
+
+      it 'when consent+select_account' do
+        authorize! prompt: 'consent select_account'
+        expect(response).to redirect_to('/select_account')
+      end
+
+      it 'when select_account+consent' do
+        authorize! prompt: 'select_account consent'
+        expect(response).to redirect_to('/select_account')
+      end
+
+      # FIXME:
+      it 'when login+consent' do
+        authorize! prompt: 'login consent'
+        expect(response).to redirect_to('/reauthenticate')
+      end
+    end
+
     context 'with an unknown prompt parameter' do
       it 'returns an invalid_request error' do
         authorize! prompt: 'maybe'

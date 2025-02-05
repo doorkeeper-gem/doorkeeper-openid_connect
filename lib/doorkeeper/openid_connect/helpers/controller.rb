@@ -67,6 +67,11 @@ module Doorkeeper
         def handle_oidc_prompt_param!(owner)
           prompt_values ||= params[:prompt].to_s.split(/ +/).uniq
 
+          priority = ['none', 'consent', 'login', 'select_account']
+          prompt_values.sort_by! do |prompt|
+            priority.find_index(prompt).to_i
+          end
+
           prompt_values.each do |prompt|
             case prompt
             when 'none'
