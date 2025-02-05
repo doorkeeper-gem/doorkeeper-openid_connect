@@ -94,12 +94,15 @@ module Doorkeeper
 
         def handle_oidc_max_age_param!(owner)
           max_age = params[:max_age].to_i
-          return unless max_age > 0 && owner
+          return unless (params[:max_age].to_s == '0' || max_age > 0) && owner
 
           auth_time = instance_exec(
             owner,
             &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
           )
+
+          # NOTE: clock skew
+          max_age = [1, max_age].max
 
           if !auth_time || (Time.zone.now - auth_time) > max_age
             reauthenticate_oidc_resource_owner(owner)

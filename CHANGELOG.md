@@ -3,6 +3,7 @@
 - [#PR ID] Add your changelog entry here.
 - [#219] Test against Ruby 3.4.
 - [#216] Test against Rails 7.1, 7.2, 8.0.
+- [#222] Support max_age=0
 - [#221] Avoid raising invalid_request error on prompt=create
 - [#220] Define priority on possible prompt values to statically & successfully process multiple prompt values
 
