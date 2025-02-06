@@ -313,7 +313,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(response).to redirect_to('/select_account')
       end
 
-      # FIXME:
       it 'when login+consent' do
         authorize! prompt: 'login consent'
         expect(response).to redirect_to('/reauthenticate')
@@ -380,6 +379,15 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         authorize! max_age: 10
 
         expect(response).to redirect_to '/reauthenticate'
+      end
+    end
+
+    context 'when used along with prompt=select_account' do
+      it 'renders the authorization form' do
+        user.update! current_sign_in_at: 5.seconds.ago
+        authorize! max_age: 1, prompt: 'select_account'
+
+        expect(response).to redirect_to '/select_account'
       end
     end
   end
