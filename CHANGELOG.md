@@ -1,6 +1,9 @@
 ## Unreleased
 
 - [#PR ID] Add your changelog entry here.
+
+## v1.8.11 (2025-02-10)
+
 - [#219] Test against Ruby 3.4.
 - [#216] Test against Rails 7.1, 7.2, 8.0.
 - [#222] Support max_age=0
