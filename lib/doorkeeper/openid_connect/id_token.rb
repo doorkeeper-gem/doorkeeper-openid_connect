@@ -57,8 +57,16 @@ module Doorkeeper
         @access_token.application.try(:uid)
       end
 
+      def expires_in
+        if @expires_in.respond_to?(:call)
+          @expires_in.call(@resource_owner, @access_token.application)
+        else
+          @expires_in
+        end
+      end
+
       def expiration
-        (@issued_at.utc + @expires_in).to_i
+        (@issued_at.utc + expires_in).to_i
       end
 
       def issued_at
