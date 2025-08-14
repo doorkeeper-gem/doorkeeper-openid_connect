@@ -150,7 +150,18 @@ The following settings are optional:
 
 - `expiration`
   - Expiration time after which the ID Token must not be accepted for processing by clients.
-  - The default is 120 seconds
+  - The default is 120 seconds, it can be configured using a value or block.
+    ```ruby
+    # config/initializers/doorkeeper_openid_connect.rb
+    Doorkeeper::OpenidConnect.configure do
+      # ...
+      expiration do |resource_owner, application|
+        # You will have to ensure the application model implements an expiration method
+        application.expiration
+      end
+      # ...
+    end
+    ```
 
 - `protocol`
   - The protocol to use when generating URIs for the discovery endpoints.

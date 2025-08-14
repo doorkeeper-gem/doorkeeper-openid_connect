@@ -1,6 +1,6 @@
 ## Unreleased
 
-- [#PR ID] Add your changelog entry here.
+- [#225] Allow configuration of id_token expiration using a block.
 
 ## v1.8.11 (2025-02-10)
 
