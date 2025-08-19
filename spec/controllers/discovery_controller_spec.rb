@@ -136,7 +136,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed with only client_credentials' do
+    context 'when grant_flows is configured with only client_credentials' do
       before { Doorkeeper.configure { grant_flows %w[client_credentials] } }
 
       it 'return empty response_modes_supported' do
@@ -169,7 +169,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed only implicit flow' do
+    context 'when grant_flows is configured only implicit flow' do
       before { Doorkeeper.configure { grant_flows %w[implicit_oidc] } }
 
       it 'return fragment and form_post as response_modes_supported' do
@@ -180,7 +180,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed with authorization_code and implicit flow' do
+    context 'when grant_flows is configured with authorization_code and implicit flow' do
       before { Doorkeeper.configure { grant_flows %w[authorization_code implicit_oidc] } }
 
       it 'return query, fragment and form_post as response_modes_supported' do
