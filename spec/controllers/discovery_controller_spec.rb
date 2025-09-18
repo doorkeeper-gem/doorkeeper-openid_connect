@@ -186,6 +186,28 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       expect(data.key?('end_session_endpoint')).to be(false)
     end
 
+    it 'does not return a registration endpoint if none is configured' do
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data.key?('registration_endpoint')).to be(false)
+    end
+
+    it 'uses the configured registration endpoint with self as context' do
+      Doorkeeper::OpenidConnect.configure do
+        registration_endpoint -> { registration_url }
+      end
+
+      def controller.registration_url
+        'http://test.host/oauth/register'
+      end
+
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data['registration_endpoint']).to eq 'http://test.host/oauth/register'
+    end
+
     it 'uses the configured end session endpoint with self as context' do
       Doorkeeper::OpenidConnect.configure do
         end_session_endpoint -> { logout_url }

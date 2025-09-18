@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add support for configurable registration_endpoint in OpenID Connect discovery
 - [#PR ID] Add your changelog entry here.
 
 ## v1.8.11 (2025-02-10)

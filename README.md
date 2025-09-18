@@ -163,6 +163,17 @@ The following settings are optional:
   - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
   - The block is executed in the controller's scope, so you have access to your route helpers.
 
+- `registration_endpoint`
+  - The URL for client registration endpoint, used for dynamic client registration.
+  - The block is executed in the controller's scope, so you have access to your route helpers.
+  - If not configured, the field will be omitted from the discovery document.
+
+  ```ruby
+  Doorkeeper::OpenidConnect.configure do
+    registration_endpoint -> { oauth_register_url }
+  end
+  ```
+
 - `discovery_url_options`
   - The URL options for every available endpoint to use when generating the endpoint URL in the
     discovery response. Available endpoints: `authorization`, `token`, `revocation`,
