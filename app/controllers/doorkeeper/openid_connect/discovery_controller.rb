@@ -34,6 +34,7 @@ module Doorkeeper
           userinfo_endpoint: oauth_userinfo_url(userinfo_url_options),
           jwks_uri: oauth_discovery_keys_url(jwks_url_options),
           end_session_endpoint: instance_exec(&openid_connect.end_session_endpoint),
+          registration_endpoint: registration_endpoint,
 
           scopes_supported: doorkeeper.scopes,
 
@@ -133,6 +134,13 @@ module Doorkeeper
           Doorkeeper::OpenidConnect.configuration.issuer.call(request).to_s
         else
           Doorkeeper::OpenidConnect.configuration.issuer
+        end
+      end
+
+      def registration_endpoint
+        openid_connect = ::Doorkeeper::OpenidConnect.configuration
+        if openid_connect.registration_endpoint.present?
+          instance_exec(&openid_connect.registration_endpoint)
         end
       end
 

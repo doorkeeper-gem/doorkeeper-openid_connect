@@ -229,4 +229,18 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       expect(subject.discovery_url_options.call[:authorization]).to eq(host: 'alternate-authorization-host')
     end
   end
+
+  describe 'registration_endpoint' do
+    it 'defaults to nil' do
+      expect(subject.registration_endpoint.call).to be_nil
+    end
+
+    it 'can be set to a custom url' do
+      described_class.configure do
+        registration_endpoint { 'http://test.host/oauth/register' }
+      end
+
+      expect(subject.registration_endpoint.call).to eq('http://test.host/oauth/register')
+    end
+  end
 end

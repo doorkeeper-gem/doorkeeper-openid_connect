@@ -79,6 +79,10 @@ module Doorkeeper
       option :discovery_url_options, default: lambda { |*_|
         {}
       }
+
+      option :registration_endpoint, default: lambda { |*_|
+        nil
+      }
     end
   end
 end
