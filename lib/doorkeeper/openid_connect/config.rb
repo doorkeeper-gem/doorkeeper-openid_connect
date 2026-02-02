@@ -81,6 +81,12 @@ module Doorkeeper
       }
 
       option :dynamic_client_registration, default: false
+
+      option :open_id_request_class, default: 'Doorkeeper::OpenidConnect::Request'
+
+      def open_id_request_model
+        open_id_request_class.to_s.constantize
+      end
     end
   end
 end

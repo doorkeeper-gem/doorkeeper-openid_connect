@@ -25,7 +25,7 @@ module Doorkeeper
           private
 
           def create_openid_request(access_grant)
-            ::Doorkeeper::OpenidConnect::Request.create!(
+            ::Doorkeeper::OpenidConnect.configuration.open_id_request_model.create!(
               access_grant: access_grant,
               nonce: pre_auth.nonce
             )

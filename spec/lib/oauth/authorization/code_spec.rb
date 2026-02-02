@@ -9,6 +9,7 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
   let(:access_grant) { create :access_grant }
   let(:pre_auth) { double }
   let(:client) { double }
+  let(:openid_request_class) { Doorkeeper::OpenidConnect.configuration.open_id_request_model }
 
   describe '#issue_token' do
     before do
@@ -22,13 +23,13 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       allow(client).to receive(:id).and_return('client_id')
 
       allow(Doorkeeper::AccessGrant).to receive(:create!) { access_grant }
-      allow(Doorkeeper::OpenidConnect::Request).to receive(:create!)
+      allow(openid_request_class).to receive(:create!)
     end
 
     it 'stores the nonce' do
       subject.issue_token
 
-      expect(Doorkeeper::OpenidConnect::Request).to have_received(:create!).with({
+      expect(openid_request_class).to have_received(:create!).with({
         access_grant: access_grant,
         nonce: '123456'
       })
@@ -38,14 +39,14 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       allow(pre_auth).to receive(:nonce).and_return(nil)
       subject.issue_token
 
-      expect(Doorkeeper::OpenidConnect::Request).not_to have_received(:create!)
+      expect(openid_request_class).not_to have_received(:create!)
     end
 
     it 'does not store the nonce if blank' do
       allow(pre_auth).to receive(:nonce).and_return(' ')
       subject.issue_token
 
-      expect(Doorkeeper::OpenidConnect::Request).not_to have_received(:create!)
+      expect(openid_request_class).not_to have_received(:create!)
     end
 
     it 'returns the created grant' do

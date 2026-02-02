@@ -56,6 +56,25 @@ Doorkeeper::OpenidConnect.configure do
   # Enable dynamic client registration (default false)
   # dynamic_client_registration true
 
+  # You can use your own model class if you need to extend (or even override) the default
+  # Doorkeeper::OpenidConnect::Request model (e.g. to use a different database connection).
+  #
+  # By default Doorkeeper OpenID Connect uses:
+  #
+  # open_id_request_class "Doorkeeper::OpenidConnect::Request"
+  #
+  # Don't forget to include the OpenID Connect ORM mixin into your custom model:
+  #
+  #   * ::Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::OpenidRequest
+  #
+  # For example:
+  #
+  # open_id_request_class "MyOpenidRequest"
+  #
+  # class MyOpenidRequest < ApplicationRecord
+  #   include ::Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::OpenidRequest
+  # end
+
   # Example claims:
   # claims do
   #   normal_claim :_foo_ do |resource_owner|

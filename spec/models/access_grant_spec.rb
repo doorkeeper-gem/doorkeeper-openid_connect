@@ -4,12 +4,14 @@ require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::AccessGrant do
   subject { Doorkeeper::AccessGrant.new }
+  let(:openid_request_class_name) { Doorkeeper::OpenidConnect.configuration.open_id_request_class }
+  let(:openid_request_class) { Doorkeeper::OpenidConnect.configuration.open_id_request_model }
 
   it 'has one openid_request' do
     association = subject.class.reflect_on_association :openid_request
 
     expect(association.options).to eq({
-      class_name: 'Doorkeeper::OpenidConnect::Request',
+      class_name: openid_request_class_name,
       inverse_of: :access_grant,
       foreign_key: "access_grant_id",
       dependent: :delete,
@@ -27,7 +29,7 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
         create(:openid_request, access_grant: access_grant)
 
         expect { access_grant.delete }
-          .to(change { Doorkeeper::OpenidConnect::Request.count }.by(-1))
+          .to(change { openid_request_class.count }.by(-1))
       else
         skip <<-MSG.strip
           Needs Rails 6 for foreign key support with sqlite3:

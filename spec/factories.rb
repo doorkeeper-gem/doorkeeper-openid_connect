@@ -28,7 +28,7 @@ FactoryBot.define do
     current_sign_in_at { Time.zone.at(23) }
   end
 
-  factory :openid_request, class: 'Doorkeeper::OpenidConnect::Request' do
+  factory :openid_request, class: Doorkeeper::OpenidConnect.configuration.open_id_request_model do
     access_grant
     sequence(:nonce, &:to_s)
   end
