@@ -82,7 +82,7 @@ module Doorkeeper
       def code_challenge_methods_supported(doorkeeper)
         return unless doorkeeper.access_grant_model.pkce_supported?
 
-        %w[plain S256]
+        doorkeeper.pkce_code_challenge_methods
       end
 
       def webfinger_response

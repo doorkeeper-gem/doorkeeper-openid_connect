@@ -2,6 +2,7 @@
 
 - [#229] Allow to application manage signing key and algorithm
 - [#230] Add dynamic client registration
+- [#226] Respect Doorkeeper's configured `pkce_code_challenge_methods`
 
 ## v1.8.11 (2025-02-10)
 
