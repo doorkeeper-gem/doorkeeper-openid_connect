@@ -44,18 +44,10 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   reauthenticate_resource_owner do |_resource_owner, _return_to|
-    # NOTE: avoid double rendering
-    # ref. https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/88f2df8ec0f934611070def307afb24ac67a2f76/lib/generators/doorkeeper/openid_connect/templates/initializer.rb#L33-L38
-    self.response_body = nil
-    @_response_body = nil
     redirect_to '/reauthenticate'
   end
 
   select_account_for_resource_owner do |_resource_owner, _return_to|
-    # NOTE: avoid double rendering
-    # ref. https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/88f2df8ec0f934611070def307afb24ac67a2f76/lib/generators/doorkeeper/openid_connect/templates/initializer.rb#L33-L38
-    self.response_body = nil
-    @_response_body = nil
     redirect_to '/select_account'
   end
 

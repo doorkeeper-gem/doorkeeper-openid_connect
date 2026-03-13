@@ -390,12 +390,31 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(response).to redirect_to '/select_account'
       end
     end
+
+    context 'when used along with prompt=login' do
+      it 'redirects to reauthenticate without raising a DoubleRenderError' do
+        user.update! current_sign_in_at: 5.minutes.ago
+        authorize! max_age: 10, prompt: 'login'
+
+        expect(response).to redirect_to '/reauthenticate'
+      end
+    end
+
+    context 'when used along with prompt=consent' do
+      it 'redirects to reauthenticate without raising a DoubleRenderError' do
+        user.update! current_sign_in_at: 5.minutes.ago
+        authorize! max_age: 10, prompt: 'consent'
+
+        expect(response).to redirect_to '/reauthenticate'
+      end
+    end
   end
 
   describe '#reauthenticate_oidc_resource_owner' do
     let(:performed) { true }
 
     before do
+      allow(subject).to receive(:clear_oidc_response)
       allow(subject).to receive(:performed?) { performed }
       allow(subject.request).to receive(:path).and_return('/oauth/authorize')
       allow(subject.request).to receive(:query_parameters) {
@@ -441,8 +460,26 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  describe '#clear_oidc_response' do
+    before { allow(subject).to receive(:response_body=) }
+
+    it 'clears response_body and @_response_body' do
+      subject.instance_variable_set(:@_response_body, 'foo bar')
+
+      subject.send :clear_oidc_response
+
+      expect(subject).to have_received(:response_body=).with(nil)
+      expect(subject.instance_variable_get(:@_response_body)).to be_nil
+    end
+
+    it 'does not raise when response body is already nil' do
+      expect { subject.send :clear_oidc_response }.not_to raise_error
+    end
+  end
+
   describe '#select_account_for_resource_owner' do
     before do
+      allow(subject).to receive(:clear_oidc_response)
       allow(subject.request).to receive(:path).and_return('/oauth/authorize')
       allow(subject.request).to receive(:query_parameters) {
         { client_id: 'foo', prompt: 'login consent select_account' }.with_indifferent_access

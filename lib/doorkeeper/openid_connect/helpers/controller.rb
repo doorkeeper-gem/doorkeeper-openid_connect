@@ -81,7 +81,10 @@ module Doorkeeper
             when 'login'
               reauthenticate_oidc_resource_owner(owner) if owner
             when 'consent'
-              render :new if owner
+              if owner
+                clear_oidc_response
+                render :new
+              end
             when 'select_account'
               select_account_for_oidc_resource_owner(owner)
             when 'create'
@@ -118,7 +121,13 @@ module Doorkeeper
           return_to.to_s
         end
 
+        def clear_oidc_response
+          self.response_body = nil
+          @_response_body = nil
+        end
+
         def reauthenticate_oidc_resource_owner(owner)
+          clear_oidc_response
           return_to = return_without_oidc_prompt_param('login')
 
           instance_exec(
@@ -135,6 +144,7 @@ module Doorkeeper
         end
 
         def select_account_for_oidc_resource_owner(owner)
+          clear_oidc_response
           return_to = return_without_oidc_prompt_param('select_account')
 
           instance_exec(
