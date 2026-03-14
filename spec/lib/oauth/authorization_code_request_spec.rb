@@ -16,6 +16,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
   let(:openid_request) { create :openid_request, nonce: '123456' }
   let(:token) { create :access_token }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
+  let(:openid_request_class) { Doorkeeper::OpenidConnect.configuration.open_id_request_model }
 
   describe '#after_successful_response' do
     it 'adds the ID token to the response' do
@@ -30,7 +31,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
 
       expect do
         subject.send :after_successful_response
-      end.to change { Doorkeeper::OpenidConnect::Request.count }.by(-1)
+      end.to change { openid_request_class.count }.by(-1)
     end
 
     it 'skips the nonce if not present' do

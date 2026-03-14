@@ -3,6 +3,7 @@
 - [#229] Allow to application manage signing key and algorithm
 - [#230] Add dynamic client registration
 - [#233] fix: handle DoubleRenderError in library instead of requiring consumer workaround
+- [#232] Implements customizable OpenID request class
 
 ## v1.8.11 (2025-02-10)
 

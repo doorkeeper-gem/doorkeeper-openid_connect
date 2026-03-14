@@ -6,7 +6,7 @@ module Doorkeeper
       def self.prepended(base)
         base.class_eval do
           has_one :openid_request,
-            class_name: 'Doorkeeper::OpenidConnect::Request',
+            class_name: Doorkeeper::OpenidConnect.configuration.open_id_request_class,
             foreign_key: 'access_grant_id',
             inverse_of: :access_grant,
             dependent: :delete

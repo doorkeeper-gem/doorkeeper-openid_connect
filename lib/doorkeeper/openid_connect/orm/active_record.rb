@@ -9,6 +9,10 @@ module Doorkeeper
 
     module Orm
       module ActiveRecord
+        module Mixins
+          autoload :OpenidRequest, "doorkeeper/openid_connect/orm/active_record/mixins/openid_request"
+        end
+
         def run_hooks
           super
 
@@ -19,7 +23,7 @@ module Doorkeeper
           end
 
           if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
-            [Doorkeeper::OpenidConnect::Request].each do |c|
+            [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
               c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
             end
           end
@@ -38,7 +42,7 @@ module Doorkeeper
             end
 
             if Doorkeeper.configuration.active_record_options[:establish_connection]
-              [Doorkeeper::OpenidConnect::Request].each do |c|
+              [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
                 c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
               end
             end
