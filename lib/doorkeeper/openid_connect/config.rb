@@ -84,8 +84,12 @@ module Doorkeeper
 
       option :open_id_request_class, default: 'Doorkeeper::OpenidConnect::Request'
 
+      # Doorkeeper OpenID Request model class.
+      #
+      # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
+      #
       def open_id_request_model
-        open_id_request_class.to_s.constantize
+        @open_id_request_model ||= open_id_request_class.to_s.constantize
       end
     end
   end
