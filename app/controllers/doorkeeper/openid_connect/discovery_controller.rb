@@ -47,7 +47,7 @@ module Doorkeeper
           # TODO: look into doorkeeper-jwt_assertion for these
           #  'client_secret_jwt',
           #  'private_key_jwt'
-          token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+          token_endpoint_auth_methods_supported: token_endpoint_auth_methods_supported(doorkeeper),
 
           subject_types_supported: openid_connect.subject_types_supported,
 
@@ -77,6 +77,11 @@ module Doorkeeper
 
       def response_modes_supported(doorkeeper)
         doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq
+      end
+
+      def token_endpoint_auth_methods_supported(doorkeeper)
+        mapping = { from_basic: 'client_secret_basic', from_params: 'client_secret_post' }
+        doorkeeper.client_credentials_methods.filter_map { |method| mapping[method] }
       end
 
       def code_challenge_methods_supported(doorkeeper)

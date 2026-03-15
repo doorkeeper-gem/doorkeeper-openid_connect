@@ -158,6 +158,39 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
+    context 'when client_credentials is configured with only from_basic' do
+      before { Doorkeeper.configure { client_credentials :from_basic } }
+
+      it 'returns only client_secret_basic in token_endpoint_auth_methods_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic]
+      end
+    end
+
+    context 'when client_credentials is configured with only from_params' do
+      before { Doorkeeper.configure { client_credentials :from_params } }
+
+      it 'returns only client_secret_post in token_endpoint_auth_methods_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_post]
+      end
+    end
+
+    context 'when client_credentials is configured with both from_basic and from_params' do
+      before { Doorkeeper.configure { client_credentials :from_basic, :from_params } }
+
+      it 'returns both client_secret_basic and client_secret_post in token_endpoint_auth_methods_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic client_secret_post]
+      end
+    end
+
     context 'when grant_flows is configed with authorization_code and implicit flow' do
       before { Doorkeeper.configure { grant_flows %w[authorization_code implicit_oidc] } }
 
