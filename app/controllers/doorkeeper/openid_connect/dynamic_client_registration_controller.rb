@@ -28,7 +28,7 @@ module Doorkeeper
         doorkeeper_config = ::Doorkeeper.configuration
 
         {
-          client_secret: doorkeeper_application.secret,
+          client_secret: doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
           client_id: doorkeeper_application.uid,
           client_id_issued_at: doorkeeper_application.created_at.to_i,
           redirect_uris: doorkeeper_application.redirect_uri.split,
