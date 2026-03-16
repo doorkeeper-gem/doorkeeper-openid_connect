@@ -30,7 +30,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
       doorkeeper_application = Doorkeeper::Application.first
       expect(JSON.parse(response.body)).to eq({
-        'client_secret' => doorkeeper_application.secret,
+        'client_secret' => doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
         'client_id' => doorkeeper_application.uid,
         'client_id_issued_at' => doorkeeper_application.created_at.to_i,
         'redirect_uris' => redirect_uris,

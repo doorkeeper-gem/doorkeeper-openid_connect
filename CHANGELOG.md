@@ -6,6 +6,7 @@
 - [#232] Implements customizable OpenID request class
 - [#236] Derive token_endpoint_auth_methods_supported from Doorkeeper's client_credentials config
 - [#225] Allow configuration of id_token expiration using a block.
+- [#237] Fix dynamic client registration returning hashed secret when `hash_application_secrets` is enabled
 
 ## v1.8.11 (2025-02-10)
 
