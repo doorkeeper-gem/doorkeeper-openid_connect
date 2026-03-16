@@ -136,7 +136,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed with only client_credentials' do
+    context 'when grant_flows is configured with only client_credentials' do
       before { Doorkeeper.configure { grant_flows %w[client_credentials] } }
 
       it 'return empty response_modes_supported' do
@@ -147,7 +147,29 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed only implicit flow' do
+    context 'when pkce_code_challenge_methods is configured with only S256' do
+      before { Doorkeeper.configure { pkce_code_challenge_methods %w[S256] } }
+
+      it 'return only S256 in code_challenge_methods_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['code_challenge_methods_supported']).to eq %w[S256]
+      end
+    end
+
+    context 'when pkce_code_challenge_methods is configured with only plain' do
+      before { Doorkeeper.configure { pkce_code_challenge_methods %w[plain] } }
+
+      it 'return only plain in code_challenge_methods_supported' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['code_challenge_methods_supported']).to eq %w[plain]
+      end
+    end
+
+    context 'when grant_flows is configured only implicit flow' do
       before { Doorkeeper.configure { grant_flows %w[implicit_oidc] } }
 
       it 'return fragment and form_post as response_modes_supported' do
@@ -191,7 +213,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context 'when grant_flows is configed with authorization_code and implicit flow' do
+    context 'when grant_flows is configured with authorization_code and implicit flow' do
       before { Doorkeeper.configure { grant_flows %w[authorization_code implicit_oidc] } }
 
       it 'return query, fragment and form_post as response_modes_supported' do
