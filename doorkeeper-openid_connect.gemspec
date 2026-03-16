@@ -13,6 +13,14 @@ Gem::Specification.new do |spec|
   spec.description   = 'OpenID Connect extension for Doorkeeper.'
   spec.license       = 'MIT'
 
+  spec.metadata = {
+    "homepage_uri" => "https://github.com/doorkeeper-gem/doorkeeper-openid_connect",
+    "changelog_uri" => "https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/CHANGELOG.md",
+    "source_code_uri" => "https://github.com/doorkeeper-gem/doorkeeper-openid_connect",
+    "bug_tracker_uri" => "https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues",
+    "funding_uri" => "https://opencollective.com/doorkeeper-gem",
+  }
+
   spec.files = Dir[
     "{app,config,lib}/**/*",
     "CHANGELOG.md",
