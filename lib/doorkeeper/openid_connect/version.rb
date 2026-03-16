@@ -2,6 +2,12 @@
 
 module Doorkeeper
   module OpenidConnect
-    VERSION = '1.8.11'
+    MAJOR = 1
+    MINOR = 9
+    TINY = 0
+    PRE = nil
+
+    # Full version number
+    VERSION = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
 end

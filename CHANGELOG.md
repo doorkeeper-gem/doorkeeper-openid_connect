@@ -1,10 +1,14 @@
 ## Unreleased
 
+- Please add here
+
+## v1.9.0 (2026-03-16)
+
 - [#229] Allow to application manage signing key and algorithm
 - [#230] Add dynamic client registration
-- [#233] fix: handle DoubleRenderError in library instead of requiring consumer workaround
+- [#233] fix: handle `DoubleRenderError` in library instead of requiring consumer workaround
 - [#232] Implements customizable OpenID request class
-- [#236] Derive token_endpoint_auth_methods_supported from Doorkeeper's client_credentials config
+- [#236] Derive `token_endpoint_auth_methods_supported` from Doorkeeper's client_credentials config
 - [#225] Allow configuration of id_token expiration using a block.
 - [#237] Fix dynamic client registration returning hashed secret when `hash_application_secrets` is enabled
 - [#226] Respect Doorkeeper's configured `pkce_code_challenge_methods`
