@@ -66,6 +66,29 @@ module Doorkeeper
       signing_key.export
     end
 
+    # Resolves the issuer value from the configuration, handling both
+    # static values and callable blocks with backward-compatible arity checks.
+    #
+    # @param resource_owner [Object, nil] the authenticated user (nil in discovery context)
+    # @param application [Object, nil] the OAuth application (nil in discovery context)
+    # @param request [ActionDispatch::Request, nil] the current request (nil in token context)
+    # @return [String] the issuer string
+    def self.resolve_issuer(resource_owner: nil, application: nil, request: nil)
+      issuer = configuration.issuer
+      return issuer.to_s unless issuer.respond_to?(:call)
+
+      case issuer.arity
+      when 0
+        issuer.call
+      when 1
+        issuer.call(request || resource_owner)
+      when 2
+        issuer.call(resource_owner, application)
+      else
+        issuer.call(resource_owner, application, request)
+      end.to_s
+    end
+
     Doorkeeper::GrantFlow.register(
       :id_token,
       response_type_matches: 'id_token',

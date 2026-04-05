@@ -73,6 +73,33 @@ describe Doorkeeper::OpenidConnect::IdToken do
         )
       end
     end
+
+    context 'when issuer block has arity 3' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |resource_owner, application, _request|
+            "#{resource_owner.id}-#{application&.uid}"
+          end
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          auth_time_from_resource_owner do |resource_owner|
+            resource_owner.current_sign_in_at
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it 'passes resource_owner and application to the issuer block' do
+        claims = subject.claims
+        expect(claims[:iss]).to eq "#{user.id}-#{access_token.application.uid}"
+      end
+    end
   end
 
   describe '#as_json' do

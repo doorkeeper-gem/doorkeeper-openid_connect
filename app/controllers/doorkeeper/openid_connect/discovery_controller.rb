@@ -130,11 +130,7 @@ module Doorkeeper
       end
 
       def issuer
-        if Doorkeeper::OpenidConnect.configuration.issuer.respond_to?(:call)
-          Doorkeeper::OpenidConnect.configuration.issuer.call(request).to_s
-        else
-          Doorkeeper::OpenidConnect.configuration.issuer
-        end
+        Doorkeeper::OpenidConnect.resolve_issuer(request: request)
       end
 
       %i[authorization token revocation introspection userinfo jwks webfinger dynamic_client_registration].each do |endpoint|
