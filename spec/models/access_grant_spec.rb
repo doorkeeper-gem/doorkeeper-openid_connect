@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 describe Doorkeeper::OpenidConnect::AccessGrant do
-  subject { Doorkeeper::AccessGrant.new }
+  subject { Doorkeeper.config.access_grant_model.new }
   let(:openid_request_class_name) { Doorkeeper::OpenidConnect.configuration.open_id_request_class }
   let(:openid_request_class) { Doorkeeper::OpenidConnect.configuration.open_id_request_model }
 

@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#241] Fix NameError on doorkeeper master by deferring AR model loading in run_hooks
 
 ## v1.9.0 (2026-03-16)
 

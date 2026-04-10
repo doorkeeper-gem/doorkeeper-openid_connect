@@ -16,15 +16,17 @@ module Doorkeeper
         def run_hooks
           super
 
-          if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
-            Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
-          else
-            Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
-          end
+          ActiveSupport.on_load(:active_record) do
+            if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
+              Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
+            else
+              Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
+            end
 
-          if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
-            [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
-              c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
+            if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
+              [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
+                c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
+              end
             end
           end
         end
