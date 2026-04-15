@@ -136,6 +136,23 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
+    context 'when issuer block has arity 3 with request' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |_resource_owner, _application, request|
+            request.base_url
+          end
+        end
+      end
+
+      it 'passes the request object to the issuer block' do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data['issuer']).to eq 'http://test.host'
+      end
+    end
+
     context 'when grant_flows is configured with only client_credentials' do
       before { Doorkeeper.configure { grant_flows %w[client_credentials] } }
 

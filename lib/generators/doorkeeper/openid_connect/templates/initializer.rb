@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 Doorkeeper::OpenidConnect.configure do
-  issuer do |resource_owner, application|
+  issuer do |resource_owner, application, request|
+    # Example implementation:
+    # request&.base_url || 'https://example.com'
     'issuer string'
   end
 

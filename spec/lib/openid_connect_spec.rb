@@ -176,4 +176,118 @@ describe Doorkeeper::OpenidConnect do
       end
     end
   end
+
+  describe '.resolve_issuer' do
+    let(:resource_owner) { double('ResourceOwner') }
+    let(:application) { double('Application') }
+    let(:request) { double('Request', base_url: 'https://example.com') }
+
+    context 'when issuer is a static string' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer 'https://static-issuer.example.com'
+        end
+      end
+
+      it 'returns the static string' do
+        expect(subject.resolve_issuer).to eq 'https://static-issuer.example.com'
+      end
+    end
+
+    context 'when issuer block has arity 0' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer do
+            'https://zero-arity.example.com'
+          end
+        end
+      end
+
+      it 'calls the block without arguments' do
+        expect(subject.resolve_issuer).to eq 'https://zero-arity.example.com'
+      end
+    end
+
+    context 'when issuer block has arity 1' do
+      before do
+        req = request
+        owner = resource_owner
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |request_or_owner|
+            if request_or_owner.equal?(req)
+              'issuer-request'
+            elsif request_or_owner.equal?(owner)
+              'issuer-resource-owner'
+            else
+              'issuer-unknown'
+            end
+          end
+        end
+      end
+
+      it 'passes request when called from discovery context' do
+        result = subject.resolve_issuer(request: request)
+        expect(result).to eq 'issuer-request'
+      end
+
+      it 'passes resource_owner when called from token context' do
+        result = subject.resolve_issuer(resource_owner: resource_owner)
+        expect(result).to eq 'issuer-resource-owner'
+      end
+
+      it 'prefers request over resource_owner when both are present' do
+        result = subject.resolve_issuer(resource_owner: resource_owner, request: request)
+        expect(result).to eq 'issuer-request'
+      end
+    end
+
+    context 'when issuer block has arity 2' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |resource_owner, application|
+            "owner-#{resource_owner&.class&.name}-app-#{application&.class&.name}"
+          end
+        end
+      end
+
+      it 'passes resource_owner and application' do
+        result = subject.resolve_issuer(resource_owner: resource_owner, application: application)
+        expect(result.scan('RSpec::Mocks::Double').size).to eq 2
+      end
+
+      it 'passes nils from discovery context' do
+        result = subject.resolve_issuer(request: request)
+        expect(result).to eq 'owner--app-'
+      end
+    end
+
+    context 'when issuer block has arity 3' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |resource_owner, application, request|
+            if request
+              request.base_url
+            else
+              "owner-#{resource_owner&.class&.name}"
+            end
+          end
+        end
+      end
+
+      it 'passes all three arguments from discovery context' do
+        result = subject.resolve_issuer(request: request)
+        expect(result).to eq 'https://example.com'
+      end
+
+      it 'passes all three arguments from token context' do
+        result = subject.resolve_issuer(resource_owner: resource_owner, application: application)
+        expect(result).to include 'RSpec::Mocks::Double'
+      end
+
+      it 'passes all three arguments when all are present' do
+        result = subject.resolve_issuer(resource_owner: resource_owner, application: application, request: request)
+        expect(result).to eq 'https://example.com'
+      end
+    end
+  end
 end
