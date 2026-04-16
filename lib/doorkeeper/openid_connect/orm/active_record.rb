@@ -17,6 +17,9 @@ module Doorkeeper
           super
 
           ActiveSupport.on_load(:active_record) do
+            require 'doorkeeper/openid_connect/orm/active_record/access_grant'
+            require 'doorkeeper/openid_connect/orm/active_record/request'
+
             if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
             else
