@@ -382,6 +382,28 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
 
+    context 'when auth_time_from_resource_owner returns an Integer (epoch seconds)' do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:auth_time_from_resource_owner)
+          .and_return(->(resource_owner) { resource_owner.current_sign_in_at.to_i })
+      end
+
+      it 'renders the authorization form if the last login is within max_age' do
+        user.update! current_sign_in_at: 5.seconds.ago
+        authorize! max_age: 10
+
+        expect_authorization_form!
+      end
+
+      it 'reauthenticates the user if the last login is older than max_age' do
+        user.update! current_sign_in_at: 15.seconds.ago
+        authorize! max_age: 10
+
+        expect(response).to redirect_to '/reauthenticate'
+      end
+    end
+
     context 'when used along with prompt=select_account' do
       it 'renders the authorization form' do
         user.update! current_sign_in_at: 5.seconds.ago
