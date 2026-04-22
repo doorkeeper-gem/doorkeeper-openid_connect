@@ -4,6 +4,10 @@ module Doorkeeper
   module OpenidConnect
     module OAuth
       module PreAuthorization
+        def self.prepended(base)
+          base.validate :nonce, error: Doorkeeper::Errors::InvalidRequest
+        end
+
         attr_reader :nonce
 
         def initialize(server, attrs = {}, resource_owner = nil)
@@ -21,6 +25,26 @@ module Doorkeeper
           end
 
           grant_flow&.default_response_mode == 'fragment'
+        end
+
+        private
+
+        # Per OpenID Connect Core 1.0 Section 3.2.2.1, nonce is REQUIRED for the
+        # implicit flow (id_token and id_token token response types).
+        def validate_nonce
+          return true unless openid_implicit_flow?
+
+          if nonce.blank?
+            @missing_param = :nonce
+            return false
+          end
+
+          true
+        end
+
+        def openid_implicit_flow?
+          scopes.include?('openid') &&
+            response_type.to_s.split(' ').include?('id_token')
         end
       end
     end
