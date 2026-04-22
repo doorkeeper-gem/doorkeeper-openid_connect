@@ -24,11 +24,18 @@ module Doorkeeper
       #   access_token value with SHA-256, then take the left-most 128 bits and
       #   base64url-encode them. The at_hash value is a case-sensitive string.
       def at_hash
-        sha256 = Digest::SHA256.new
-        token = @access_token.token
-        hashed_token = sha256.digest(token)
+        hashed_token = at_hash_digest.digest(@access_token.token)
         first_half = hashed_token[0...hashed_token.length / 2]
         Base64.urlsafe_encode64(first_half).tr('=', '')
+      end
+
+      def at_hash_digest
+        case Doorkeeper::OpenidConnect.signing_algorithm.to_s
+        when /256\z/ then Digest::SHA256
+        when /384\z/ then Digest::SHA384
+        when /512\z/ then Digest::SHA512
+        else Digest::SHA256
+        end
       end
     end
   end
