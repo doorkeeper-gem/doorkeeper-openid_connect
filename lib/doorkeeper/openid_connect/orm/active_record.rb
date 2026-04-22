@@ -10,6 +10,7 @@ module Doorkeeper
     module Orm
       module ActiveRecord
         module Mixins
+          autoload :Application, "doorkeeper/openid_connect/orm/active_record/mixins/application"
           autoload :OpenidRequest, "doorkeeper/openid_connect/orm/active_record/mixins/openid_request"
         end
 
@@ -19,8 +20,10 @@ module Doorkeeper
           ActiveSupport.on_load(:active_record) do
             if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper.config.application_model.include Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application
             else
               Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper::Application.include Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application
             end
 
             if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
@@ -39,8 +42,10 @@ module Doorkeeper
 
             if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper.config.application_model.include Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application
             else
               Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper::Application.include Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application
             end
 
             if Doorkeeper.configuration.active_record_options[:establish_connection]

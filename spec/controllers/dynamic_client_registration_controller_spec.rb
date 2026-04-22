@@ -34,12 +34,37 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         'client_id' => doorkeeper_application.uid,
         'client_id_issued_at' => doorkeeper_application.created_at.to_i,
         'redirect_uris' => redirect_uris,
+        'post_logout_redirect_uris' => [],
         'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
         'response_types' => ['code', 'token', 'id_token', 'id_token token'],
         'grant_types' => %w[authorization_code client_credentials implicit_oidc],
         'scope' => "public",
         'application_type' => "web"
       })
+    end
+
+    it "registers post_logout_redirect_uris" do
+      redirect_uris = ['https://test.host/registration_success']
+      post_logout_redirect_uris = [
+        'https://test.host/post_logout',
+        'https://test.host/post_logout_alt',
+      ]
+
+      post :register, params: {
+        client_name: "dummy_client",
+        redirect_uris: redirect_uris,
+        post_logout_redirect_uris: post_logout_redirect_uris,
+        scope: "public"
+      }
+
+      expect(response.status).to eq 201
+      expect(Doorkeeper::Application.count).to eq(1)
+
+      doorkeeper_application = Doorkeeper::Application.first
+      expect(doorkeeper_application.post_logout_redirect_uris).to eq(post_logout_redirect_uris)
+
+      body = JSON.parse(response.body)
+      expect(body['post_logout_redirect_uris']).to eq(post_logout_redirect_uris)
     end
 
     it "errors and returns errors" do

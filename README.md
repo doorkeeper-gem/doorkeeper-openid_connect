@@ -174,6 +174,29 @@ The following settings are optional:
   - Used by implementations like https://github.com/IdentityModel/oidc-client-js.
   - The block is executed in the controller's scope, so you have access to your route helpers.
 
+- `post_logout_redirect_uris` (on `Doorkeeper::Application`)
+  - Per the [RP-Initiated Logout spec](https://openid.net/specs/openid-connect-rpinitiated-1_0.html),
+    the `post_logout_redirect_uri` parameter in a logout request MUST have been previously registered
+    with the OP.
+  - This gem adds a `post_logout_redirect_uris` column to `oauth_applications` and a
+    `valid_post_logout_redirect_uri?(uri)` method to `Doorkeeper::Application` that you can use
+    to validate the parameter in your end-session controller or callback.
+  - Example usage in a custom logout controller:
+    ```ruby
+    def destroy
+      application = Doorkeeper::Application.by_uid(params[:client_id])
+      if params[:post_logout_redirect_uri].present?
+        unless application&.valid_post_logout_redirect_uri?(params[:post_logout_redirect_uri])
+          return render json: { error: 'invalid_request' }, status: :bad_request
+        end
+      end
+      # ... sign out the user and redirect
+    end
+    ```
+  - When using [dynamic client registration](#dynamic-client-registration), you can pass
+    `post_logout_redirect_uris` as an array when registering a client, and the values will
+    be stored and returned in the registration response.
+
 - `discovery_url_options`
   - The URL options for every available endpoint to use when generating the endpoint URL in the
     discovery response. Available endpoints: `authorization`, `token`, `revocation`,
