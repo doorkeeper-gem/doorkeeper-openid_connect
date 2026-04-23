@@ -33,4 +33,37 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
       })
     end
   end
+
+  describe '#at_hash' do
+    # Per OIDC Core 1.0 §3.1.3.6 / §3.2.2.9, at_hash must use the hash algorithm
+    # that matches the alg of the ID Token's JOSE header (e.g. HS512 -> SHA-512).
+    let(:token_value) { 'jHkWEdUXMU1BwAsC4vtUsZwnNvTIxEl0z9K3vx5KF0Y' }
+
+    before { access_token.update(token: token_value) }
+
+    def expected_at_hash(token, hasher)
+      digest = hasher.digest(token)
+      Base64.urlsafe_encode64(digest[0, digest.length / 2]).tr('=', '')
+    end
+
+    it 'uses SHA-256 for the default RS256 signing algorithm' do
+      expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
+    end
+
+    context 'when signing_algorithm is HS512' do
+      before { configure_hmac }
+
+      it 'uses SHA-512' do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA512))
+      end
+    end
+
+    context 'when signing_algorithm is ES512' do
+      before { configure_ec }
+
+      it 'uses SHA-512' do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA512))
+      end
+    end
+  end
 end
