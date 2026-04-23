@@ -219,6 +219,24 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
+    context 'when the issuer is configured to a non-root URL' do
+      let(:non_root_issuer) { 'http://test.host/issuer/with/path' }
+
+      before do
+        value = non_root_issuer
+        Doorkeeper::OpenidConnect.configure do
+          issuer value
+        end
+      end
+
+      it 'returns the configured issuer in the webfinger response' do
+        get :webfinger, params: { resource: 'user@example.com' }
+        data = JSON.parse(response.body)
+
+        expect(data['links'].first['href']).to eq non_root_issuer
+      end
+    end
+
     context 'when client_credentials is configured with both from_basic and from_params' do
       before { Doorkeeper.configure { client_credentials :from_basic, :from_params } }
 
