@@ -96,7 +96,7 @@ module Doorkeeper
           links: [
             {
               rel: WEBFINGER_RELATION,
-              href: root_url(webfinger_url_options),
+              href: issuer,
             }
           ]
         }
@@ -133,7 +133,7 @@ module Doorkeeper
         Doorkeeper::OpenidConnect.resolve_issuer(request: request)
       end
 
-      %i[authorization token revocation introspection userinfo jwks webfinger dynamic_client_registration].each do |endpoint|
+      %i[authorization token revocation introspection userinfo jwks dynamic_client_registration].each do |endpoint|
         define_method :"#{endpoint}_url_options" do
           discovery_url_default_options.merge(discovery_url_options[endpoint.to_sym] || {})
         end
