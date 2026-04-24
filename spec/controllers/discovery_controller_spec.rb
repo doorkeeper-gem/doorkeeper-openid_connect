@@ -270,6 +270,32 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
     end
 
+    context 'when the protocol option is configured with a non-callable value' do
+      it 'accepts a symbol' do
+        Doorkeeper::OpenidConnect.configure do
+          protocol :testing
+        end
+
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(response).to have_http_status(:ok)
+        expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
+      end
+
+      it 'accepts a string' do
+        Doorkeeper::OpenidConnect.configure do
+          protocol 'testing'
+        end
+
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(response).to have_http_status(:ok)
+        expect(data['authorization_endpoint']).to eq 'testing://test.host/oauth/authorize'
+      end
+    end
+
     context 'when the discovery_url_options option is set for all endpoints' do
       before do
         Doorkeeper::OpenidConnect.configure do
