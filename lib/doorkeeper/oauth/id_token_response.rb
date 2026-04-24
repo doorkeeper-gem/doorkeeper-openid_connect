@@ -19,7 +19,6 @@ module Doorkeeper
 
       def body
         {
-          expires_in: auth.token.expires_in_seconds,
           state: pre_auth.state,
           id_token: id_token.as_jws_token
         }

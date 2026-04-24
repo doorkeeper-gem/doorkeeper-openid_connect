@@ -37,24 +37,30 @@ describe Doorkeeper::OAuth::IdTokenResponse do
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }
 
   describe '#body' do
-    it 'return body response for id_token' do
+    it 'returns the id_token and state only (no expires_in per OIDC Core §3.2.2.5)' do
       expect(subject.body).to eq({
-        expires_in: auth.token.expires_in_seconds,
         state: pre_auth.state,
         id_token: id_token.as_jws_token
       })
     end
+
+    it 'does not include expires_in' do
+      expect(subject.body).not_to have_key(:expires_in)
+    end
   end
 
   describe '#redirect_uri' do
-    it 'includes expires_in, id_token and state' do
-      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#expires_in=#{auth.token.expires_in_seconds}&" \
-        "state=#{pre_auth.state}&" \
+    it 'includes id_token and state' do
+      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#state=#{pre_auth.state}&" \
         "id_token=#{id_token.as_jws_token}")
     end
 
     it 'does not include access_token' do
       expect(subject.redirect_uri).not_to include('access_token')
+    end
+
+    it 'does not include expires_in' do
+      expect(subject.redirect_uri).not_to include('expires_in')
     end
   end
 end
