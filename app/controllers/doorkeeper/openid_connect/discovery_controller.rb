@@ -116,7 +116,8 @@ module Doorkeeper
       end
 
       def protocol
-        Doorkeeper::OpenidConnect.configuration.protocol.call
+        configured = Doorkeeper::OpenidConnect.configuration.protocol
+        configured.respond_to?(:call) ? configured.call : configured
       end
 
       def discovery_url_options
