@@ -74,6 +74,8 @@ module Doorkeeper
 
       def auth_time
         Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner.call(@resource_owner).try(:to_i)
+      rescue Errors::InvalidConfiguration
+        nil
       end
     end
   end

@@ -100,6 +100,28 @@ describe Doorkeeper::OpenidConnect::IdToken do
         expect(claims[:iss]).to eq "#{user.id}-#{access_token.application.uid}"
       end
     end
+
+    context 'when auth_time_from_resource_owner is not configured' do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer 'dummy'
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it 'builds claims without raising and omits auth_time' do
+        expect { subject.claims }.not_to raise_error
+        expect(subject.claims[:auth_time]).to be_nil
+        expect(subject.as_json).not_to include(:auth_time)
+      end
+    end
   end
 
   describe '#as_json' do
