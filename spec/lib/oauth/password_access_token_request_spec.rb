@@ -13,7 +13,7 @@ describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
   let(:client) { double }
   let(:credentials) { }
   let(:resource_owner) { create :user }
-  let(:token) { create :access_token }
+  let(:token) { create :access_token, scopes: 'openid' }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
 
   describe '#initialize' do
@@ -23,13 +23,28 @@ describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
   end
 
   describe '#after_successful_response' do
-    it 'adds the ID token to the response' do
+    it 'adds the ID token to the response when the openid scope is granted' do
       subject.instance_variable_set '@response', response
       subject.instance_variable_set '@access_token', token
       subject.send :after_successful_response
 
       expect(response.id_token).to be_a Doorkeeper::OpenidConnect::IdToken
       expect(response.id_token.nonce).to eq '123456'
+    end
+
+    context 'when the access token does not include the openid scope' do
+      let(:token) { create :access_token, scopes: 'public' }
+
+      it 'does not build an ID token' do
+        subject.instance_variable_set '@response', response
+        subject.instance_variable_set '@access_token', token
+
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+
+        subject.send :after_successful_response
+
+        expect(response.id_token).to be_nil
+      end
     end
   end
 end
