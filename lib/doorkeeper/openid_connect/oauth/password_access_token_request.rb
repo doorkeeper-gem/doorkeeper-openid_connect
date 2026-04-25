@@ -21,8 +21,10 @@ module Doorkeeper
         private
 
         def after_successful_response
-          id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
-          @response.id_token = id_token
+          if access_token.includes_scope?('openid')
+            id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
+            @response.id_token = id_token
+          end
           super
         end
       end
