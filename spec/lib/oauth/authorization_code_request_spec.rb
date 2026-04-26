@@ -14,12 +14,12 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
   let(:client) { double }
   let(:grant) { create :access_grant, openid_request: openid_request }
   let(:openid_request) { create :openid_request, nonce: '123456' }
-  let(:token) { create :access_token }
+  let(:token) { create :access_token, scopes: 'openid' }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
   let(:openid_request_class) { Doorkeeper::OpenidConnect.configuration.open_id_request_model }
 
   describe '#after_successful_response' do
-    it 'adds the ID token to the response' do
+    it 'adds the ID token to the response when the openid scope is granted' do
       subject.send :after_successful_response
 
       expect(response.id_token).to be_a Doorkeeper::OpenidConnect::IdToken
@@ -39,6 +39,19 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
       subject.send :after_successful_response
 
       expect(response.id_token.nonce).to be_nil
+    end
+
+    context 'when the access token does not include the openid scope' do
+      let(:token) { create :access_token, scopes: 'public' }
+      let(:grant) { create :access_grant, openid_request: nil }
+
+      it 'does not build an ID token' do
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+
+        subject.send :after_successful_response
+
+        expect(response.id_token).to be_nil
+      end
     end
   end
 end
