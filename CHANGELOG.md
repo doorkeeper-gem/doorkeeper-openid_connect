@@ -3,7 +3,8 @@
 - Please add here
 - [#241] Fix NameError on doorkeeper master by deferring AR model loading in run_hooks (see [Doorkeeper PR](https://github.com/doorkeeper-gem/doorkeeper/pull/1804))
 - [#246] Fix `at_hash` to use correct hash algorithm based on `signing_algorithm`
-* [#250] Return configured `issuer` instead of `root_url` in WebFinger response (thanks to @sato11 for the original work in #172)
+- [#250] Return configured `issuer` instead of `root_url` in WebFinger response (thanks to @sato11 for the original work in #172)
+- [#261] Fix obsolete RuboCop configuration (`require:` → `plugins:`, `RSpec/FilePath` split, remove `Capybara/FeatureMethods`)
 
 ## v1.9.0 (2026-03-16)
 
