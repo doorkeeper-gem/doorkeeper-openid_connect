@@ -19,6 +19,7 @@ module Doorkeeper
         {
           name: params.dig(:client_name),
           redirect_uri: params.dig(:redirect_uris) || [],
+          post_logout_redirect_uris: params.dig(:post_logout_redirect_uris) || [],
           scopes: params.dig(:scope),
           confidential: false,
         }
@@ -32,6 +33,7 @@ module Doorkeeper
           client_id: doorkeeper_application.uid,
           client_id_issued_at: doorkeeper_application.created_at.to_i,
           redirect_uris: doorkeeper_application.redirect_uri.split,
+          post_logout_redirect_uris: doorkeeper_application.post_logout_redirect_uris,
           token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
           response_types: doorkeeper_config.authorization_response_types,
           grant_types: grant_types_supported(doorkeeper_config),

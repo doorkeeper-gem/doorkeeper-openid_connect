@@ -11,5 +11,7 @@ class CreateDoorkeeperOpenidConnectTables < ActiveRecord::Migration<%= migration
       column: :access_grant_id,
       on_delete: :cascade
     )
+
+    add_column :oauth_applications, :post_logout_redirect_uris, :text
   end
 end
