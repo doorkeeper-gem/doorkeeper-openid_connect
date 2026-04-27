@@ -104,6 +104,13 @@ module Doorkeeper
             &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
           )
 
+          # Normalize non-Time values (e.g. an Integer epoch) so that the
+          # subtraction below yields a Float of elapsed seconds rather than a
+          # shifted Time value.
+          if auth_time && !auth_time.is_a?(Time) && !auth_time.is_a?(DateTime)
+            auth_time = Time.zone.at(auth_time.to_i)
+          end
+
           # NOTE: clock skew
           max_age = [1, max_age].max
 
