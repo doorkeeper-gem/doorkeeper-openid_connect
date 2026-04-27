@@ -5,6 +5,7 @@
 - [#246] Fix `at_hash` to use correct hash algorithm based on `signing_algorithm`
 * [#250] Return configured `issuer` instead of `root_url` in WebFinger response (thanks to @sato11 for the original work in #172)
 - [#248] Fix `max_age` always triggering reauthentication when `auth_time_from_resource_owner` returns Integer
+- [#254] **Breaking:** Omit `expires_in` from the `response_type=id_token` response (OIDC Core §3.2.2.5 — `expires_in` represents the Access Token lifetime; it is still returned for `response_type=id_token token`)
 
 ## v1.9.0 (2026-03-16)
 

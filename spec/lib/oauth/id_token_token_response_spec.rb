@@ -36,21 +36,22 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
   describe '#body' do
     it 'return body response for id_token and access_token' do
       expect(subject.body).to eq({
-        expires_in: auth.token.expires_in_seconds,
         state: pre_auth.state,
         id_token: id_token.as_jws_token,
         access_token: auth.token.token,
-        token_type: auth.token.token_type
+        token_type: auth.token.token_type,
+        expires_in: auth.token.expires_in_seconds
       })
     end
   end
 
   describe '#redirect_uri' do
     it 'includes id_token, info of access_token and state' do
-      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#expires_in=#{auth.token.expires_in_seconds}&" \
-        "state=#{pre_auth.state}&" \
+      expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#state=#{pre_auth.state}&" \
         "id_token=#{id_token.as_jws_token}&" \
-        "access_token=#{auth.token.token}&token_type=#{auth.token.token_type}")
+        "access_token=#{auth.token.token}&" \
+        "token_type=#{auth.token.token_type}&" \
+        "expires_in=#{auth.token.expires_in_seconds}")
     end
   end
 end
