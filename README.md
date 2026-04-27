@@ -274,35 +274,12 @@ With the exception of the hard-coded `/.well-known` paths (see [RFC 5785](https:
 
 ### Nonces
 
-To support clients who send nonces you have to tweak Doorkeeper's authorization view so the parameter is passed on.
+Nonce support is built-in. The gem provides a customized `doorkeeper/authorizations/new` view that automatically passes the `nonce` parameter through the authorization form.
 
-If you don't already have custom templates, run this generator in your Rails application to add them:
+If you have custom authorization views in your application (e.g. generated via `rails generate doorkeeper:views`), make sure to add the nonce hidden field to both the authorize and deny forms:
 
-```sh
-rails generate doorkeeper:views
-```
-
-Then tweak the template as follows:
-
-```patch
---- i/app/views/doorkeeper/authorizations/new.html.erb
-+++ w/app/views/doorkeeper/authorizations/new.html.erb
-@@ -26,6 +26,7 @@
-       <%= hidden_field_tag :state, @pre_auth.state %>
-       <%= hidden_field_tag :response_type, @pre_auth.response_type %>
-       <%= hidden_field_tag :scope, @pre_auth.scope %>
-+      <%= hidden_field_tag :nonce, @pre_auth.nonce %>
-       <%= submit_tag t('doorkeeper.authorizations.buttons.authorize'), class: "btn btn-success btn-lg btn-block" %>
-     <% end %>
-     <%= form_tag oauth_authorization_path, method: :delete do %>
-@@ -34,6 +35,7 @@
-       <%= hidden_field_tag :state, @pre_auth.state %>
-       <%= hidden_field_tag :response_type, @pre_auth.response_type %>
-       <%= hidden_field_tag :scope, @pre_auth.scope %>
-+      <%= hidden_field_tag :nonce, @pre_auth.nonce %>
-       <%= submit_tag t('doorkeeper.authorizations.buttons.deny'), class: "btn btn-danger btn-lg btn-block" %>
-     <% end %>
-   </div>
+```erb
+<%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
 ```
 
 ### Internationalization (I18n)
