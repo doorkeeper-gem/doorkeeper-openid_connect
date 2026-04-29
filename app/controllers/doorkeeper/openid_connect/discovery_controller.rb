@@ -5,6 +5,7 @@ module Doorkeeper
     class DiscoveryController < ::Doorkeeper::ApplicationMetalController
       include Doorkeeper::Helpers::Controller
       include GrantTypesSupportedMixin
+      include TokenEndpointAuthMethodsMixin
 
       WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
 
@@ -77,11 +78,6 @@ module Doorkeeper
 
       def response_modes_supported(doorkeeper)
         doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq
-      end
-
-      def token_endpoint_auth_methods_supported(doorkeeper)
-        mapping = { from_basic: 'client_secret_basic', from_params: 'client_secret_post' }
-        doorkeeper.client_credentials_methods.filter_map { |method| mapping[method] }
       end
 
       def code_challenge_methods_supported(doorkeeper)
