@@ -139,7 +139,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'redirect as the fragment style uri when response_type is implicit flow request' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token')
+            authorize! request_param.merge(response_type: 'id_token token', nonce: 'abc123')
 
             expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
           end
@@ -147,7 +147,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post')
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', nonce: 'abc123')
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
@@ -174,7 +174,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'redirect as the fragment style uri when response_type is implicit flow request' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate')
+            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate', nonce: 'abc123')
 
             expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
           end
@@ -182,7 +182,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate')
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate', nonce: 'abc123')
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
@@ -218,7 +218,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'uses the fragment style uris when redirecting an error for implicit flow request' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate')
+            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate', nonce: 'abc123')
 
             expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
           end
@@ -226,7 +226,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
             allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
 
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate')
+            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate', nonce: 'abc123')
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
@@ -546,6 +546,40 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     it 'permits nonce parameter' do
       authorize! nonce: '123456'
       expect(assigns(:pre_auth).nonce).to eq '123456'
+    end
+  end
+
+  describe 'nonce validation' do
+    context 'with implicit flow (id_token response type)' do
+      before do
+        allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
+      end
+
+      it 'returns an error when nonce is missing' do
+        get :new, params: {
+          response_type: 'id_token',
+          current_user: user.id,
+          client_id: application.uid,
+          scope: 'openid',
+          redirect_uri: application.redirect_uri,
+        }
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response).to render_template('doorkeeper/authorizations/error')
+      end
+
+      it 'succeeds when nonce is present' do
+        get :new, params: {
+          response_type: 'id_token',
+          current_user: user.id,
+          client_id: application.uid,
+          scope: 'openid',
+          redirect_uri: application.redirect_uri,
+          nonce: 'abc123',
+        }
+
+        expect(response).to render_template('doorkeeper/authorizations/new')
+      end
     end
   end
 end
