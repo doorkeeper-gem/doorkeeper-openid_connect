@@ -338,10 +338,13 @@ The registration endpoint currently accepts the following [RFC 7591 §2](https:/
 | `redirect_uris` | Array of redirection URIs |
 | `scope` | Space-delimited list of requested scopes |
 | `token_endpoint_auth_method` | Requested authentication method. Defaults to `client_secret_basic`. `none` is always allowed (and registers a public client); other allowed values depend on the host application's Doorkeeper `client_credentials_methods` configuration. Unsupported values are rejected with `invalid_client_metadata`. |
+| `application_type` | Client type: `web` (default) or `native`, per [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html). Unsupported values are rejected with `invalid_client_metadata`. |
+| `response_types` | Array of OAuth 2.0 response types the client will use (e.g. `["code"]`). Must be a subset of the server's supported response types. Defaults to the server's full set when omitted. |
+| `grant_types` | Array of OAuth 2.0 grant types the client will use (e.g. `["authorization_code"]`). Must be a subset of the server's supported grant types. Defaults to the server's full set when omitted. |
 
 When `token_endpoint_auth_method` is set to `none`, the client is registered as **public** (i.e. `confidential: false`). For all other values — or when the parameter is omitted — the client is registered as **confidential**, matching the RFC 7591 default of `client_secret_basic`.
 
-For `application_type`, `response_types`, and `grant_types`, the endpoint returns server-side defaults regardless of what the client requests. Other RFC 7591 parameters (e.g. `client_uri`, `logo_uri`, `contacts`) are silently ignored and not included in the response. See [#249](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/249) for progress on full RFC 7591 compliance.
+Other RFC 7591 parameters (e.g. `client_uri`, `logo_uri`, `contacts`) require schema additions to `oauth_applications` and are not yet supported. See [#249](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/249) for progress on full RFC 7591 compliance.
 
 #### Security note
 

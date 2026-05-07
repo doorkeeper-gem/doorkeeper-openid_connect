@@ -15,6 +15,7 @@
 - [#264] Apply safe RuboCop autocorrections and fix resulting artifacts
 - [#265] Add Dynamic Client Registration section to README
 - [#266] Validate `application_type`, `response_types`, and `grant_types` parameters in dynamic client registration per RFC 7591 — reject unsupported values with `invalid_client_metadata` and echo the requested values back in the registration response, instead of silently ignoring them and returning the server's global configuration
+- [#268] Update Dynamic Client Registration README for validated metadata parameters
 
 ## v1.9.0 (2026-03-16)
 
