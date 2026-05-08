@@ -15,6 +15,7 @@
 - [#264] Apply safe RuboCop autocorrections and fix resulting artifacts
 - [#265] Add Dynamic Client Registration section to README
 - [#266] Validate `application_type`, `response_types`, and `grant_types` parameters in dynamic client registration per RFC 7591 — reject unsupported values with `invalid_client_metadata` and echo the requested values back in the registration response, instead of silently ignoring them and returning the server's global configuration
+- [#267] Add `authorize_dynamic_client_registration` config option to gate the dynamic client registration endpoint per RFC 7591 §3.1 — when set to a callable, the block is evaluated in the controller scope (with access to `request`, `params`, `request.headers`, etc.) and falsy return values reject the request with `401 invalid_token`. Default is `nil` so the endpoint remains open for backward compatibility; consumers should configure this to validate an Initial Access Token (or any other authorization scheme) before allowing client registration
 - [#268] Update Dynamic Client Registration README for validated metadata parameters
 
 ## v1.9.0 (2026-03-16)
