@@ -295,6 +295,85 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    context "when authorize_dynamic_client_registration is configured" do
+      let(:valid_register_params) do
+        {
+          client_name: "auth_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+        }
+      end
+
+      context "when the authorizer returns truthy" do
+        before do
+          Doorkeeper::OpenidConnect.configure do
+            issuer "dummy"
+            dynamic_client_registration true
+            authorize_dynamic_client_registration { true }
+          end
+          Rails.application.reload_routes!
+        end
+
+        it "allows the request" do
+          post :register, params: valid_register_params
+
+          expect(response.status).to eq 201
+          expect(Doorkeeper::Application.count).to eq(1)
+        end
+      end
+
+      context "when the authorizer returns falsy" do
+        before do
+          Doorkeeper::OpenidConnect.configure do
+            issuer "dummy"
+            dynamic_client_registration true
+            authorize_dynamic_client_registration { false }
+          end
+          Rails.application.reload_routes!
+        end
+
+        it "rejects the request with 401 invalid_token" do
+          post :register, params: valid_register_params
+
+          expect(response.status).to eq 401
+          expect(Doorkeeper::Application.count).to eq(0)
+          expect(response.headers["WWW-Authenticate"]).to include("Bearer")
+          expect(response.headers["WWW-Authenticate"]).to include("error=\"invalid_token\"")
+
+          body = JSON.parse(response.body)
+          expect(body["error"]).to eq("invalid_token")
+        end
+      end
+
+      context "when the authorizer reads request context" do
+        before do
+          Doorkeeper::OpenidConnect.configure do
+            issuer "dummy"
+            dynamic_client_registration true
+            authorize_dynamic_client_registration do
+              request.headers["Authorization"] == "Bearer initial-access-token"
+            end
+          end
+          Rails.application.reload_routes!
+        end
+
+        it "allows the request when the header matches" do
+          request.headers["Authorization"] = "Bearer initial-access-token"
+          post :register, params: valid_register_params
+
+          expect(response.status).to eq 201
+        end
+
+        it "rejects the request when the header does not match" do
+          request.headers["Authorization"] = "Bearer wrong"
+          post :register, params: valid_register_params
+
+          expect(response.status).to eq 401
+          expect(Doorkeeper::Application.count).to eq(0)
+        end
+      end
+    end
+
     context "with invalid redirect_uris" do
       it "errors and returns errors" do
         post :register, params: {

@@ -3,6 +3,8 @@
 module Doorkeeper
   module OpenidConnect
     class DynamicClientRegistrationController < ::Doorkeeper::ApplicationMetalController
+      before_action :authorize_dynamic_client_registration!
+
       def register
         registration = OAuth::DynamicRegistrationRequest.new(::Doorkeeper.configuration, params)
 
@@ -20,11 +22,36 @@ module Doorkeeper
 
       private
 
+      def authorize_dynamic_client_registration!
+        authorizer = ::Doorkeeper::OpenidConnect.configuration.authorize_dynamic_client_registration
+        return if authorizer.nil?
+
+        return if authorized?(authorizer)
+
+        response.headers["WWW-Authenticate"] = "Bearer error=\"invalid_token\""
+        render json: {
+          error: "invalid_token",
+          error_description: I18n.t(
+            "doorkeeper.openid_connect.errors.messages.dynamic_client_registration_unauthorized",
+          ),
+        }, status: :unauthorized
+      end
+
+      def authorized?(authorizer)
+        if authorizer.respond_to?(:to_proc)
+          instance_exec(&authorizer.to_proc)
+        elsif authorizer.respond_to?(:call)
+          authorizer.call(self)
+        else
+          authorizer
+        end
+      end
+
       def application_params(registration)
         {
-          name: params.dig(:client_name),
-          redirect_uri: params.dig(:redirect_uris) || [],
-          scopes: params.dig(:scope),
+          name: params[:client_name],
+          redirect_uri: params[:redirect_uris] || [],
+          scopes: params[:scope],
           confidential: registration.confidential_client?,
         }
       end
