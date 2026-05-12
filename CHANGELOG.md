@@ -18,6 +18,7 @@
 - [#267] Add `authorize_dynamic_client_registration` config option to gate the dynamic client registration endpoint per RFC 7591 §3.1 — when set to a callable, the block is evaluated in the controller scope (with access to `request`, `params`, `request.headers`, etc.) and falsy return values reject the request with `401 invalid_token`. Default is `nil` so the endpoint remains open for backward compatibility; consumers should configure this to validate an Initial Access Token (or any other authorization scheme) before allowing client registration
 - [#268] Update Dynamic Client Registration README for validated metadata parameters
 - [#269] Document `authorize_dynamic_client_registration` in README
+- [#270] Document the unified issuer block signature in README
 
 ## v1.9.0 (2026-03-16)
 
