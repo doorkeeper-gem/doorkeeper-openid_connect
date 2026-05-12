@@ -344,11 +344,26 @@ The registration endpoint currently accepts the following [RFC 7591 §2](https:/
 
 When `token_endpoint_auth_method` is set to `none`, the client is registered as **public** (i.e. `confidential: false`). For all other values — or when the parameter is omitted — the client is registered as **confidential**, matching the RFC 7591 default of `client_secret_basic`.
 
-Other RFC 7591 parameters (e.g. `client_uri`, `logo_uri`, `contacts`) require schema additions to `oauth_applications` and are not yet supported. See [#249](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/249) for progress on full RFC 7591 compliance.
+Other RFC 7591 parameters (e.g. `client_uri`, `logo_uri`, `contacts`) require schema additions to `oauth_applications` and are not yet supported.
 
-#### Security note
+#### Authorization
 
-The registration endpoint does **not** require an Initial Access Token ([RFC 7591 §3.1](https://www.rfc-editor.org/rfc/rfc7591#section-3.1)). Any unauthenticated request can register a new client. If this is a concern for your deployment, consider protecting the endpoint at the network or application level (e.g. rate limiting, IP allowlisting, or a `before_action` in a custom controller).
+By default, the registration endpoint is open to any request. To require authorization (e.g. an Initial Access Token per [RFC 7591 §3.1](https://www.rfc-editor.org/rfc/rfc7591#section-3.1)), configure `authorize_dynamic_client_registration`:
+
+```ruby
+Doorkeeper::OpenidConnect.configure do
+  # ...
+  dynamic_client_registration true
+  authorize_dynamic_client_registration do
+    request.headers["Authorization"] == "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+  end
+  # ...
+end
+```
+
+The block is evaluated in the controller scope (with access to `request`, `params`, `request.headers`, etc.). Return a truthy value to allow the request, or a falsy value to reject it with `401 invalid_token`.
+
+When not configured (default), the endpoint remains open for backward compatibility.
 
 ## Development
 
