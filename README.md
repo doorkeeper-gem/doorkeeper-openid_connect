@@ -151,7 +151,19 @@ The following settings are optional, but recommended for better client compatibi
 
 - `auth_time_from_resource_owner`
   - Returns the time of the user's last login, this can be a `Time`, `DateTime`, or any other class that responds to `to_i`
-  - Required to support the `max_age` parameter and the `auth_time` claim.
+  - Used to populate the `auth_time` claim on the ID Token.
+  - Used as a fallback for `max_age` enforcement when `auth_time_from_session` is not configured. **Note:** for multi-session deployments this is insecure (it returns the most recent login on _any_ device), and emits a deprecation warning — prefer `auth_time_from_session` below.
+- `auth_time_from_session`
+  - Returns the time the user authenticated for the *current* session. Required for correct `max_age` enforcement when the same user can hold multiple concurrent sessions (e.g. PC + smartphone) — `auth_time_from_resource_owner` cannot distinguish between sessions and would let a stale session inherit a fresh login from another device.
+  - The block is executed in the controller's scope and receives `(session, request)`. Return value can be a `Time`, `DateTime`, or anything responding to `to_i`. Return `nil` to force reauthentication.
+
+    ```ruby
+    # Example: capture auth_time on the session at login,
+    # and surface it here for the OIDC max_age check.
+    auth_time_from_session do |session, _request|
+      session[:auth_time]
+    end
+    ```
 - `reauthenticate_resource_owner`
   - Defines how to trigger reauthentication for the current user (e.g. display a password prompt, or sign-out the user and redirect to the login form).
   - Required to support the `max_age` and `prompt=login` parameters.
