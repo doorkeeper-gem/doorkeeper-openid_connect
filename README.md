@@ -368,7 +368,15 @@ Doorkeeper::OpenidConnect.configure do
   # ...
   dynamic_client_registration true
   authorize_dynamic_client_registration do
-    request.headers["Authorization"] == "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+    provided = request.headers["Authorization"].to_s
+    expected = "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+    # Use a constant-time comparison to avoid leaking the token via timing.
+    # Digesting first keeps the comparison fixed-length so the token's length
+    # isn't leaked either.
+    ActiveSupport::SecurityUtils.secure_compare(
+      Digest::SHA256.hexdigest(provided),
+      Digest::SHA256.hexdigest(expected),
+    )
   end
   # ...
 end
