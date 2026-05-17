@@ -40,7 +40,7 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
   it "creates an access token" do
     expect do
       subject.authorize
-    end.to change { Doorkeeper::AccessToken.count }.by(1)
+    end.to change(Doorkeeper::AccessToken, :count).by(1)
   end
 
   it "returns id_token token response" do

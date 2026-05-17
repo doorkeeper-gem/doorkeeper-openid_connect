@@ -126,9 +126,7 @@ describe Doorkeeper::OpenidConnect::IdToken do
 
   describe "#as_json" do
     it "returns claims with nil values and empty strings removed" do
-      allow(subject).to receive(:issuer).and_return(nil)
-      allow(subject).to receive(:subject).and_return("")
-      allow(subject).to receive(:audience).and_return(" ")
+      allow(subject).to receive_messages(issuer: nil, subject: "", audience: " ")
 
       json = subject.as_json
 

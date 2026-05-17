@@ -30,7 +30,7 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
         create(:openid_request, access_grant: access_grant)
 
         expect { access_grant.delete }
-          .to(change { openid_request_class.count }.by(-1))
+          .to(change(openid_request_class, :count).by(-1))
       else
         skip <<-MSG.strip
           Needs Rails 6 for foreign key support with sqlite3:
