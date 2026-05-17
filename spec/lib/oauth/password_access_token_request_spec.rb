@@ -4,13 +4,13 @@ require "rails_helper"
 
 describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
   # TODO: Remove conditional when minimum doorkeeper version is >= 5.5.1
-  # rubocop:disable RSpec/MultipleSubjects
+  # rubocop:disable RSpec/MultipleSubjects, RSpec/LeadingSubject
   if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.create("5.5.1")
     subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, credentials, resource_owner, { nonce: "123456" } }
   else
     subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: "123456" } }
   end
-  # rubocop:enable RSpec/MultipleSubjects
+  # rubocop:enable RSpec/MultipleSubjects, RSpec/LeadingSubject
 
   let(:server) { double }
   let(:client) { double }
