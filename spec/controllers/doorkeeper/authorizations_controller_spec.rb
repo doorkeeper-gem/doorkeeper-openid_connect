@@ -601,8 +601,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   end
 
   describe "#select_account_for_resource_owner" do
+    let(:performed) { true }
+
     before do
       allow(subject).to receive(:clear_oidc_response)
+      allow(subject).to receive(:performed?) { performed }
       allow(subject.request).to receive(:path).and_return("/oauth/authorize")
       allow(subject.request).to receive(:query_parameters) {
         { client_id: "foo", prompt: "login consent select_account" }.with_indifferent_access
@@ -634,6 +637,16 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
 
       expect(return_params["prompt"]).to eq "login consent"
+    end
+
+    context "with a select account handler that does not generate a response" do
+      let(:performed) { false }
+
+      it "raises an account_selection_required error" do
+        expect do
+          select_account!
+        end.to raise_error(Doorkeeper::OpenidConnect::Errors::AccountSelectionRequired)
+      end
     end
   end
 

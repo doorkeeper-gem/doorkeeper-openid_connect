@@ -27,6 +27,7 @@ module Doorkeeper
       class LoginRequired < OpenidConnectError; end
       class ConsentRequired < OpenidConnectError; end
       class InteractionRequired < OpenidConnectError; end
+      class AccountSelectionRequired < OpenidConnectError; end
     end
   end
 end
