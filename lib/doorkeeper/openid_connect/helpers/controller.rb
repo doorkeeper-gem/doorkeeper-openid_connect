@@ -15,6 +15,7 @@ module Doorkeeper
 
         def authenticate_resource_owner!
           super.tap do |owner|
+            next if performed?
             next unless oidc_authorization_request?
 
             handle_oidc_max_age_param!(owner)
