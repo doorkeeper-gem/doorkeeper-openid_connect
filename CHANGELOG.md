@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#281] Fix `NoMethodError` / `DoubleRenderError` when `resource_owner_authenticator` redirects with a truthy non-model value (e.g. `current_user || redirect_to(login_url)`). Normalize the leaked value to `nil` when `performed?` and add missing `if owner` guard on `select_account`.
 
 ## v1.9.0 (2026-03-16)
 
