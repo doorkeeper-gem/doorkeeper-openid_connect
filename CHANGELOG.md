@@ -19,6 +19,7 @@
 - [#268] Update Dynamic Client Registration README for validated metadata parameters
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
+- [#278] Test against Ruby 4.0.
 
 ## v1.9.0 (2026-03-16)
 
