@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#275] Return `login_required` for `max_age` reauthentication when `prompt=none`, instead of triggering the interactive `reauthenticate_resource_owner` flow (OIDC Core §3.1.2.1)
 
 ## v1.9.0 (2026-03-16)
 
