@@ -6,6 +6,11 @@ plugins:
 AllCops:
   TargetRubyVersion: 3.1
   Exclude:
+    # CI installs gems into ./vendor/bundle (ruby/setup-ruby bundler-cache),
+    # which RuboCop would otherwise lint. Defining AllCops/Exclude overrides
+    # RuboCop's default vendor exclusion, so list it explicitly here too.
+    - "vendor/**/*"
+    - ".bundle/**/*"
     - "spec/dummy/bin/*"
     - "spec/dummy/db/*"
     - "spec/dummy/db/*/**"
