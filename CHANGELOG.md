@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#273] **Security/Hardening:** Merge framework-controlled registered claims (`iss`/`sub`/`aud`/`exp`/`iat`/`nonce`/`auth_time`) last in the ID Token and UserInfo so a custom claim block can no longer override security-critical claims. No legitimate configuration relied on this; custom claims that intentionally shadowed a registered claim name will now be ignored for that key (OIDC Core §2 / §3.1.3.7 / §5.3.2).
 
 ## v1.9.0 (2026-03-16)
 

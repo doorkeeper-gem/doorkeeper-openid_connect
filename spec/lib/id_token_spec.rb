@@ -122,6 +122,42 @@ describe Doorkeeper::OpenidConnect::IdToken do
         expect(subject.as_json).not_to include(:auth_time)
       end
     end
+
+    context "when a custom claim collides with a protected registered claim" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          auth_time_from_resource_owner do |resource_owner|
+            resource_owner.current_sign_in_at
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+
+          claims do
+            claim(:sub, scope: :openid, response: [:id_token]) { "SPOOFED-SUB" }
+            claim(:aud, scope: :openid, response: [:id_token]) { "EVIL-CLIENT" }
+            claim(:exp, scope: :openid, response: [:id_token]) { 9_999_999_999 }
+            claim(:iss, scope: :openid, response: [:id_token]) { "https://evil.example.com" }
+          end
+        end
+      end
+
+      it "does not let custom claims override iss/sub/aud/exp in the signed ID token" do
+        claims = subject.claims
+
+        expect(claims[:iss]).to eq "dummy"
+        expect(claims[:sub]).to eq user.id.to_s
+        expect(claims[:aud]).to eq access_token.application.uid
+        expect(claims[:exp]).to eq 180
+      end
+    end
   end
 
   describe "#as_json" do
