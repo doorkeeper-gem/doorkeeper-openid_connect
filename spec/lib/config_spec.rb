@@ -96,6 +96,22 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
   end
 
+  describe "auth_time_from_session" do
+    it "defaults to nil" do
+      described_class.configure {}
+
+      expect(subject.auth_time_from_session).to be_nil
+    end
+
+    it "sets the block that is accessible via auth_time_from_session" do
+      block = proc {}
+      described_class.configure do
+        auth_time_from_session(&block)
+      end
+      expect(subject.auth_time_from_session).to eq(block)
+    end
+  end
+
   describe "reauthenticate_resource_owner" do
     it "sets the block that is accessible via reauthenticate_resource_owner" do
       block = proc {}

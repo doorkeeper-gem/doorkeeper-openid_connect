@@ -21,9 +21,30 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   auth_time_from_resource_owner do |resource_owner|
+    # Used to populate the `auth_time` claim on the ID Token, and as a
+    # fallback for `max_age` enforcement when `auth_time_from_session` is
+    # not configured.
+    #
     # Example implementation:
     # resource_owner.current_sign_in_at
   end
+
+  # Recommended: derive `auth_time` from the current session for `max_age`
+  # enforcement. `auth_time_from_resource_owner` returns the same value for
+  # every concurrent session of the same user (e.g. PC + smartphone), which
+  # can let a stale session satisfy an RP's `max_age` requirement by
+  # piggy-backing on a fresh login from another device.
+  #
+  # The block is executed in the controller's scope and receives the
+  # current `session` and `request`. Return value can be a `Time`,
+  # `DateTime`, or anything responding to `to_i`. Return `nil` to force
+  # reauthentication.
+  #
+  # auth_time_from_session do |session, _request|
+  #   # Example implementation: capture auth_time on the session at login,
+  #   # and surface it here.
+  #   session[:auth_time]
+  # end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
     # Example implementation:
