@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#272] Document `auth_time_from_session` in README (follow-up to [#271](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/pull/271))
 
 ## v1.9.0 (2026-03-16)
 
