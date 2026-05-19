@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#277] Fix README inaccuracies (`signing_algorithm` description and link, `discovery_url_options` endpoint list, `oauth-authorization-server` route) and use constant-time comparison in the DCR authorization example to prevent timing attacks on the Initial Access Token
 
 ## v1.9.0 (2026-03-16)
 

@@ -143,7 +143,7 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
   - You can generate a private key with the `openssl` command, see e.g. [Generate an RSA keypair using OpenSSL](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL).
   - You should not commit the key to your repository, but use an external file (in combination with `File.read`) and/or the [dotenv-rails](https://github.com/bkeepers/dotenv) gem (in combination with `ENV[...]`).
 - `signing_algorithm`
-  - The encryption type of the private key which defaults to `:rs256`. The list of supported algorithms can be found [here](https://github.com/nov/json-jwt/wiki/JWE#supported-algorithms)
+  - The signing algorithm used for the ID token, which defaults to `:rs256`. The list of supported algorithms can be found [here](https://github.com/jwt/ruby-jwt#algorithms-and-usage)
 - `resource_owner_from_access_token`
   - Defines how to translate the Doorkeeper access token to a resource owner model.
 
@@ -192,7 +192,7 @@ The following settings are optional:
 - `discovery_url_options`
   - The URL options for every available endpoint to use when generating the endpoint URL in the
     discovery response. Available endpoints: `authorization`, `token`, `revocation`,
-    `introspection`, `userinfo`, `jwks`.
+    `introspection`, `userinfo`, `jwks`, `dynamic_client_registration`.
   - This option requires option keys with an available endpoint and
     [URL options](https://api.rubyonrails.org/v6.0.3.3/classes/ActionDispatch/Routing/UrlFor.html#method-i-url_for)
     as value.
@@ -282,6 +282,7 @@ GET   /oauth/userinfo
 POST  /oauth/userinfo
 GET   /oauth/discovery/keys
 GET   /.well-known/openid-configuration
+GET   /.well-known/oauth-authorization-server
 GET   /.well-known/webfinger
 ```
 
@@ -367,7 +368,15 @@ Doorkeeper::OpenidConnect.configure do
   # ...
   dynamic_client_registration true
   authorize_dynamic_client_registration do
-    request.headers["Authorization"] == "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+    provided = request.headers["Authorization"].to_s
+    expected = "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+    # Use a constant-time comparison to avoid leaking the token via timing.
+    # Digesting first keeps the comparison fixed-length so the token's length
+    # isn't leaked either.
+    ActiveSupport::SecurityUtils.secure_compare(
+      Digest::SHA256.hexdigest(provided),
+      Digest::SHA256.hexdigest(expected),
+    )
   end
   # ...
 end
