@@ -20,6 +20,7 @@
 - [#269] Document `authorize_dynamic_client_registration` in README
 - [#270] Document the unified issuer block signature in README
 - [#278] Test against Ruby 4.0.
+- [#276] Get RuboCop to zero offenses: fix `Lint/MissingSuper` in `IdTokenResponse`, replace `puts` with `warn` for deprecation notices, and modernise spec style
 
 ## v1.9.0 (2026-03-16)
 

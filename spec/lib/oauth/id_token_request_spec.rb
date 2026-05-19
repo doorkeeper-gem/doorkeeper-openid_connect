@@ -40,7 +40,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
   it "creates an access token" do
     expect do
       subject.authorize
-    end.to change { Doorkeeper::AccessToken.count }.by(1)
+    end.to change(Doorkeeper::AccessToken, :count).by(1)
   end
 
   it "returns id_token response" do
@@ -52,7 +52,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
       allow(Doorkeeper.configuration).to receive(:reuse_access_token).and_return(true)
       expect do
         subject.authorize
-      end.to change { Doorkeeper::AccessToken.count }.by(1)
+      end.to change(Doorkeeper::AccessToken, :count).by(1)
     end
 
     it "creates a new token if scopes do not match" do
@@ -61,18 +61,17 @@ describe Doorkeeper::OAuth::IdTokenRequest do
              resource_owner_id: owner.id, scopes: "")
       expect do
         subject.authorize
-      end.to change { Doorkeeper::AccessToken.count }.by(1)
+      end.to change(Doorkeeper::AccessToken, :count).by(1)
     end
 
     it "skips token creation if there is a matching one" do
       allow(Doorkeeper.configuration).to receive(:reuse_access_token).and_return(true)
-      allow(application.scopes).to receive(:has_scopes?).and_return(true)
-      allow(application.scopes).to receive(:all?).and_return(true)
+      allow(application.scopes).to receive_messages(has_scopes?: true, all?: true)
 
       create(:access_token, application_id: pre_auth.client.id,
              resource_owner_id: owner.id, scopes: "public")
 
-      expect { subject.authorize }.not_to(change { Doorkeeper::AccessToken.count })
+      expect { subject.authorize }.not_to(change(Doorkeeper::AccessToken, :count))
     end
   end
 end

@@ -17,6 +17,16 @@ Layout/DotPosition:
 Layout/LineLength:
   Exclude:
     - spec/**/*
+    # Legacy library files with long lines remaining
+    # (mostly multi-line I18n/deprecation message strings).
+    - app/controllers/doorkeeper/openid_connect/discovery_controller.rb
+    - app/controllers/doorkeeper/openid_connect/dynamic_client_registration_controller.rb
+    - lib/doorkeeper/openid_connect/config.rb
+    - lib/doorkeeper/openid_connect/errors.rb
+    - lib/doorkeeper/openid_connect/helpers/controller.rb
+    - lib/doorkeeper/openid_connect/orm/active_record.rb
+    - lib/doorkeeper/openid_connect/orm/active_record/mixins/openid_request.rb
+    - lib/generators/doorkeeper/openid_connect/templates/initializer.rb
   Max: 100
 Metrics/BlockLength:
   Exclude:

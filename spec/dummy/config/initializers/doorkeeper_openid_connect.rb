@@ -3,7 +3,7 @@
 Doorkeeper::OpenidConnect.configure do
   issuer "dummy"
 
-  signing_key <<~EOL
+  signing_key <<~RSA_PRIVATE_KEY
     -----BEGIN RSA PRIVATE KEY-----
     MIIEpgIBAAKCAQEAsjdnSA6UWUQQHf6BLIkIEUhMRNBJC1NN/pFt1EJmEiI88GS0
     ceROO5B5Ooo9Y3QOWJ/n+u1uwTHBz0HCTN4wgArWd1TcqB5GQzQRP4eYnWyPfi4C
@@ -31,7 +31,7 @@ Doorkeeper::OpenidConnect.configure do
     SFR3PjWQyCg7aGGXiooCM38YQruACTj0IFub24MFRA4ZTXvrACvpsVokJlQiG0Z4
     tuQKYki41JvYqPobcq/rLE/AM7PKJftW35nqFuj0MrsUwPacaVwKBf5J
     -----END RSA PRIVATE KEY-----
-  EOL
+  RSA_PRIVATE_KEY
 
   subject_types_supported [:public]
 

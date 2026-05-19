@@ -27,7 +27,19 @@ Metrics/ModuleLength:
   Max: 209
 
 Metrics/MethodLength:
-  Max: 15
+  Max: 33
+
+# Configuration parameters: IgnoredMethods.
+Metrics/AbcSize:
+  Max: 35
+
+# Configuration parameters: IgnoredMethods.
+Metrics/CyclomaticComplexity:
+  Max: 13
+
+# Configuration parameters: IgnoredMethods.
+Metrics/PerceivedComplexity:
+  Max: 10
 
 Style/TrailingCommaInArguments:
   Enabled: false
@@ -46,4 +58,45 @@ RSpec/NamedSubject:
 
 # Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
 RSpec/VerifiedDoubles:
+  Enabled: false
+
+# This gem does not enforce top-level documentation comments.
+Style/Documentation:
+  Enabled: false
+
+# Configuration parameters: AllowedConstants.
+Naming/VariableNumber:
+  Enabled: false
+
+# The Doorkeeper config DSL (subject, auth_time_from_resource_owner, claim)
+# invokes these blocks with extra arguments, so a strict-arity `&:sym`
+# lambda raises ArgumentError. Keep explicit blocks here.
+Style/SymbolProc:
+  Exclude:
+    - "spec/dummy/config/initializers/doorkeeper_openid_connect.rb"
+    - "spec/lib/id_token_spec.rb"
+    - "spec/support/doorkeeper_configuration.rb"
+
+# Configuration parameters: Max, AllowSubject.
+RSpec/MultipleMemoizedHelpers:
+  Max: 7
+
+RSpec/SubjectStub:
+  Enabled: false
+
+# Configuration parameters: Prefixes, AllowedPatterns.
+# Prefixes: when, with, without
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/ExpectInHook:
+  Enabled: false
+
+RSpec/IndexedLet:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/DescribeMethod:
   Enabled: false

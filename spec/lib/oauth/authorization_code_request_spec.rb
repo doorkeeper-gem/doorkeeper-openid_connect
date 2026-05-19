@@ -31,7 +31,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
 
       expect do
         subject.send :after_successful_response
-      end.to change { openid_request_class.count }.by(-1)
+      end.to change(openid_request_class, :count).by(-1)
     end
 
     it "skips the nonce if not present" do
@@ -62,7 +62,7 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
 
         expect do
           subject.send :after_successful_response
-        end.to change { openid_request_class.count }.by(-1)
+        end.to change(openid_request_class, :count).by(-1)
       end
 
       it "does not build an ID token" do

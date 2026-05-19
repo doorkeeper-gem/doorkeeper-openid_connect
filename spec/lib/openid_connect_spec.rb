@@ -23,7 +23,7 @@ describe Doorkeeper::OpenidConnect do
 
       before do
         key_pem = rsa_key_1_pem
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           signing_key -> { key_pem }
         end
       end
@@ -46,7 +46,7 @@ describe Doorkeeper::OpenidConnect do
         kid_1 = subject.signing_key.kid
 
         key_pem = rsa_key_2_pem
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           signing_key -> { key_pem }
         end
 
@@ -81,7 +81,7 @@ describe Doorkeeper::OpenidConnect do
 
       before do
         key_pem = ec_key_pem
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           signing_algorithm :ES256
           signing_key -> { key_pem }
         end
@@ -106,7 +106,7 @@ describe Doorkeeper::OpenidConnect do
 
       before do
         secret = hmac_secret
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           signing_algorithm :HS256
           signing_key -> { secret }
         end
@@ -184,7 +184,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when issuer is a static string" do
       before do
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           issuer "https://static-issuer.example.com"
         end
       end
@@ -196,7 +196,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when issuer block has arity 0" do
       before do
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           issuer do
             "https://zero-arity.example.com"
           end
@@ -212,7 +212,7 @@ describe Doorkeeper::OpenidConnect do
       before do
         req = request
         owner = resource_owner
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           issuer do |request_or_owner|
             if request_or_owner.equal?(req)
               "issuer-request"
@@ -243,7 +243,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when issuer block has arity 2" do
       before do
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           issuer do |resource_owner, application|
             "owner-#{resource_owner&.class&.name}-app-#{application&.class&.name}"
           end
@@ -263,7 +263,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when issuer block has arity 3" do
       before do
-        Doorkeeper::OpenidConnect.configure do
+        described_class.configure do
           issuer do |resource_owner, _application, request|
             if request
               request.base_url
