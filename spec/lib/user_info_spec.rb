@@ -37,6 +37,28 @@ describe Doorkeeper::OpenidConnect::UserInfo do
         })
       end
     end
+
+    context "when a custom claim collides with the protected sub claim" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+
+          claims do
+            claim(:sub, scope: :openid, response: [:user_info]) { "SPOOFED-SUB" }
+          end
+        end
+      end
+
+      it "does not let a custom claim override the canonical subject" do
+        expect(subject.claims[:sub]).to eq user.id.to_s
+      end
+    end
   end
 
   describe "#as_json" do

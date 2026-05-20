@@ -16,7 +16,10 @@ module Doorkeeper
       end
 
       def claims
-        {
+        # NOTE: framework-controlled claims are merged last so a custom claim
+        # block cannot override security-critical registered claims such as
+        # `sub`, `aud`, `exp`, `iss` or `iat` in the signed ID token.
+        ClaimsBuilder.generate(@access_token, :id_token).merge(
           iss: issuer,
           sub: subject,
           aud: audience,
@@ -24,7 +27,7 @@ module Doorkeeper
           iat: issued_at,
           nonce: nonce,
           auth_time: auth_time
-        }.merge ClaimsBuilder.generate(@access_token, :id_token)
+        )
       end
 
       def as_json(*_)

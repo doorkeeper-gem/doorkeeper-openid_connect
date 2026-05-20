@@ -23,6 +23,7 @@
 - [#278] Test against Ruby 4.0.
 - [#271] **Security:** Add `auth_time_from_session` config for per-session `max_age` enforcement. The legacy `auth_time_from_resource_owner` cannot distinguish between concurrent sessions and is now deprecated for `max_age` use (see [#150](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/150))
 - [#272] Document `auth_time_from_session` in README (follow-up to [#271](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/pull/271))
+- [#273] **Security/Hardening:** Merge framework-controlled registered claims last — `iss`/`sub`/`aud`/`exp`/`iat`/`nonce`/`auth_time` for the ID Token and `sub` for UserInfo — so a custom claim block can no longer override security-critical values. No legitimate configuration relied on this; custom claims that intentionally shadowed a registered claim name will now be ignored for that key (OIDC Core §2 / §3.1.3.7 / §5.3.2).
 
 ## v1.9.0 (2026-03-16)
 
