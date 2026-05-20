@@ -73,6 +73,7 @@ Naming/VariableNumber:
 # lambda raises ArgumentError. Keep explicit blocks here.
 Style/SymbolProc:
   Exclude:
+    - "spec/controllers/doorkeeper/authorizations_controller_spec.rb"
     - "spec/dummy/config/initializers/doorkeeper_openid_connect.rb"
     - "spec/lib/id_token_spec.rb"
     - "spec/support/doorkeeper_configuration.rb"
