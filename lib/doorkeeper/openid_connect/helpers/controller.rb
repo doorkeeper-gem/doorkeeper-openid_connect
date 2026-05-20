@@ -138,6 +138,12 @@ module Doorkeeper
           raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
           raise Errors::LoginRequired unless owner
           raise Errors::ConsentRequired if oidc_consent_required?
+
+          # Issue #63: if no exact-scope token exists but a previously-granted
+          # token already covers the requested scopes (i.e. the user is asking
+          # for a narrower subset), auto-issue rather than rendering the
+          # consent form — `prompt=none` forbids any interactive UI.
+          @_oidc_prompt_none_skip_authorization = true if oidc_matching_subset_token?
         end
 
         def handle_oidc_max_age_param!(owner)
@@ -218,7 +224,34 @@ module Doorkeeper
         end
 
         def oidc_consent_required?
-          !skip_authorization? && !matching_token?
+          !skip_authorization? && !matching_token? && !oidc_matching_subset_token?
+        end
+
+        # Returns true if the resource owner already has an active token for this
+        # client whose scopes are a (non-strict) superset of the requested scopes.
+        # Used to allow `prompt=none` to succeed when the client re-authorizes
+        # with a narrower set of scopes (issue #63).
+        def oidc_matching_subset_token?
+          return @oidc_matching_subset_token if defined?(@oidc_matching_subset_token)
+
+          @oidc_matching_subset_token =
+            if pre_auth.scopes.empty?
+              false
+            else
+              access_token_model = Doorkeeper.config.access_token_model
+              access_token_model.authorized_tokens_for(
+                pre_auth.client.id,
+                current_resource_owner.id,
+              ).any? { |token| token.scopes.scopes?(pre_auth.scopes) }
+            end
+        end
+
+        # Force Doorkeeper's `render_success` onto the auto-issue path when a
+        # `prompt=none` subset-scope reauthorization has been validated above.
+        def skip_authorization?
+          return true if @_oidc_prompt_none_skip_authorization
+
+          super
         end
 
         def select_account_for_oidc_resource_owner(owner)
