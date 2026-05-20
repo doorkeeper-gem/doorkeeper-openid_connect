@@ -410,6 +410,101 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
 
+    context "when auth_time_from_session is configured" do
+      def authorize_with_session!(session_attrs, params = {})
+        get :new, params: {
+          response_type: "code",
+          response_mode: "",
+          current_user: user.id,
+          client_id: application.uid,
+          scope: default_scopes,
+          redirect_uri: application.redirect_uri,
+        }.merge(params), session: session_attrs
+      end
+
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+          auth_time_from_resource_owner do |resource_owner|
+            resource_owner.current_sign_in_at
+          end
+          auth_time_from_session do |session, _request|
+            session[:current_session_auth_time]
+          end
+          reauthenticate_resource_owner do |_resource_owner, _return_to|
+            redirect_to "/reauthenticate"
+          end
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it "uses the session-derived auth_time and renders the form when within max_age" do
+        authorize_with_session!(
+          { current_session_auth_time: 5.seconds.ago },
+          max_age: 10,
+        )
+
+        expect_authorization_form!
+      end
+
+      it "uses the session-derived auth_time and reauthenticates when older than max_age" do
+        authorize_with_session!(
+          { current_session_auth_time: 5.minutes.ago },
+          max_age: 10,
+        )
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "reauthenticates when the session has no auth_time" do
+        authorize_with_session!({}, max_age: 10)
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "respects per-session auth_time even when the resource owner was logged in on another device more recently" do
+        # The resource owner's last sign-in (e.g. on another device) is recent,
+        # but the *current* session is stale: max_age should still trigger
+        # reauthentication. This is the security scenario from issue #150.
+        user.update! current_sign_in_at: 5.seconds.ago
+
+        authorize_with_session!(
+          { current_session_auth_time: 1.hour.ago },
+          max_age: 60,
+        )
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "does not emit the auth_time_from_resource_owner deprecation warning" do
+        expect(Doorkeeper::OpenidConnect::Helpers::Controller)
+          .not_to receive(:warn_auth_time_from_resource_owner_deprecation)
+
+        authorize_with_session!(
+          { current_session_auth_time: 5.seconds.ago },
+          max_age: 10,
+        )
+      end
+    end
+
+    context "when only auth_time_from_resource_owner is configured" do
+      before { Doorkeeper::OpenidConnect::Helpers::Controller.reset_auth_time_deprecation_warning! }
+
+      it "emits a deprecation warning once per process" do
+        user.update! current_sign_in_at: 5.seconds.ago
+
+        expect { authorize! max_age: 10 }.to output(/auth_time_from_resource_owner.*deprecated/).to_stderr
+
+        # Subsequent calls do not re-emit the warning.
+        expect { authorize! max_age: 10 }.not_to output.to_stderr
+      end
+    end
+
     context "when used along with prompt=select_account" do
       it "renders the authorization form" do
         user.update! current_sign_in_at: 5.seconds.ago

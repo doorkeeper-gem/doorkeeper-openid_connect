@@ -4,6 +4,29 @@ module Doorkeeper
   module OpenidConnect
     module Helpers
       module Controller
+        # Emit `auth_time_from_resource_owner` deprecation at most once per process
+        # to avoid spamming logs on every authorize request with `max_age`.
+        @auth_time_from_resource_owner_deprecation_warned = false
+
+        def self.warn_auth_time_from_resource_owner_deprecation
+          return if @auth_time_from_resource_owner_deprecation_warned
+
+          @auth_time_from_resource_owner_deprecation_warned = true
+          warn "DEPRECATION WARNING: `auth_time_from_resource_owner` is deprecated for " \
+               "`max_age` enforcement because it cannot distinguish between concurrent " \
+               "sessions of the same user, which is a security issue (see " \
+               "https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/150). " \
+               "Please configure `auth_time_from_session` to derive auth_time from the " \
+               "current session instead. The `auth_time_from_resource_owner` callback " \
+               "continues to be used as a fallback and for the `auth_time` claim on the " \
+               "ID Token."
+        end
+
+        # Reset the deprecation flag (test helper).
+        def self.reset_auth_time_deprecation_warning!
+          @auth_time_from_resource_owner_deprecation_warned = false
+        end
+
         private
 
         # FIXME: remove after Doorkeeper will merge it
@@ -99,10 +122,7 @@ module Doorkeeper
           max_age = params[:max_age].to_i
           return unless (params[:max_age].to_s == "0" || max_age > 0) && owner
 
-          auth_time = instance_exec(
-            owner,
-            &Doorkeeper::OpenidConnect.configuration.auth_time_from_resource_owner
-          )
+          auth_time = resolve_oidc_auth_time(owner)
 
           # Normalize non-Time values (e.g. an Integer epoch) so that the
           # subtraction below yields a Float of elapsed seconds rather than a
@@ -117,6 +137,23 @@ module Doorkeeper
           return unless !auth_time || (Time.zone.now - auth_time) > max_age
 
           reauthenticate_oidc_resource_owner(owner)
+        end
+
+        # Resolve auth_time for max_age enforcement.
+        #
+        # Prefers `auth_time_from_session` so that multi-session deployments can
+        # return the auth_time of the *current* session rather than the user's
+        # most recent login on any device (issue #150). Falls back to the legacy
+        # `auth_time_from_resource_owner` with a one-time deprecation warning.
+        def resolve_oidc_auth_time(owner)
+          config = Doorkeeper::OpenidConnect.configuration
+
+          if config.auth_time_from_session
+            return instance_exec(session, request, &config.auth_time_from_session)
+          end
+
+          Doorkeeper::OpenidConnect::Helpers::Controller.warn_auth_time_from_resource_owner_deprecation
+          instance_exec(owner, &config.auth_time_from_resource_owner)
         end
 
         def return_without_oidc_prompt_param(prompt_value)
