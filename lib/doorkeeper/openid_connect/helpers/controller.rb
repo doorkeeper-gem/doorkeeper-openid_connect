@@ -104,9 +104,7 @@ module Doorkeeper
           prompt_values.each do |prompt|
             case prompt
             when "none"
-              raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
-              raise Errors::LoginRequired unless owner
-              raise Errors::ConsentRequired if oidc_consent_required?
+              handle_oidc_prompt_none!(prompt_values, owner)
             when "login"
               reauthenticate_oidc_resource_owner(owner) if owner
             when "consent"
@@ -122,6 +120,12 @@ module Doorkeeper
               raise Errors::InvalidRequest
             end
           end
+        end
+
+        def handle_oidc_prompt_none!(prompt_values, owner)
+          raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
+          raise Errors::LoginRequired unless owner
+          raise Errors::ConsentRequired if oidc_consent_required?
         end
 
         def handle_oidc_max_age_param!(owner)
