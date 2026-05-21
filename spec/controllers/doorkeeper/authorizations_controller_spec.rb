@@ -531,6 +531,24 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(response).to redirect_to "/reauthenticate"
       end
     end
+
+    context "when used along with prompt=none" do
+      # OIDC Core 1.0 §3.1.2.1: with prompt=none the Authorization Server MUST
+      # NOT display any UI; an exceeded max_age must be reported as
+      # login_required rather than triggering interactive reauthentication.
+      it "returns login_required instead of reauthenticating interactively" do
+        create :access_token, token_attributes
+        user.update! current_sign_in_at: 5.minutes.ago
+
+        authorize! max_age: 10, prompt: "none", state: "somestate"
+
+        expect(response).to redirect_to build_redirect_uri({
+          "error" => "login_required",
+          "error_description" => "The authorization server requires end-user authentication",
+          "state" => "somestate",
+        })
+      end
+    end
   end
 
   describe "#reauthenticate_oidc_resource_owner" do

@@ -88,10 +88,8 @@ module Doorkeeper
         end
 
         def handle_oidc_prompt_param!(owner)
-          prompt_values ||= params[:prompt].to_s.split(/ +/).uniq
-
           priority = %w[none consent login select_account]
-          prompt_values.sort_by! do |prompt|
+          prompt_values = oidc_prompt_values.sort_by do |prompt|
             priority.find_index(prompt).to_i
           end
 
@@ -136,7 +134,19 @@ module Doorkeeper
 
           return unless !auth_time || (Time.zone.now - auth_time) > max_age
 
+          # OIDC Core 1.0 §3.1.2.1: with `prompt=none` the Authorization Server
+          # MUST NOT display any authentication UI. Reauthentication required by
+          # `max_age` must therefore be reported as `login_required` instead of
+          # triggering the interactive `reauthenticate_resource_owner` flow.
+          # (Conflicting combinations like `prompt=none login` are still left to
+          # `handle_oidc_prompt_param!`, which raises `invalid_request`.)
+          raise Errors::LoginRequired if oidc_prompt_values == ["none"]
+
           reauthenticate_oidc_resource_owner(owner)
+        end
+
+        def oidc_prompt_values
+          @oidc_prompt_values ||= params[:prompt].to_s.split(/ +/).uniq
         end
 
         # Resolve auth_time for max_age enforcement.
