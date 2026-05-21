@@ -147,6 +147,14 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 - `resource_owner_from_access_token`
   - Defines how to translate the Doorkeeper access token to a resource owner model.
 
+> [!Note]
+> Both `signing_key` and `signing_algorithm` also accept callable objects (e.g. a lambda), which are evaluated on each call — useful for multi-tenant setups where the key or algorithm varies per request:
+>
+> ```ruby
+> signing_key -> { current_tenant.private_key }
+> signing_algorithm -> { current_tenant.algorithm }
+> ```
+
 The following settings are optional, but recommended for better client compatibility:
 
 - `auth_time_from_resource_owner`
