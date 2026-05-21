@@ -76,6 +76,7 @@ Style/SymbolProc:
     - "spec/controllers/doorkeeper/authorizations_controller_spec.rb"
     - "spec/dummy/config/initializers/doorkeeper_openid_connect.rb"
     - "spec/lib/id_token_spec.rb"
+    - "spec/lib/user_info_spec.rb"
     - "spec/support/doorkeeper_configuration.rb"
 
 # Configuration parameters: Max, AllowSubject.
