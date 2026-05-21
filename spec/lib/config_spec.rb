@@ -229,7 +229,7 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
 
     it "can be set to other hosts" do
-      Doorkeeper::OpenidConnect.configure do
+      described_class.configure do
         discovery_url_options do |_request|
           {
             authorization: { host: "alternate-authorization-host" },

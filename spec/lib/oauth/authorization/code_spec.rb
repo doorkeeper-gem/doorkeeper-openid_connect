@@ -14,12 +14,7 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
   describe "#issue_token" do
     before do
       allow(pre_auth).to receive(:client) { client }
-      allow(pre_auth).to receive(:redirect_uri).and_return("redirect_uri")
-      allow(pre_auth).to receive(:scopes).and_return("scopes")
-      allow(pre_auth).to receive(:nonce).and_return("123456")
-      allow(pre_auth).to receive(:code_challenge).and_return("987654")
-      allow(pre_auth).to receive(:code_challenge_method).and_return("plain")
-      allow(pre_auth).to receive(:custom_access_token_attributes).and_return({})
+      allow(pre_auth).to receive_messages(redirect_uri: "redirect_uri", scopes: "scopes", nonce: "123456", code_challenge: "987654", code_challenge_method: "plain", custom_access_token_attributes: {})
       allow(client).to receive(:id).and_return("client_id")
 
       allow(Doorkeeper::AccessGrant).to receive(:create!) { access_grant }
