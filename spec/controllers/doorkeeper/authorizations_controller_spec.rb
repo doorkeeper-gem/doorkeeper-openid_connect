@@ -600,7 +600,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
-  describe "#select_account_for_resource_owner" do
+  describe "#select_account_for_oidc_resource_owner" do
     let(:performed) { true }
 
     before do
