@@ -196,6 +196,12 @@ module Doorkeeper
             return_to,
             &Doorkeeper::OpenidConnect.configuration.select_account_for_resource_owner
           )
+
+          # OIDC Core 1.0 §3.1.2.6: if the account selection cannot be performed
+          # the request MUST fail with `account_selection_required` rather than
+          # silently continuing the authorization (mirrors the `login_required`
+          # backstop in #reauthenticate_oidc_resource_owner).
+          raise Errors::AccountSelectionRequired unless performed?
         end
       end
     end

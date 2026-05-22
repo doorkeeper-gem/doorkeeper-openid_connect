@@ -26,6 +26,7 @@
 - [#273] **Security/Hardening:** Merge framework-controlled registered claims last — `iss`/`sub`/`aud`/`exp`/`iat`/`nonce`/`auth_time` for the ID Token and `sub` for UserInfo — so a custom claim block can no longer override security-critical values. No legitimate configuration relied on this; custom claims that intentionally shadowed a registered claim name will now be ignored for that key (OIDC Core §2 / §3.1.3.7 / §5.3.2).
 - [#276] Get RuboCop to zero offenses: fix `Lint/MissingSuper` in `IdTokenResponse`, replace `puts` with `warn` for deprecation notices, and modernise spec style
 - [#277] Fix README inaccuracies (`signing_algorithm` description and link, `discovery_url_options` endpoint list, `oauth-authorization-server` route) and use constant-time comparison in the DCR authorization example to prevent timing attacks on the Initial Access Token
+- [#279] Return `account_selection_required` when a `prompt=select_account` handler does not generate a response, per [OIDC Core 1.0 §3.1.2.6](https://openid.net/specs/openid-connect-core-1_0.html#AuthError) — previously the authorization silently continued without account selection. Adds the missing `Errors::AccountSelectionRequired` class, mirroring the existing `login_required` backstop for `reauthenticate_resource_owner`
 
 ## v1.9.0 (2026-03-16)
 
