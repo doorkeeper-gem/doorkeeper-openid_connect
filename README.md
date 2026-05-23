@@ -282,6 +282,35 @@ By default all custom claims are only returned from the `UserInfo` endpoint and 
 
 You can also pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. If you define any of the defined [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) they will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) (`profile`, `email`, `address` and `phone`), and any other claims will by default use the `profile` scope. Again, to use any of these scopes you need to enable them as described above.
 
+#### Authentication Context (`acr`) and Methods (`amr`)
+
+The `claim` DSL also handles standard top-level ID Token claims such as [`acr`](http://openid.net/specs/openid-connect-core-1_0.html#IDToken) (Authentication Context Class Reference) and [`amr`](https://www.rfc-editor.org/rfc/rfc8176) (Authentication Methods References) — commonly used to expose MFA status to clients:
+
+```ruby
+claims do
+  claim :acr, response: [:id_token, :user_info], scope: :openid do |resource_owner|
+    # Single string — e.g. a URI like "urn:mace:incommon:iap:silver",
+    # or a numeric Level of Assurance "1".."4" per ISO/IEC 29115.
+    resource_owner.mfa_enabled? ? "2" : "1"
+  end
+
+  claim :amr, response: [:id_token, :user_info], scope: :openid do |resource_owner|
+    # Array of strings, per RFC 8176.
+    methods = ["pwd"]
+    methods << "mfa" if resource_owner.mfa_enabled?
+    methods << "otp" if resource_owner.last_login_used_totp?
+    methods
+  end
+end
+```
+
+Two defaults are worth calling out because they bite silently:
+
+- **`response: [:id_token, :user_info]`** — custom claims default to UserInfo only, but relying parties usually expect `acr` / `amr` on the ID Token.
+- **`scope: :openid`** — without it, non-standard claims fall back to the `profile` scope and disappear for clients that only requested `openid`.
+
+Claim names you declare here are automatically advertised under `claims_supported` in the discovery document. The list of advertised `acr` values (`acr_values_supported`) is not currently generated.
+
 ### Routes
 
 The installation generator will update your `config/routes.rb` to define all required routes:
