@@ -29,6 +29,7 @@
 - [#279] Return `account_selection_required` when a `prompt=select_account` handler does not generate a response, per [OIDC Core 1.0 §3.1.2.6](https://openid.net/specs/openid-connect-core-1_0.html#AuthError) — previously the authorization silently continued without account selection. Adds the missing `Errors::AccountSelectionRequired` class, mirroring the existing `login_required` backstop for `reauthenticate_resource_owner`
 - [#275] Return `login_required` for `max_age` reauthentication when `prompt=none`, instead of triggering the interactive `reauthenticate_resource_owner` flow (OIDC Core §3.1.2.1)
 - [#284] Document `acr` / `amr` claims in README — show how to expose Authentication Context Class Reference and Authentication Methods References via the `claim` DSL, with callouts for the `response:` and `scope:` defaults that silently bite
+- [#288] Document `offline_access` scope recipe in README — show how to wire `use_refresh_token` with scope-based filtering for OIDC offline access
 
 ## v1.9.0 (2026-03-16)
 

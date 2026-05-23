@@ -244,6 +244,24 @@ To perform authentication over OpenID Connect, an OAuth client needs to request 
 >
 > See [Using Scopes](https://github.com/doorkeeper-gem/doorkeeper/wiki/Using-Scopes) in the Doorkeeper wiki for more information.
 
+#### `offline_access`
+
+Per [OIDC Core §11](https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess), the `offline_access` scope signals that the client wants a refresh token so it can access the user's resources while the user is offline. Doorkeeper's existing `use_refresh_token` block already covers the basic flow — issue a refresh token only when the client actually asked for `offline_access`:
+
+```ruby
+# config/initializers/doorkeeper.rb
+Doorkeeper.configure do
+  optional_scopes :openid, :offline_access
+
+  # Issue a refresh token only when the client requests offline_access
+  use_refresh_token do |context|
+    context.scopes.exists?("offline_access")
+  end
+end
+```
+
+> **Note:** This does not automatically enforce [OIDC Core §11](https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess)'s strict requirements — for example, the OP MUST ignore `offline_access` unless `prompt=consent` is present and `response_type` returns an Authorization Code. If you need that level of enforcement, filter the scope in your `use_refresh_token` block or authorization controller override.
+
 ### Claims
 
 Claims can be defined in a `claims` block inside `config/initializers/doorkeeper_openid_connect.rb`:
