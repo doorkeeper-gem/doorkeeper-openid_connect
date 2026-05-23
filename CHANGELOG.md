@@ -31,6 +31,7 @@
 - [#284] Document `acr` / `amr` claims in README — show how to expose Authentication Context Class Reference and Authentication Methods References via the `claim` DSL, with callouts for the `response:` and `scope:` defaults that silently bite
 - [#288] Document `offline_access` scope recipe in README — show how to wire `use_refresh_token` with scope-based filtering for OIDC offline access
 - [#281] Fix `NoMethodError` / `DoubleRenderError` when `resource_owner_authenticator` redirects with a truthy non-model value (e.g. `current_user || redirect_to(login_url)`). Normalize the leaked value to `nil` when `performed?` and add missing `if owner` guard on `select_account`.
+- [#285] Document custom `jwks_uri` path pattern in README — show how to advertise a non-default path in the discovery document using Rails' `direct` URL helper
 
 ## v1.9.0 (2026-03-16)
 

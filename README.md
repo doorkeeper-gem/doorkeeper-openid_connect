@@ -353,6 +353,30 @@ GET   /.well-known/webfinger
 
 With the exception of the hard-coded `/.well-known` paths (see [RFC 5785](https://tools.ietf.org/html/rfc5785)) you can customize routes in the same way as with Doorkeeper, please refer to [this page on their wiki](https://github.com/doorkeeper-gem/doorkeeper/wiki/Customizing-routes#version--05-1).
 
+#### Customizing the `jwks_uri` path in the discovery document
+
+[`discovery_url_options`](#configuration) lets you tweak the host, protocol, or port of the published `jwks_uri`, but not the path itself. To advertise a custom path — while keeping `/oauth/discovery/keys` working for existing clients during a rollover — mount the discovery controller at the new path and re-point the `oauth_discovery_keys_url` helper at it via [`direct`](https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrlHelpers.html#method-i-direct):
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  use_doorkeeper_openid_connect
+
+  # 1. Mount the custom path under a non-conflicting helper name
+  get "/-/jwks",
+      to: "doorkeeper/openid_connect/discovery#keys",
+      as: :custom_jwks
+
+  # 2. Re-point oauth_discovery_keys_url at the new path
+  direct(:oauth_discovery_keys) { |opts| custom_jwks_url(opts) }
+end
+```
+
+After this, `.well-known/openid-configuration` returns `"jwks_uri": "https://example.com/-/jwks"`, and the original `/oauth/discovery/keys` route still responds (handy during a rollover).
+
+> [!Note]
+> A naive `match "/-/jwks", ..., as: :oauth_discovery_keys` won't work — Rails has refused to reuse a route name [since 4.0](https://github.com/rails/rails/commit/a2b7c0e69d) and raises `ArgumentError: Invalid route name, already in use: 'oauth_discovery_keys'`. The `direct` helper sidesteps this by overriding the URL helper itself rather than re-declaring the route name.
+
 ### Nonces
 
 To support clients who send nonces you have to tweak Doorkeeper's authorization view so the parameter is passed on.
