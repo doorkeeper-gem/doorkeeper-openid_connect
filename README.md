@@ -310,6 +310,18 @@ By default all custom claims are only returned from the `UserInfo` endpoint and 
 
 You can also pass a `scope:` keyword argument on each claim to specify which OAuth scope should be required to access the claim. If you define any of the defined [Standard Claims](http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) they will by default use their [corresponding scopes](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) (`profile`, `email`, `address` and `phone`), and any other claims will by default use the `profile` scope. Again, to use any of these scopes you need to enable them as described above.
 
+You can also pass an array of scopes, in which case the claim is returned whenever the access token grants any of the listed scopes. This is useful when you want to expose the same claim under both a standard scope and an aggregate scope:
+
+``` ruby
+claim :given_name, scope: [:profile, :all_data] do |user|
+  user.first_name
+end
+
+claim :email, scope: [:email, :all_data] do |user|
+  user.email
+end
+```
+
 #### Authentication Context (`acr`) and Methods (`amr`)
 
 The `claim` DSL also handles standard top-level ID Token claims such as [`acr`](http://openid.net/specs/openid-connect-core-1_0.html#IDToken) (Authentication Context Class Reference) and [`amr`](https://www.rfc-editor.org/rfc/rfc8176) (Authentication Methods References) — commonly used to expose MFA status to clients:
@@ -338,6 +350,7 @@ Two defaults are worth calling out because they bite silently:
 - **`scope: :openid`** — without it, non-standard claims fall back to the `profile` scope and disappear for clients that only requested `openid`.
 
 Claim names you declare here are automatically advertised under `claims_supported` in the discovery document. The list of advertised `acr` values (`acr_values_supported`) is not currently generated.
+
 
 ### Routes
 
