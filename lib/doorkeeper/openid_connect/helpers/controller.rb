@@ -38,7 +38,8 @@ module Doorkeeper
 
         def authenticate_resource_owner!
           super.tap do |owner|
-            next unless oidc_authorization_request?
+            next unless oidc_authorization_request? ||
+                        non_oidc_request_with_prompt_handling_enabled?
 
             # When the configured resource_owner_authenticator redirects an
             # unauthenticated user, +super+ returns whatever +redirect_to+
@@ -48,7 +49,9 @@ module Doorkeeper
             # §3.1.2.1) without calling model methods on a non-model value.
             owner = nil if performed?
 
-            handle_oidc_max_age_param!(owner)
+            # `max_age` stays OIDC-only (OIDC Core §3.1.2.1); `prompt` is
+            # also honored on non-OIDC requests when the option is enabled.
+            handle_oidc_max_age_param!(owner) if oidc_authorization_request?
             handle_oidc_prompt_param!(owner)
           end
         rescue Errors::OpenidConnectError => e
@@ -56,10 +59,19 @@ module Doorkeeper
         end
 
         def oidc_authorization_request?
+          authorization_request_on_authorize_endpoint? &&
+            pre_auth.scopes.include?("openid")
+        end
+
+        def non_oidc_request_with_prompt_handling_enabled?
+          Doorkeeper::OpenidConnect.configuration.apply_prompt_to_non_oidc_requests &&
+            authorization_request_on_authorize_endpoint?
+        end
+
+        def authorization_request_on_authorize_endpoint?
           controller_path == Doorkeeper::Rails::Routes.mapping[:authorizations][:controllers] &&
             action_name == "new" &&
-            pre_auth.valid? &&
-            pre_auth.scopes.include?("openid")
+            pre_auth.valid?
         end
 
         def handle_oidc_error!(exception)

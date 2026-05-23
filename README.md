@@ -246,6 +246,20 @@ The following settings are optional:
     end
     ```
 
+- `apply_prompt_to_non_oidc_requests`
+  - Whether to honor the `prompt` authorization parameter (`none`, `login`, `consent`, `select_account`) on plain OAuth requests that do not include the `openid` scope.
+  - Defaults to `false`, which preserves the historical behavior of silently ignoring `prompt` outside of OIDC requests.
+  - `max_age` enforcement remains OIDC-only regardless of this option, since it is defined by OIDC Core.
+
+    ```ruby
+    # config/initializers/doorkeeper_openid_connect.rb
+    Doorkeeper::OpenidConnect.configure do
+      # ...
+      apply_prompt_to_non_oidc_requests true
+      # ...
+    end
+    ```
+
 ### Scopes
 
 To perform authentication over OpenID Connect, an OAuth client needs to request the `openid` scope. This scope needs to be enabled using either `optional_scopes` in the global Doorkeeper configuration in `config/initializers/doorkeeper.rb`, or by adding it to any OAuth application's `scope` attribute.
