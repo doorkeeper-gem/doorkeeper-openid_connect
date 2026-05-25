@@ -35,10 +35,7 @@ module Doorkeeper
         private
 
         def normalize_scopes(value)
-          return [] if value.nil?
-
-          scopes = value.is_a?(Array) ? value : [value]
-          scopes.compact.map(&:to_sym)
+          Array.wrap(value).compact.map(&:to_sym)
         end
 
         def default_scope
