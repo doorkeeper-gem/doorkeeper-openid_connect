@@ -40,6 +40,14 @@ module Doorkeeper
           super.tap do |owner|
             next unless oidc_authorization_request?
 
+            # When the configured resource_owner_authenticator redirects an
+            # unauthenticated user, +super+ returns whatever +redirect_to+
+            # returned (a truthy Integer/String), not a resource owner. Treat
+            # that as "no owner" so the OIDC param handling below still runs
+            # (e.g. prompt=none must yield login_required per OIDC Core
+            # §3.1.2.1) without calling model methods on a non-model value.
+            owner = nil if performed?
+
             handle_oidc_max_age_param!(owner)
             handle_oidc_prompt_param!(owner)
           end
@@ -96,9 +104,7 @@ module Doorkeeper
           prompt_values.each do |prompt|
             case prompt
             when "none"
-              raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
-              raise Errors::LoginRequired unless owner
-              raise Errors::ConsentRequired if oidc_consent_required?
+              handle_oidc_prompt_none!(prompt_values, owner)
             when "login"
               reauthenticate_oidc_resource_owner(owner) if owner
             when "consent"
@@ -107,13 +113,19 @@ module Doorkeeper
                 render :new
               end
             when "select_account"
-              select_account_for_oidc_resource_owner(owner)
+              select_account_for_oidc_resource_owner(owner) if owner
             when "create"
               # NOTE: not supported, but not raise error.
             else
               raise Errors::InvalidRequest
             end
           end
+        end
+
+        def handle_oidc_prompt_none!(prompt_values, owner)
+          raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
+          raise Errors::LoginRequired unless owner
+          raise Errors::ConsentRequired if oidc_consent_required?
         end
 
         def handle_oidc_max_age_param!(owner)
