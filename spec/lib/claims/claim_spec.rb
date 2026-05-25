@@ -25,7 +25,7 @@ describe Doorkeeper::OpenidConnect::Claims::Claim do
       expect(claim.scope).to eq :profile
     end
 
-    it "stringifies array entries into symbols" do
+    it "symbolizes string entries in an array scope" do
       claim = described_class.new(name: "given_name", scope: ["profile", "all_data"])
       expect(claim.scopes).to eq %i[profile all_data]
     end
