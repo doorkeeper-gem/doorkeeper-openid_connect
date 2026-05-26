@@ -99,16 +99,7 @@ module Doorkeeper
       end
 
       def keys_response
-        signing_key = Doorkeeper::OpenidConnect.signing_key_normalized
-
-        {
-          keys: [
-            signing_key.merge(
-              use: "sig",
-              alg: Doorkeeper::OpenidConnect.signing_algorithm
-            )
-          ]
-        }
+        { keys: Doorkeeper::OpenidConnect.signing_keys_normalized }
       end
 
       def protocol

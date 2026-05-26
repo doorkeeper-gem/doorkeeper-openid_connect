@@ -153,6 +153,16 @@ The following settings are required in `config/initializers/doorkeeper_openid_co
 > signing_algorithm -> { current_tenant.algorithm }
 > ```
 
+> [!Note]
+> `signing_key` also accepts an array for key rotation. The first entry is the active key used to sign newly issued ID tokens; the remaining entries are still published in the JWKS so clients can validate tokens signed with a retired key during a rotation window. Callable forms returning an array are also supported.
+>
+> ```ruby
+> signing_key [
+>   File.read("config/keys/current.pem"),  # active, signs new tokens
+>   File.read("config/keys/previous.pem"), # retired, exposed in JWKS only
+> ]
+> ```
+
 The following settings are optional, but recommended for better client compatibility:
 
 - `auth_time_from_resource_owner`

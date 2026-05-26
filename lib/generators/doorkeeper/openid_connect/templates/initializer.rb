@@ -13,6 +13,16 @@ Doorkeeper::OpenidConnect.configure do
     -----END RSA PRIVATE KEY-----
   KEY
 
+  # `signing_key` also accepts an array for key rotation. The first entry is
+  # the active key used to sign newly issued ID tokens; any remaining entries
+  # are published in the JWKS so clients can still validate tokens signed
+  # with a retired key during a rotation window.
+  #
+  # signing_key [
+  #   File.read("config/keys/current.pem"),  # active
+  #   File.read("config/keys/previous.pem"), # retired but still in JWKS
+  # ]
+
   subject_types_supported [:public]
 
   resource_owner_from_access_token do |access_token|
