@@ -38,6 +38,48 @@ describe Doorkeeper::OpenidConnect::UserInfo do
       end
     end
 
+    context "with a claim assigned to multiple scopes" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+
+          claims do
+            claim(:nickname, scope: [:profile, :all_data], response: [:user_info]) { |user| user.name }
+          end
+        end
+      end
+
+      context "when the token grants the first scope" do
+        let(:scopes) { "openid profile" }
+
+        it "returns the claim" do
+          expect(subject.claims[:nickname]).to eq user.name
+        end
+      end
+
+      context "when the token grants the second scope" do
+        let(:scopes) { "openid all_data" }
+
+        it "returns the claim" do
+          expect(subject.claims[:nickname]).to eq user.name
+        end
+      end
+
+      context "when the token grants none of the listed scopes" do
+        let(:scopes) { "openid email" }
+
+        it "omits the claim" do
+          expect(subject.claims).not_to have_key(:nickname)
+        end
+      end
+    end
+
     context "when a custom claim collides with the protected sub claim" do
       before do
         Doorkeeper::OpenidConnect.configure do

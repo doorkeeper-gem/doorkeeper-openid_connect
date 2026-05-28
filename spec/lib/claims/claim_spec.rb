@@ -12,6 +12,32 @@ describe Doorkeeper::OpenidConnect::Claims::Claim do
 
     it "uses the given scope" do
       expect(subject.scope).to eq :profile
+      expect(subject.scopes).to eq [:profile]
+    end
+
+    it "accepts an array of scopes" do
+      claim = described_class.new(name: "given_name", scope: [:profile, :all_data])
+      expect(claim.scopes).to eq %i[profile all_data]
+    end
+
+    it "exposes the first scope via #scope for backward compatibility" do
+      claim = described_class.new(name: "given_name", scope: [:profile, :all_data])
+      expect(claim.scope).to eq :profile
+    end
+
+    it "symbolizes string entries in an array scope" do
+      claim = described_class.new(name: "given_name", scope: ["profile", "all_data"])
+      expect(claim.scopes).to eq %i[profile all_data]
+    end
+
+    it "drops nil entries in an array scope" do
+      claim = described_class.new(name: "given_name", scope: [:profile, nil])
+      expect(claim.scopes).to eq [:profile]
+    end
+
+    it "falls back to the default scope when an empty array is given" do
+      expect(described_class.new(name: "email", scope: []).scopes).to eq [:email]
+      expect(described_class.new(name: "unknown", scope: []).scopes).to eq [:profile]
     end
 
     it "falls back to the default scope for standard claims" do
