@@ -468,5 +468,41 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       it_behaves_like "a key response", expected_parameters: %i[kty kid use alg]
     end
+
+    context "when multiple signing keys are configured" do
+      let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+
+      before do
+        keys = [rsa_pem_1, rsa_pem_2]
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          signing_key keys
+        end
+      end
+
+      it "publishes one JWKS entry per configured key" do
+        subject
+        data = JSON.parse(response.body)
+
+        expect(data["keys"].size).to eq 2
+        expect(data["keys"]).to all(include("use" => "sig", "alg" => "RS256"))
+      end
+
+      it "lists the active signing key first" do
+        subject
+        data = JSON.parse(response.body)
+
+        expect(data["keys"].first["kid"]).to eq Doorkeeper::OpenidConnect.signing_key.kid
+      end
+
+      it "produces distinct kids per key" do
+        subject
+        data = JSON.parse(response.body)
+
+        kids = data["keys"].map { |k| k["kid"] }
+        expect(kids.uniq).to eq kids
+      end
+    end
   end
 end

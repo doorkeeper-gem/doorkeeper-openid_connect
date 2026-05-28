@@ -125,6 +125,131 @@ describe Doorkeeper::OpenidConnect do
         expect(subject.signing_key.kid).to be_a String
       end
     end
+
+    context "when signing_key is an array with an unparseable trailing entry" do
+      let(:rsa_pem) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+
+      before do
+        entries = [rsa_pem, "not-a-valid-pem"]
+        described_class.configure do
+          signing_key entries
+        end
+      end
+
+      it "builds only the active entry on the ID token signing hot path" do
+        expect { subject.signing_key }.not_to raise_error
+        expect { subject.signing_keys }.to raise_error(OpenSSL::PKey::PKeyError)
+      end
+    end
+  end
+
+  describe ".signing_keys" do
+    let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+    let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+
+    it "wraps a single configured key into a one-element array" do
+      expect(subject.signing_keys.size).to eq 1
+      expect(subject.signing_keys.first).to be_a ::JWT::JWK::KeyBase
+    end
+
+    context "when signing_key is an array" do
+      before do
+        keys = [rsa_pem_1, rsa_pem_2]
+        described_class.configure do
+          signing_key keys
+        end
+      end
+
+      it "returns one JWK per array element, preserving order" do
+        expect(subject.signing_keys.size).to eq 2
+        expect(subject.signing_keys).to all(be_a(::JWT::JWK::KeyBase))
+      end
+
+      it "uses the first entry as the active signing key" do
+        expect(subject.signing_key.kid).to eq subject.signing_keys.first.kid
+      end
+
+      it "produces distinct kids for distinct keys" do
+        kids = subject.signing_keys.map(&:kid)
+        expect(kids.uniq).to eq kids
+      end
+    end
+
+    context "when signing_key is a callable returning an array" do
+      before do
+        keys = [rsa_pem_1, rsa_pem_2]
+        described_class.configure do
+          signing_key -> { keys }
+        end
+      end
+
+      it "evaluates the callable and expands the array" do
+        expect(subject.signing_keys.size).to eq 2
+      end
+    end
+
+    context "when signing_key is an array with a Hash entry (forward-compat)" do
+      before do
+        entries = [{ key: rsa_pem_1 }, rsa_pem_2]
+        described_class.configure do
+          signing_key entries
+        end
+      end
+
+      it "normalizes Hash and bare-string entries uniformly" do
+        expect(subject.signing_keys.size).to eq 2
+        expect(subject.signing_keys).to all(be_a(::JWT::JWK::KeyBase))
+      end
+    end
+
+    context "when signing_key resolves to an empty array" do
+      it "raises InvalidConfiguration for an empty array literal" do
+        described_class.configure do
+          signing_key []
+        end
+
+        expect { subject.signing_keys }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                          /signing_key must resolve to at least one key/)
+        expect { subject.signing_key }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+
+      it "raises InvalidConfiguration for a callable returning an empty array" do
+        described_class.configure do
+          signing_key -> { [] }
+        end
+
+        expect { subject.signing_keys }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+  end
+
+  describe ".signing_keys_normalized" do
+    it "merges use and alg into each exported key" do
+      expect(subject.signing_keys_normalized).to eq [
+        subject.signing_key_normalized.merge(use: "sig", alg: :RS256)
+      ]
+    end
+
+    context "with multiple keys configured" do
+      let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+
+      before do
+        keys = [rsa_pem_1, rsa_pem_2]
+        described_class.configure do
+          signing_key keys
+        end
+      end
+
+      it "returns one normalized entry per configured key" do
+        normalized = subject.signing_keys_normalized
+        expect(normalized.size).to eq 2
+        expect(normalized).to all(include(use: "sig", alg: :RS256))
+      end
+    end
   end
 
   describe ".signing_key_normalized" do

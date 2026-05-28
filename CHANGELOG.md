@@ -32,6 +32,7 @@
 - [#288] Document `offline_access` scope recipe in README — show how to wire `use_refresh_token` with scope-based filtering for OIDC offline access
 - [#281] Fix `NoMethodError` / `DoubleRenderError` when `resource_owner_authenticator` redirects with a truthy non-model value (e.g. `current_user || redirect_to(login_url)`). Normalize the leaked value to `nil` when `performed?` and add missing `if owner` guard on `select_account`.
 - [#285] Document custom `jwks_uri` path pattern in README — show how to advertise a non-default path in the discovery document using Rails' `direct` URL helper
+- [#283] Support multiple signing keys in the JWKS response — `signing_key` now also accepts an array (and callables returning an array). The first entry is the active key used to sign new ID tokens; the remaining entries are published in the JWKS so clients can still validate tokens signed with a retired key during a rotation window. Single-value and callable forms continue to work unchanged
 
 ## v1.9.0 (2026-03-16)
 
