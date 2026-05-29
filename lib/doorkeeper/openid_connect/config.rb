@@ -85,6 +85,12 @@ module Doorkeeper
 
       option :dynamic_client_registration, default: false
 
+      # When enabled, the `prompt` authorization parameter (`none`, `login`,
+      # `consent`, `select_account`) is honored even on non-OIDC requests,
+      # i.e. when the `openid` scope is not part of the authorization request.
+      # `max_age` remains OIDC-only because it is defined by OIDC Core.
+      option :apply_prompt_to_non_oidc_requests, default: false
+
       option :authorize_dynamic_client_registration, default: nil
 
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"

@@ -222,6 +222,22 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
   end
 
+  describe "apply_prompt_to_non_oidc_requests" do
+    it "defaults to false" do
+      described_class.configure {}
+
+      expect(subject.apply_prompt_to_non_oidc_requests).to be(false)
+    end
+
+    it "can be enabled" do
+      described_class.configure do
+        apply_prompt_to_non_oidc_requests true
+      end
+
+      expect(subject.apply_prompt_to_non_oidc_requests).to be(true)
+    end
+  end
+
   describe "discovery_url_options" do
     it "defaults to empty hash" do
       expect(subject.discovery_url_options.call).to be_a(Hash)

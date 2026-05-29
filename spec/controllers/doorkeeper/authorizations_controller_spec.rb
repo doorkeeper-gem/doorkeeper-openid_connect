@@ -100,6 +100,25 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect_authorization_form!
       end
     end
+
+    context "with non-OIDC requests and apply_prompt_to_non_oidc_requests enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:apply_prompt_to_non_oidc_requests).and_return(true)
+      end
+
+      it "calls the prompt handler" do
+        expect(controller).to receive(:handle_oidc_prompt_param!)
+
+        authorize!(scope: "profile", prompt: "login")
+      end
+
+      it "does not call the max_age handler" do
+        expect(controller).not_to receive(:handle_oidc_max_age_param!)
+
+        authorize!(scope: "profile", prompt: "login", max_age: 10)
+      end
+    end
   end
 
   describe "#handle_oidc_prompt_param!" do
@@ -107,6 +126,54 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       authorize! scope: "profile", prompt: "invalid"
 
       expect_authorization_form!
+    end
+
+    context "when apply_prompt_to_non_oidc_requests is enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:apply_prompt_to_non_oidc_requests).and_return(true)
+      end
+
+      it "honors prompt=login on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "login"
+
+        expect(response).to redirect_to("/reauthenticate")
+      end
+
+      it "honors prompt=consent on a non-OIDC request" do
+        create :access_token, token_attributes.merge(scopes: "profile")
+        authorize! scope: "profile", prompt: "consent"
+
+        expect_authorization_form!
+      end
+
+      it "honors prompt=select_account on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "select_account"
+
+        expect(response).to redirect_to("/select_account")
+      end
+
+      it "honors prompt=none on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "none", current_user: nil
+
+        error_params = {
+          "error" => "login_required",
+          "error_description" => "The authorization server requires end-user authentication",
+        }
+
+        expect(response).to redirect_to build_redirect_uri(error_params)
+      end
+
+      it "still rejects unknown prompt values on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "maybe"
+
+        error_params = {
+          "error" => "invalid_request",
+          "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
+        }
+
+        expect(response).to redirect_to build_redirect_uri(error_params)
+      end
     end
 
     context "with a prompt=none parameter" do
