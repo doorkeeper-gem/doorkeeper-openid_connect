@@ -35,6 +35,7 @@
 - [#283] Support multiple signing keys in the JWKS response — `signing_key` now also accepts an array (and callables returning an array). The first entry is the active key used to sign new ID tokens; the remaining entries are published in the JWKS so clients can still validate tokens signed with a retired key during a rotation window. Single-value and callable forms continue to work unchanged
 - [#286] Allow claims to be assigned to multiple scopes via `scope: [:profile, :all_data]` — the claim is returned whenever the access token grants any of the listed scopes. **Note:** the previously implicit `Claim#scope=` writer (from `attr_accessor :scope`) is no longer provided; rebuild the claim instead of mutating it
 - [#287] Add `apply_prompt_to_non_oidc_requests` option to honor the `prompt` parameter on plain OAuth requests that do not include the `openid` scope
+- [#282] Allow `prompt=none` reauthorization with a narrower subset of previously-granted scopes (issue #63). Per RFC 6749 §1.5, narrower-or-equal scopes do not require fresh user consent; previously these requests returned `consent_required`.
 
 ## v1.9.0 (2026-03-16)
 

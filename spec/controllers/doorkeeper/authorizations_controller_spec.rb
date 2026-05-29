@@ -312,6 +312,70 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect(response).to redirect_to build_redirect_uri(error_params)
         end
       end
+
+      # Issue #63: a `prompt=none` request that asks for a narrower subset of
+      # scopes than was previously granted must succeed without showing the
+      # consent form (which is forbidden under `prompt=none`).
+      context "and a token covering a wider scope than the request (issue #63)" do
+        let(:application) { create :application, scopes: "openid profile email" }
+        let(:granted_scopes) { "openid profile email" }
+        let(:token_attributes) do
+          { application_id: application.id, resource_owner_id: user.id, scopes: granted_scopes }
+        end
+
+        before { create :access_token, token_attributes }
+
+        it "auto-issues a new code when scopes are narrower (openid email)" do
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid email",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+          }
+
+          expect_successful_callback!
+        end
+
+        it "auto-issues a new code when scopes are reduced to just openid" do
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+          }
+
+          expect_successful_callback!
+        end
+
+        it "still raises consent_required when the requested scope is NOT a subset" do
+          # Application supports an extra scope the user hasn't granted yet.
+          application.update!(scopes: "openid profile email address")
+
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid address",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+            state: "somestate",
+          }
+
+          error_params = {
+            "error" => "consent_required",
+            "error_description" => "The authorization server requires end-user consent",
+            "state" => "somestate",
+          }
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+      end
     end
 
     context "with a prompt=login parameter" do

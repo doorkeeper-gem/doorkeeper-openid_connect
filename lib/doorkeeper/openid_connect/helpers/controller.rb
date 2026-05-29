@@ -137,7 +137,13 @@ module Doorkeeper
         def handle_oidc_prompt_none!(prompt_values, owner)
           raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
           raise Errors::LoginRequired unless owner
-          raise Errors::ConsentRequired if oidc_consent_required?
+          raise Errors::ConsentRequired if oidc_consent_required?(owner)
+
+          # Issue #63: if an active token already covers the requested scopes
+          # (a non-strict superset, including the exact-match case), force
+          # auto-issue rather than rendering the consent form — `prompt=none`
+          # forbids any interactive UI (OIDC Core §3.1.2.1).
+          @_oidc_prompt_none_skip_authorization = true if oidc_matching_subset_token?(owner)
         end
 
         def handle_oidc_max_age_param!(owner)
@@ -217,8 +223,47 @@ module Doorkeeper
           raise Errors::LoginRequired unless performed?
         end
 
-        def oidc_consent_required?
-          !skip_authorization? && !matching_token?
+        def oidc_consent_required?(owner)
+          !skip_authorization? && !matching_token? && !oidc_matching_subset_token?(owner)
+        end
+
+        # Returns true if the resource owner already has an active token for this
+        # client whose scopes are a (non-strict) superset of the requested scopes.
+        # Used to allow `prompt=none` to succeed when the client re-authorizes
+        # with a narrower set of scopes (issue #63).
+        #
+        # Scans tokens via `find_access_token_in_batches` (same pattern as
+        # upstream Doorkeeper's `find_matching_token`) so that installations
+        # with many active tokens per (client, resource owner) pair do not
+        # load the entire relation into memory.
+        def oidc_matching_subset_token?(owner)
+          return @oidc_matching_subset_token if defined?(@oidc_matching_subset_token)
+
+          @oidc_matching_subset_token =
+            if pre_auth.scopes.empty?
+              false
+            else
+              access_token_model = Doorkeeper.config.access_token_model
+              relation = access_token_model.authorized_tokens_for(pre_auth.client.id, owner)
+              batch_size = Doorkeeper.configuration.token_lookup_batch_size
+
+              match_found = false
+              access_token_model.find_access_token_in_batches(relation, batch_size: batch_size) do |batch|
+                if batch.any? { |token| token.scopes.scopes?(pre_auth.scopes) }
+                  match_found = true
+                  break
+                end
+              end
+              match_found
+            end
+        end
+
+        # Force Doorkeeper's `render_success` onto the auto-issue path when a
+        # `prompt=none` subset-scope reauthorization has been validated above.
+        def skip_authorization?
+          return true if @_oidc_prompt_none_skip_authorization
+
+          super
         end
 
         def select_account_for_oidc_resource_owner(owner)
