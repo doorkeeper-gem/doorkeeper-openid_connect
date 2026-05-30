@@ -7,14 +7,14 @@ describe Doorkeeper::OpenidConnect::Rails::Routes, type: :routing do
     it "maps GET #show" do
       expect(get: "oauth/userinfo").to route_to(
         controller: "doorkeeper/openid_connect/userinfo",
-        action: "show"
+        action: "show",
       )
     end
 
     it "maps POST #show" do
       expect(post: "oauth/userinfo").to route_to(
         controller: "doorkeeper/openid_connect/userinfo",
-        action: "show"
+        action: "show",
       )
     end
   end
@@ -23,21 +23,21 @@ describe Doorkeeper::OpenidConnect::Rails::Routes, type: :routing do
     it "maps GET #provider" do
       expect(get: ".well-known/openid-configuration").to route_to(
         controller: "doorkeeper/openid_connect/discovery",
-        action: "provider"
+        action: "provider",
       )
     end
 
     it "maps GET #webfinger" do
       expect(get: ".well-known/webfinger").to route_to(
         controller: "doorkeeper/openid_connect/discovery",
-        action: "webfinger"
+        action: "webfinger",
       )
     end
 
     it "maps GET #keys" do
       expect(get: "oauth/discovery/keys").to route_to(
         controller: "doorkeeper/openid_connect/discovery",
-        action: "keys"
+        action: "keys",
       )
     end
   end
@@ -58,7 +58,7 @@ describe Doorkeeper::OpenidConnect::Rails::Routes, type: :routing do
 
       expect(post: "oauth/registration").to route_to(
         controller: "doorkeeper/openid_connect/dynamic_client_registration",
-        action: "register"
+        action: "register",
       )
     end
   end

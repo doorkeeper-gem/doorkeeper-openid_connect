@@ -674,10 +674,10 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         authorize! max_age: 10, prompt: "none", state: "somestate"
 
         expect(response).to redirect_to build_redirect_uri({
-          "error" => "login_required",
-          "error_description" => "The authorization server requires end-user authentication",
-          "state" => "somestate",
-        })
+                                                             "error" => "login_required",
+                                                             "error_description" => "The authorization server requires end-user authentication",
+                                                             "state" => "somestate",
+                                                           })
       end
     end
   end

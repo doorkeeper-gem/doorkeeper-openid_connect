@@ -58,7 +58,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
     it "creates a new token if scopes do not match" do
       allow(Doorkeeper.configuration).to receive(:reuse_access_token).and_return(true)
       create(:access_token, application_id: pre_auth.client.id,
-             resource_owner_id: owner.id, scopes: "")
+                            resource_owner_id: owner.id, scopes: "",)
       expect do
         subject.authorize
       end.to change(Doorkeeper::AccessToken, :count).by(1)
@@ -69,7 +69,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
       allow(application.scopes).to receive_messages(has_scopes?: true, all?: true)
 
       create(:access_token, application_id: pre_auth.client.id,
-             resource_owner_id: owner.id, scopes: "public")
+                            resource_owner_id: owner.id, scopes: "public",)
 
       expect { subject.authorize }.not_to(change(Doorkeeper::AccessToken, :count))
     end

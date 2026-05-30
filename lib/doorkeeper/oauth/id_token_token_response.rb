@@ -5,10 +5,10 @@ module Doorkeeper
     class IdTokenTokenResponse < IdTokenResponse
       def body
         super.merge({
-          access_token: auth.token.token,
-          token_type: auth.token.token_type,
-          expires_in: auth.token.expires_in_seconds
-        })
+                      access_token: auth.token.token,
+                      token_type: auth.token.token_type,
+                      expires_in: auth.token.expires_in_seconds,
+                    })
       end
     end
   end

@@ -306,7 +306,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
               revocation: { host: "alternate-revocation.host" },
               introspection: { host: "alternate-introspection.host" },
               userinfo: { host: "alternate-userinfo.host" },
-              jwks: { host: "alternate-jwks.host" }
+              jwks: { host: "alternate-jwks.host" },
             }
           end
         end
@@ -410,8 +410,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         "subject" => "user@example.com",
         "links" => [
           {
-          "rel" => "http://openid.net/specs/connect/1.0/issuer",
-          "href" => "dummy"
+            "rel" => "http://openid.net/specs/connect/1.0/issuer",
+            "href" => "dummy",
           },
         ],
       }.sort)
@@ -423,7 +423,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           discovery_url_options do |request|
             {
               authorization: { host: "alternate-authorization.host",
-                               protocol: request.ssl? ? :https : :testing }
+                               protocol: request.ssl? ? :https : :testing, },
             }
           end
         end

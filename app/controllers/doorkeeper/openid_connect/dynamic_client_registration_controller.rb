@@ -17,7 +17,7 @@ module Doorkeeper
         render json: registration_response(client, registration), status: :created
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: "invalid_client_params", error_description: e.record.errors.full_messages.join(", ") },
-          status: :bad_request
+               status: :bad_request
       end
 
       private

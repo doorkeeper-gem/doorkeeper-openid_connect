@@ -53,7 +53,7 @@ module Doorkeeper
           subject_types_supported: openid_connect.subject_types_supported,
 
           id_token_signing_alg_values_supported: [
-            ::Doorkeeper::OpenidConnect.signing_algorithm
+            ::Doorkeeper::OpenidConnect.signing_algorithm,
           ],
 
           claim_types_supported: [
@@ -93,8 +93,8 @@ module Doorkeeper
             {
               rel: WEBFINGER_RELATION,
               href: issuer,
-            }
-          ]
+            },
+          ],
         }
       end
 
@@ -113,7 +113,7 @@ module Doorkeeper
 
       def discovery_url_default_options
         {
-          protocol: protocol
+          protocol: protocol,
         }
       end
 

@@ -161,7 +161,7 @@ module Doorkeeper
     )
 
     Doorkeeper::GrantFlow.register_alias(
-      "implicit_oidc", as: ["implicit", "id_token", "id_token token"]
+      "implicit_oidc", as: ["implicit", "id_token", "id_token token"],
     )
   end
 end

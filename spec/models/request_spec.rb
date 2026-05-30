@@ -32,9 +32,9 @@ describe Doorkeeper::OpenidConnect::Request do
       association = subject.class.reflect_on_association :access_grant
 
       expect(association.options).to eq({
-        class_name: expected_access_grant_class_name,
-        inverse_of: :openid_request,
-      })
+                                          class_name: expected_access_grant_class_name,
+                                          inverse_of: :openid_request,
+                                        })
     end
   end
 end

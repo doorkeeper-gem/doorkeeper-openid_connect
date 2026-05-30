@@ -253,7 +253,7 @@ describe Doorkeeper::OpenidConnect, "configuration" do
             revocation: { host: "alternate-revocation-host" },
             introspection: { host: "alternate-introspection-host" },
             userinfo: { host: "alternate-userinfo-host" },
-            jwks: { host: "alternate-jwks-host" }
+            jwks: { host: "alternate-jwks-host" },
           }
         end
       end

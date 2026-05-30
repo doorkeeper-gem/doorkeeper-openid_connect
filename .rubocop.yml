@@ -40,6 +40,13 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Exclude:
     - spec/dummy/db/**/*
+# Match upstream doorkeeper: require trailing commas on multiline literals.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 Style/StringLiteralsInInterpolation:

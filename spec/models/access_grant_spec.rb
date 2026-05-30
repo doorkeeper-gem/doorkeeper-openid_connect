@@ -12,11 +12,11 @@ describe Doorkeeper::OpenidConnect::AccessGrant do
     association = subject.class.reflect_on_association :openid_request
 
     expect(association.options).to eq({
-      class_name: openid_request_class_name,
-      inverse_of: :access_grant,
-      foreign_key: "access_grant_id",
-      dependent: :delete,
-    })
+                                        class_name: openid_request_class_name,
+                                        inverse_of: :access_grant,
+                                        foreign_key: "access_grant_id",
+                                        dependent: :delete,
+                                      })
   end
 
   it "extends the base doorkeeper AccessGrant" do
