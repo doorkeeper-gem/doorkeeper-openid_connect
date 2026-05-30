@@ -470,11 +470,11 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     end
 
     context "when multiple signing keys are configured" do
-      let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
-      let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
 
       before do
-        keys = [rsa_pem_1, rsa_pem_2]
+        keys = [rsa_pem1, rsa_pem2]
         Doorkeeper::OpenidConnect.configure do
           issuer "dummy"
           signing_key keys
