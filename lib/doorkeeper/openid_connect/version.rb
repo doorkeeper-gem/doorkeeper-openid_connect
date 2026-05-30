@@ -3,7 +3,7 @@
 module Doorkeeper
   module OpenidConnect
     MAJOR = 1
-    MINOR = 9
+    MINOR = 10
     TINY = 0
     PRE = nil
 

@@ -1,6 +1,9 @@
 ## Unreleased
 
 - Please add here
+
+## v1.10.0 (2026-06-01)
+
 - [#241] Fix NameError on doorkeeper master by deferring AR model loading in run_hooks (see [Doorkeeper PR](https://github.com/doorkeeper-gem/doorkeeper/pull/1804))
 - [#242] Fix `NoMethodError` for openid_request in testing environments.
 - [#246] Fix `at_hash` to use correct hash algorithm based on `signing_algorithm`
