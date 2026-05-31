@@ -2,8 +2,9 @@
 
 Doorkeeper::OpenidConnect.configure do
   issuer do |_resource_owner, _application, _request|
-    # Example implementation:
-    # request&.base_url || 'https://example.com'
+    # Example implementation (the block receives the current request as its
+    # third argument; reference it as `_request` or rename the parameter):
+    # _request&.base_url || 'https://example.com'
     "issuer string"
   end
 
