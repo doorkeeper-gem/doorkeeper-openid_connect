@@ -21,11 +21,11 @@ module Doorkeeper
 
         def initialize(options = {})
           @name = options[:name].to_sym
-          @response = Array.wrap(options[:response])
+          @response = Array.wrap(options[:response]).freeze
           @scopes = normalize_scopes(options[:scope])
 
           # use default scope for Standard Claims, fallback to profile
-          @scopes = [default_scope] if @scopes.empty?
+          @scopes = [default_scope].freeze if @scopes.empty?
         end
 
         def scope
@@ -35,7 +35,7 @@ module Doorkeeper
         private
 
         def normalize_scopes(value)
-          Array.wrap(value).compact.map(&:to_sym)
+          Array.wrap(value).compact.map(&:to_sym).freeze
         end
 
         def default_scope

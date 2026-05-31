@@ -36,6 +36,7 @@
 - [#286] Allow claims to be assigned to multiple scopes via `scope: [:profile, :all_data]` — the claim is returned whenever the access token grants any of the listed scopes. **Note:** the previously implicit `Claim#scope=` writer (from `attr_accessor :scope`) is no longer provided; rebuild the claim instead of mutating it
 - [#287] Add `apply_prompt_to_non_oidc_requests` option to honor the `prompt` parameter on plain OAuth requests that do not include the `openid` scope
 - [#282] Allow `prompt=none` reauthorization with a narrower subset of previously-granted scopes (issue #63). Per RFC 6749 §1.5, narrower-or-equal scopes do not require fresh user consent; previously these requests returned `consent_required`.
+- [#290] Freeze `Claim#scopes` and `Claim#response` arrays at construction so callers can't accidentally mutate the claim's internal state from outside
 
 ## v1.9.0 (2026-03-16)
 

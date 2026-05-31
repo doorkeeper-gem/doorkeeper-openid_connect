@@ -55,4 +55,24 @@ describe Doorkeeper::OpenidConnect::Claims::Claim do
       expect(described_class.new(name: "unknown").scope).to eq :profile
     end
   end
+
+  describe "immutability" do
+    it "exposes a frozen #scopes array" do
+      claim = described_class.new(name: "given_name", scope: [:profile, :all_data])
+      expect(claim.scopes).to be_frozen
+      expect { claim.scopes << :extra }.to raise_error(FrozenError)
+    end
+
+    it "exposes a frozen #scopes array for the default-scope fallback" do
+      claim = described_class.new(name: "email", scope: [])
+      expect(claim.scopes).to be_frozen
+      expect { claim.scopes << :extra }.to raise_error(FrozenError)
+    end
+
+    it "exposes a frozen #response array" do
+      claim = described_class.new(name: "given_name", response: %i[id_token userinfo])
+      expect(claim.response).to be_frozen
+      expect { claim.response << :extra }.to raise_error(FrozenError)
+    end
+  end
 end
