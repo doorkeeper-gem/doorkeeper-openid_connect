@@ -176,7 +176,11 @@ module Doorkeeper
         end
 
         def oidc_prompt_values
-          @oidc_prompt_values ||= params[:prompt].to_s.split(/ +/).uniq
+          # Reject blank entries so leading/duplicate spaces in the
+          # space-delimited `prompt` parameter don't surface as an empty
+          # value (which would otherwise be treated as an unknown prompt and
+          # rejected with `invalid_request`).
+          @oidc_prompt_values ||= params[:prompt].to_s.split(/ +/).reject(&:blank?).uniq
         end
 
         # Resolve auth_time for max_age enforcement.
