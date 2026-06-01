@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#297] Fix the generated initializer's `issuer` example referencing an undefined `request` local (the block parameter is `_request`), which raised `NameError` when copied verbatim
 
 ## v1.10.0 (2026-06-01)
 
