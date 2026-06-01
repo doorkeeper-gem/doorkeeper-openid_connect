@@ -1,7 +1,6 @@
 ## Unreleased
 
 - Please add here
-- [#297] Fix the generated initializer's `issuer` example referencing an undefined `request` local (the block parameter is `_request`), which raised `NameError` when copied verbatim
 
 ## v1.10.0 (2026-06-01)
 
@@ -41,6 +40,7 @@
 - [#287] Add `apply_prompt_to_non_oidc_requests` option to honor the `prompt` parameter on plain OAuth requests that do not include the `openid` scope
 - [#282] Allow `prompt=none` reauthorization with a narrower subset of previously-granted scopes (issue #63). Per RFC 6749 §1.5, narrower-or-equal scopes do not require fresh user consent; previously these requests returned `consent_required`.
 - [#290] Freeze `Claim#scopes` and `Claim#response` arrays at construction so callers can't accidentally mutate the claim's internal state from outside
+- [#297] Fix the generated initializer's `issuer` example referencing an undefined `request` local (the block parameter is `_request`), which raised `NameError` when copied verbatim
 
 ## v1.9.0 (2026-03-16)
 
