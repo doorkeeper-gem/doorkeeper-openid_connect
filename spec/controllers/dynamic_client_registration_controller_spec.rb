@@ -36,17 +36,17 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
         body = JSON.parse(response.body)
         expect(body).to eq({
-                             "client_secret" => doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
-                             "client_id" => doorkeeper_application.uid,
-                             "client_id_issued_at" => doorkeeper_application.created_at.to_i,
-                             "redirect_uris" => redirect_uris,
-                             "token_endpoint_auth_method" => "client_secret_basic",
-                             "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
-                             "response_types" => ["code", "token", "id_token", "id_token token"],
-                             "grant_types" => %w[authorization_code client_credentials implicit_oidc],
-                             "scope" => "public",
-                             "application_type" => "web",
-                           })
+          "client_secret" => doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
+          "client_id" => doorkeeper_application.uid,
+          "client_id_issued_at" => doorkeeper_application.created_at.to_i,
+          "redirect_uris" => redirect_uris,
+          "token_endpoint_auth_method" => "client_secret_basic",
+          "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
+          "response_types" => ["code", "token", "id_token", "id_token token"],
+          "grant_types" => %w[authorization_code client_credentials implicit_oidc],
+          "scope" => "public",
+          "application_type" => "web",
+        })
       end
     end
 
@@ -387,9 +387,9 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         expect(response.status).to eq 400
         expect(Doorkeeper::Application.count).to eq(0)
         expect(JSON.parse(response.body)).to eq({
-                                                  "error" => "invalid_client_params",
-                                                  "error_description" => "Redirect URI must be an HTTPS/SSL URI.",
-                                                })
+          "error" => "invalid_client_params",
+          "error_description" => "Redirect URI must be an HTTPS/SSL URI.",
+        })
       end
     end
   end

@@ -25,9 +25,9 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
       subject.issue_token
 
       expect(openid_request_class).to have_received(:create!).with({
-                                                                     access_grant: access_grant,
-                                                                     nonce: "123456",
-                                                                   })
+        access_grant: access_grant,
+        nonce: "123456",
+      })
     end
 
     it "does not store the nonce if not present" do

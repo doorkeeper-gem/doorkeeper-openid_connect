@@ -12,13 +12,13 @@ describe Doorkeeper::OpenidConnect::UserInfo do
   describe "#claims" do
     it "returns all accessible claims" do
       expect(subject.claims).to eq({
-                                     sub: user.id.to_s,
-                                     created_at: user.created_at.to_i,
-                                     variable_name: "openid-name",
-                                     token_id: token.id,
-                                     both_responses: "both",
-                                     user_info_response: "user_info",
-                                   })
+        sub: user.id.to_s,
+        created_at: user.created_at.to_i,
+        variable_name: "openid-name",
+        token_id: token.id,
+        both_responses: "both",
+        user_info_response: "user_info",
+      })
     end
 
     context "with a grant for the profile scopes" do
@@ -26,15 +26,15 @@ describe Doorkeeper::OpenidConnect::UserInfo do
 
       it "returns additional profile claims" do
         expect(subject.claims).to eq({
-                                       sub: user.id.to_s,
-                                       name: "Joe",
-                                       created_at: user.created_at.to_i,
-                                       updated_at: user.updated_at.to_i,
-                                       variable_name: "profile-name",
-                                       token_id: token.id,
-                                       both_responses: "both",
-                                       user_info_response: "user_info",
-                                     })
+          sub: user.id.to_s,
+          name: "Joe",
+          created_at: user.created_at.to_i,
+          updated_at: user.updated_at.to_i,
+          variable_name: "profile-name",
+          token_id: token.id,
+          both_responses: "both",
+          user_info_response: "user_info",
+        })
       end
     end
 
@@ -106,14 +106,14 @@ describe Doorkeeper::OpenidConnect::UserInfo do
   describe "#as_json" do
     it "returns claims with nil values and empty strings removed" do
       allow(subject).to receive(:claims).and_return({
-                                                      nil: nil,
-                                                      empty: "",
-                                                      blank: " ",
-                                                    })
+        nil: nil,
+        empty: "",
+        blank: " ",
+      })
 
       expect(subject.as_json).to eq({
-                                      blank: " ",
-                                    })
+        blank: " ",
+      })
     end
   end
 end

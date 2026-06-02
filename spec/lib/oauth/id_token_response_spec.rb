@@ -39,9 +39,9 @@ describe Doorkeeper::OAuth::IdTokenResponse do
   describe "#body" do
     it "returns the id_token and state only (no expires_in per OIDC Core §3.2.2.5)" do
       expect(subject.body).to eq({
-                                   state: pre_auth.state,
-                                   id_token: id_token.as_jws_token,
-                                 })
+        state: pre_auth.state,
+        id_token: id_token.as_jws_token,
+      })
     end
 
     it "does not include expires_in" do

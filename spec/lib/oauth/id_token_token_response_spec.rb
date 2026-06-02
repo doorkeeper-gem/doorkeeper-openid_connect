@@ -36,12 +36,12 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
   describe "#body" do
     it "return body response for id_token and access_token" do
       expect(subject.body).to eq({
-                                   state: pre_auth.state,
-                                   id_token: id_token.as_jws_token,
-                                   access_token: auth.token.token,
-                                   token_type: auth.token.token_type,
-                                   expires_in: auth.token.expires_in_seconds,
-                                 })
+        state: pre_auth.state,
+        id_token: id_token.as_jws_token,
+        access_token: auth.token.token,
+        token_type: auth.token.token_type,
+        expires_in: auth.token.expires_in_seconds,
+      })
     end
   end
 

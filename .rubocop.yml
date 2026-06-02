@@ -19,6 +19,13 @@ Layout/TrailingEmptyLines:
   Enabled: true
 Layout/DotPosition:
   EnforcedStyle: leading
+# Keep hashes/arguments aligned to a normal 2-space indent instead of pushing
+# them to the right of the opening brace/paren (the default
+# special_inside_parentheses style), which is hard to read for long entries.
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: consistent
 Layout/LineLength:
   Exclude:
     - spec/**/*
