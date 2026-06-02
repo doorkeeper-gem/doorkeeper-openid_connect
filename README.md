@@ -414,6 +414,92 @@ After this, `.well-known/openid-configuration` returns `"jwks_uri": "https://exa
 > [!Note]
 > A naive `match "/-/jwks", ..., as: :oauth_discovery_keys` won't work — Rails has refused to reuse a route name [since 4.0](https://github.com/rails/rails/commit/a2b7c0e69d) and raises `ArgumentError: Invalid route name, already in use: 'oauth_discovery_keys'`. The `direct` helper sidesteps this by overriding the URL helper itself rather than re-declaring the route name.
 
+#### Mounting under multiple namespaces (multiple resource owner models)
+
+If your app authenticates more than one kind of resource owner (e.g. a `User`
+and a `Customer` Devise model) you may want to mount Doorkeeper — and this engine
+— more than once, each under its own namespace:
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  scope :users, as: :users do
+    use_doorkeeper { controllers authorizations: "users/authorizations" }
+    use_doorkeeper_openid_connect
+  end
+
+  scope :customers, as: :customers do
+    use_doorkeeper { controllers authorizations: "customers/authorizations" }
+    use_doorkeeper_openid_connect
+  end
+end
+```
+
+Most of the request flow is model-agnostic: the `resource_owner_authenticator`
+block can dispatch on whichever owner is signed in (`current_user ||
+current_customer`), and claims / userinfo / ID token generation follow from
+whatever it returns.
+
+The one piece that needs attention is the **discovery document**.
+[`DiscoveryController#provider_response`](app/controllers/doorkeeper/openid_connect/discovery_controller.rb)
+builds the published endpoints by calling named route helpers
+(`oauth_authorization_url`, `oauth_token_url`, …) directly. The
+[`discovery_url_options`](#configuration) setting (added in #126) lets you
+override the `host` / `protocol` / `port` of those URLs, but not *which* named
+helper is resolved — so under multiple mounts every namespace's discovery
+document would point at the same set of endpoints.
+
+The idiomatic fix is to subclass the discovery controller per namespace and
+re-point the helper calls at that namespace's routes:
+
+```ruby
+# app/controllers/users/discovery_controller.rb
+module Users
+  class DiscoveryController < Doorkeeper::OpenidConnect::DiscoveryController
+    private
+
+    # Re-point each helper used by `provider_response` at the namespaced route.
+    def oauth_authorization_url(opts = {})
+      users_oauth_authorization_url(opts)
+    end
+
+    def oauth_token_url(opts = {})
+      users_oauth_token_url(opts)
+    end
+
+    def oauth_revoke_url(opts = {})
+      users_oauth_revoke_url(opts)
+    end
+
+    def oauth_userinfo_url(opts = {})
+      users_oauth_userinfo_url(opts)
+    end
+
+    def oauth_discovery_keys_url(opts = {})
+      users_oauth_discovery_keys_url(opts)
+    end
+
+    # ...and `oauth_introspect_url` / `oauth_dynamic_client_registration_url`
+    # if you advertise those.
+  end
+end
+```
+
+```ruby
+# config/routes.rb (inside the `:users` scope)
+get "/.well-known/openid-configuration",
+    to: "users/discovery#provider", as: :users_openid_connect_config
+```
+
+Repeat for the `customers` namespace. Each `.well-known/openid-configuration`
+then advertises the endpoints for its own namespace.
+
+> [!Note]
+> See [#192](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/192)
+> for the original discussion. First-class multi-mount support is not provided
+> out of the box; the per-namespace controller override above is the supported
+> extension pattern for now.
+
 ### Nonces
 
 To support clients who send nonces you have to tweak Doorkeeper's authorization view so the parameter is passed on.
