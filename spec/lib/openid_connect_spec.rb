@@ -16,13 +16,13 @@ describe Doorkeeper::OpenidConnect do
     end
 
     context "when signing_key is callable with RSA key" do
-      let(:rsa_key_1) { OpenSSL::PKey::RSA.generate(2048) }
-      let(:rsa_key_2) { OpenSSL::PKey::RSA.generate(2048) }
-      let(:rsa_key_1_pem) { rsa_key_1.to_pem }
-      let(:rsa_key_2_pem) { rsa_key_2.to_pem }
+      let(:rsa_key1) { OpenSSL::PKey::RSA.generate(2048) }
+      let(:rsa_key2) { OpenSSL::PKey::RSA.generate(2048) }
+      let(:rsa_key1_pem) { rsa_key1.to_pem }
+      let(:rsa_key2_pem) { rsa_key2.to_pem }
 
       before do
-        key_pem = rsa_key_1_pem
+        key_pem = rsa_key1_pem
         described_class.configure do
           signing_key -> { key_pem }
         end
@@ -43,23 +43,23 @@ describe Doorkeeper::OpenidConnect do
       end
 
       it "generates different kids for different keys" do
-        kid_1 = subject.signing_key.kid
+        kid1 = subject.signing_key.kid
 
-        key_pem = rsa_key_2_pem
+        key_pem = rsa_key2_pem
         described_class.configure do
           signing_key -> { key_pem }
         end
 
-        kid_2 = subject.signing_key.kid
+        kid2 = subject.signing_key.kid
 
-        expect(kid_1).not_to eq kid_2
+        expect(kid1).not_to eq kid2
       end
 
       it "returns same kid for same key across multiple calls" do
-        kid_1 = subject.signing_key.kid
-        kid_2 = subject.signing_key.kid
+        kid1 = subject.signing_key.kid
+        kid2 = subject.signing_key.kid
 
-        expect(kid_1).to eq kid_2
+        expect(kid1).to eq kid2
       end
 
       it "can be used for JWT signing" do
@@ -144,8 +144,8 @@ describe Doorkeeper::OpenidConnect do
   end
 
   describe ".signing_keys" do
-    let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
-    let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+    let(:rsa_pem1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+    let(:rsa_pem2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
 
     it "wraps a single configured key into a one-element array" do
       expect(subject.signing_keys.size).to eq 1
@@ -154,7 +154,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when signing_key is an array" do
       before do
-        keys = [rsa_pem_1, rsa_pem_2]
+        keys = [rsa_pem1, rsa_pem2]
         described_class.configure do
           signing_key keys
         end
@@ -177,7 +177,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when signing_key is a callable returning an array" do
       before do
-        keys = [rsa_pem_1, rsa_pem_2]
+        keys = [rsa_pem1, rsa_pem2]
         described_class.configure do
           signing_key -> { keys }
         end
@@ -190,7 +190,7 @@ describe Doorkeeper::OpenidConnect do
 
     context "when signing_key is an array with a Hash entry (forward-compat)" do
       before do
-        entries = [{ key: rsa_pem_1 }, rsa_pem_2]
+        entries = [{ key: rsa_pem1 }, rsa_pem2]
         described_class.configure do
           signing_key entries
         end
@@ -234,11 +234,11 @@ describe Doorkeeper::OpenidConnect do
     end
 
     context "with multiple keys configured" do
-      let(:rsa_pem_1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
-      let(:rsa_pem_2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem1) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:rsa_pem2) { OpenSSL::PKey::RSA.generate(2048).to_pem }
 
       before do
-        keys = [rsa_pem_1, rsa_pem_2]
+        keys = [rsa_pem1, rsa_pem2]
         described_class.configure do
           signing_key keys
         end

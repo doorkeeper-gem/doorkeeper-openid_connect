@@ -2,6 +2,7 @@
 
 - Please add here
 - [#294] Drop stale `Metrics/ClassLength` and `Metrics/BlockLength` overrides from `.rubocop_todo.yml`
+- [#293] Drop `Naming/VariableNumber` from `.rubocop_todo.yml` and normalise test variable names
 
 ## v1.10.0 (2026-06-01)
 

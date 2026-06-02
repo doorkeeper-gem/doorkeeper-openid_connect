@@ -55,10 +55,6 @@ RSpec/VerifiedDoubles:
 Style/Documentation:
   Enabled: false
 
-# Configuration parameters: AllowedConstants.
-Naming/VariableNumber:
-  Enabled: false
-
 # The Doorkeeper config DSL (subject, auth_time_from_resource_owner, claim)
 # invokes these blocks with extra arguments, so a strict-arity `&:sym`
 # lambda raises ArgumentError. Keep explicit blocks here.
