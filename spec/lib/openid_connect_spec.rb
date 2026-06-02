@@ -209,8 +209,7 @@ describe Doorkeeper::OpenidConnect do
         end
 
         expect { subject.signing_keys }
-          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                          /signing_key must resolve to at least one key/,)
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration, /signing_key must resolve to at least one key/)
         expect { subject.signing_key }
           .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
       end

@@ -51,8 +51,10 @@ module Doorkeeper
       end
 
       def subject
-        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner,
-                                                             @access_token.application,).to_s
+        Doorkeeper::OpenidConnect.configuration.subject.call(
+          @resource_owner,
+          @access_token.application,
+        ).to_s
       end
 
       def audience
