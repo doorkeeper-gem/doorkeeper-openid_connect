@@ -132,18 +132,29 @@ module Doorkeeper
     # @return [String] the issuer string
     def self.resolve_issuer(resource_owner: nil, application: nil, request: nil)
       issuer = configuration.issuer
-      return issuer.to_s unless issuer.respond_to?(:call)
 
-      case issuer.arity
-      when 0
-        issuer.call
-      when 1
-        issuer.call(request || resource_owner)
-      when 2
-        issuer.call(resource_owner, application)
-      else
-        issuer.call(resource_owner, application, request)
-      end.to_s
+      value =
+        if issuer.respond_to?(:call)
+          case issuer.arity
+          when 0
+            issuer.call
+          when 1
+            issuer.call(request || resource_owner)
+          when 2
+            issuer.call(resource_owner, application)
+          else
+            issuer.call(resource_owner, application, request)
+          end
+        else
+          issuer
+        end.to_s
+
+      if value.blank?
+        raise Errors::InvalidConfiguration,
+              I18n.translate("doorkeeper.openid_connect.errors.messages.issuer_not_configured")
+      end
+
+      value
     end
 
     Doorkeeper::GrantFlow.register(

@@ -261,6 +261,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
     it "uses the protocol option for generating URLs" do
       Doorkeeper::OpenidConnect.configure do
+        issuer "dummy"
         protocol { :testing }
       end
 
@@ -273,6 +274,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context "when the protocol option is configured with a non-callable value" do
       it "accepts a symbol" do
         Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
           protocol :testing
         end
 
@@ -285,6 +287,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
       it "accepts a string" do
         Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
           protocol "testing"
         end
 
@@ -299,6 +302,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context "when the discovery_url_options option is set for all endpoints" do
       before do
         Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
           discovery_url_options do |_request|
             {
               authorization: { host: "alternate-authorization.host" },
@@ -328,6 +332,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context "when the discovery_url_options option is only set for some endpoints" do
       before do
         Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
           discovery_url_options do |_request|
             { authorization: { host: "alternate-authorization.host" } }
           end
@@ -359,6 +364,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
     it "uses the configured end session endpoint with self as context" do
       Doorkeeper::OpenidConnect.configure do
+        issuer "dummy"
         end_session_endpoint -> { logout_url }
       end
 
@@ -420,6 +426,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context "when the discovery_url_options option uses the request for an endpoint" do
       before do
         Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
           discovery_url_options do |request|
             {
               authorization: { host: "alternate-authorization.host",
