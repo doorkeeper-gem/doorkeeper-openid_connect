@@ -188,6 +188,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect_successful_callback!
         end
 
+        it "ignores leading/duplicate whitespace in the prompt parameter" do
+          authorize! prompt: "  none"
+
+          expect_successful_callback!
+        end
+
         context "when another prompt value is present" do
           let(:error_params) do
             {

@@ -5,6 +5,7 @@
 - [#293] Drop `Naming/VariableNumber` from `.rubocop_todo.yml` and normalise test variable names
 - [#291] Document multi-namespace mount pattern for multiple resource owner models ([#192](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/192))
 - [#292] Drop formatting cops from `.rubocop_todo.yml` and align trailing-comma style with upstream doorkeeper
+- [#296] Fix the `prompt` parameter being rejected with `invalid_request` when it contains leading or duplicate spaces (e.g. `prompt=%20none`) — blank entries in the space-delimited value are now ignored
 
 ## v1.10.0 (2026-06-01)
 
