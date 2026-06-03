@@ -26,7 +26,7 @@ describe Doorkeeper::OpenidConnect::OAuth::Authorization::Code do
 
       expect(openid_request_class).to have_received(:create!).with({
         access_grant: access_grant,
-        nonce: "123456"
+        nonce: "123456",
       })
     end
 

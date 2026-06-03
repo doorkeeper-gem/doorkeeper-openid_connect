@@ -18,7 +18,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
       scopes: Doorkeeper::OAuth::Scopes.from_string("public"),
       error: nil,
       authorizable?: true,
-      nonce: "12345"
+      nonce: "12345",
     )
   end
   let(:owner) { build_stubbed(:user) }
@@ -40,7 +40,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
         id_token: id_token.as_jws_token,
         access_token: auth.token.token,
         token_type: auth.token.token_type,
-        expires_in: auth.token.expires_in_seconds
+        expires_in: auth.token.expires_in_seconds,
       })
     end
   end

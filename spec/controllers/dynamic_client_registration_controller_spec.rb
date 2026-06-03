@@ -25,7 +25,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         post :register, params: {
           client_name: "dummy_client",
           redirect_uris: redirect_uris,
-          scope: "public"
+          scope: "public",
         }
 
         expect(response.status).to eq 201
@@ -381,14 +381,14 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           redirect_uris: [
             "http://test.host/registration_success",
           ],
-          scope: "openid"
+          scope: "openid",
         }
 
         expect(response.status).to eq 400
         expect(Doorkeeper::Application.count).to eq(0)
         expect(JSON.parse(response.body)).to eq({
           "error" => "invalid_client_params",
-          "error_description" => "Redirect URI must be an HTTPS/SSL URI."
+          "error_description" => "Redirect URI must be an HTTPS/SSL URI.",
         })
       end
     end

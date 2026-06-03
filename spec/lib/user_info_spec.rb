@@ -112,7 +112,7 @@ describe Doorkeeper::OpenidConnect::UserInfo do
       })
 
       expect(subject.as_json).to eq({
-        blank: " "
+        blank: " ",
       })
     end
   end

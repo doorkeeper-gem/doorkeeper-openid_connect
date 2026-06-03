@@ -14,7 +14,7 @@ module Doorkeeper
         # the canonical subject identifier (which would defeat pairwise /
         # subject-type guarantees).
         ClaimsBuilder.generate(@access_token, :user_info).merge(
-          sub: subject
+          sub: subject,
         )
       end
 

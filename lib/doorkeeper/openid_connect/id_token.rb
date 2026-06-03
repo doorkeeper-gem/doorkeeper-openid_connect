@@ -26,7 +26,7 @@ module Doorkeeper
           exp: expiration,
           iat: issued_at,
           nonce: nonce,
-          auth_time: auth_time
+          auth_time: auth_time,
         )
       end
 
@@ -36,9 +36,9 @@ module Doorkeeper
 
       def as_jws_token
         ::JWT.encode(as_json,
-          Doorkeeper::OpenidConnect.signing_key.keypair,
-          Doorkeeper::OpenidConnect.signing_algorithm.to_s,
-          { typ: "JWT", kid: Doorkeeper::OpenidConnect.signing_key.kid }).to_s
+                     Doorkeeper::OpenidConnect.signing_key.keypair,
+                     Doorkeeper::OpenidConnect.signing_algorithm.to_s,
+                     { typ: "JWT", kid: Doorkeeper::OpenidConnect.signing_key.kid }).to_s
       end
 
       private
@@ -46,13 +46,15 @@ module Doorkeeper
       def issuer
         Doorkeeper::OpenidConnect.resolve_issuer(
           resource_owner: @resource_owner,
-          application: @access_token.application
+          application: @access_token.application,
         )
       end
 
       def subject
-        Doorkeeper::OpenidConnect.configuration.subject.call(@resource_owner,
-@access_token.application).to_s
+        Doorkeeper::OpenidConnect.configuration.subject.call(
+          @resource_owner,
+          @access_token.application,
+        ).to_s
       end
 
       def audience

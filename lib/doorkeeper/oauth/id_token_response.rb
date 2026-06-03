@@ -21,7 +21,7 @@ module Doorkeeper
       def body
         {
           state: pre_auth.state,
-          id_token: id_token.as_jws_token
+          id_token: id_token.as_jws_token,
         }
       end
 

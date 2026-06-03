@@ -19,6 +19,13 @@ Layout/TrailingEmptyLines:
   Enabled: true
 Layout/DotPosition:
   EnforcedStyle: leading
+# Keep hashes/arguments aligned to a normal 2-space indent instead of pushing
+# them to the right of the opening brace/paren (the default
+# special_inside_parentheses style), which is hard to read for long entries.
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: consistent
 Layout/LineLength:
   Exclude:
     - spec/**/*
@@ -40,6 +47,13 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Exclude:
     - spec/dummy/db/**/*
+# Match upstream doorkeeper: require trailing commas on multiline literals.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 Style/StringLiteralsInInterpolation:

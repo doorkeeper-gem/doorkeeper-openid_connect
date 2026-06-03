@@ -4,6 +4,7 @@
 - [#294] Drop stale `Metrics/ClassLength` and `Metrics/BlockLength` overrides from `.rubocop_todo.yml`
 - [#293] Drop `Naming/VariableNumber` from `.rubocop_todo.yml` and normalise test variable names
 - [#291] Document multi-namespace mount pattern for multiple resource owner models ([#192](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/192))
+- [#292] Drop formatting cops from `.rubocop_todo.yml` and align trailing-comma style with upstream doorkeeper
 
 ## v1.10.0 (2026-06-01)
 

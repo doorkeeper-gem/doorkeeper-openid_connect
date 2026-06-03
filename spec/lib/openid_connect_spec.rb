@@ -209,8 +209,7 @@ describe Doorkeeper::OpenidConnect do
         end
 
         expect { subject.signing_keys }
-          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                          /signing_key must resolve to at least one key/)
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration, /signing_key must resolve to at least one key/)
         expect { subject.signing_key }
           .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
       end
@@ -229,7 +228,7 @@ describe Doorkeeper::OpenidConnect do
   describe ".signing_keys_normalized" do
     it "merges use and alg into each exported key" do
       expect(subject.signing_keys_normalized).to eq [
-        subject.signing_key_normalized.merge(use: "sig", alg: :RS256)
+        subject.signing_key_normalized.merge(use: "sig", alg: :RS256),
       ]
     end
 
@@ -259,7 +258,7 @@ describe Doorkeeper::OpenidConnect do
           kty: "RSA",
           kid: "IqYwZo2cE6hsyhs48cU8QHH4GanKIx0S4Dc99kgTIMA",
           e: "AQAB",
-          n: "sjdnSA6UWUQQHf6BLIkIEUhMRNBJC1NN_pFt1EJmEiI88GS0ceROO5B5Ooo9Y3QOWJ_n-u1uwTHBz0HCTN4wgArWd1TcqB5GQzQRP4eYnWyPfi4CfeqAHzQp-v4VwbcK0LW4FqtW5D0dtrFtI281FDxLhARzkhU2y7fuYhL8fVw5rUhE8uwvHRZ5CEZyxf7BSHxIvOZAAymhuzNLATt2DGkDInU1BmF75tEtBJAVLzWG_j4LPZh1EpSdfezqaXQlcy9PJi916UzTl0P7Yy-ulOdUsMlB6yo8qKTY1-AbZ5jzneHbGDU_O8QjYvii1WDmJ60t0jXicmOkGrOhruOptw"
+          n: "sjdnSA6UWUQQHf6BLIkIEUhMRNBJC1NN_pFt1EJmEiI88GS0ceROO5B5Ooo9Y3QOWJ_n-u1uwTHBz0HCTN4wgArWd1TcqB5GQzQRP4eYnWyPfi4CfeqAHzQp-v4VwbcK0LW4FqtW5D0dtrFtI281FDxLhARzkhU2y7fuYhL8fVw5rUhE8uwvHRZ5CEZyxf7BSHxIvOZAAymhuzNLATt2DGkDInU1BmF75tEtBJAVLzWG_j4LPZh1EpSdfezqaXQlcy9PJi916UzTl0P7Yy-ulOdUsMlB6yo8qKTY1-AbZ5jzneHbGDU_O8QjYvii1WDmJ60t0jXicmOkGrOhruOptw",
         )
       end
     end
@@ -273,7 +272,7 @@ describe Doorkeeper::OpenidConnect do
           kid: "dOx_AhaepicN2r2M-sxZhgkYZMCX7dYhPsNOw1ZiFnI",
           crv: "P-521",
           x: "AeYVvbl3zZcFCdE-0msqOowYODjzeXAhjsZKhdNjGlDREvko3UFOw6S43g-s8bvVBmBz3fCodEzFRYQqJVI4UFvF",
-          y: "AYJ7GYeBm_Fb6liN53xGASdbRSzF34h4BDSVYzjtQc7I-1LK17fwwS3VfQCJwaT6zX33HTrhR4VoUEUJHKwR3dNs"
+          y: "AYJ7GYeBm_Fb6liN53xGASdbRSzF34h4BDSVYzjtQc7I-1LK17fwwS3VfQCJwaT6zX33HTrhR4VoUEUJHKwR3dNs",
         )
       end
     end
@@ -284,7 +283,7 @@ describe Doorkeeper::OpenidConnect do
       it "returns the HMAC public key parameters" do
         expect(subject.signing_key_normalized).to eq(
           kty: "oct",
-          kid: "UGyfZX0uOWB46idsQ0QxdFISdaoGilib_t-ZUw8V0Qc"
+          kid: "UGyfZX0uOWB46idsQ0QxdFISdaoGilib_t-ZUw8V0Qc",
         )
       end
     end

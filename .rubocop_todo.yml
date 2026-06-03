@@ -6,13 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-Layout/HashAlignment:
-  Enabled: false
-Layout/FirstHashElementIndentation:
-  Enabled: false
-Layout/ArgumentAlignment:
-  Enabled: false
-
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
   Max: 209
@@ -31,13 +24,6 @@ Metrics/CyclomaticComplexity:
 # Configuration parameters: IgnoredMethods.
 Metrics/PerceivedComplexity:
   Max: 10
-
-Style/TrailingCommaInArguments:
-  Enabled: false
-Style/TrailingCommaInArrayLiteral:
-  Enabled: false
-Style/TrailingCommaInHashLiteral:
-  Enabled: false
 
 # Configuration parameters: .
 # SupportedStyles: have_received, receive

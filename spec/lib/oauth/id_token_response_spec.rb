@@ -19,7 +19,7 @@ describe Doorkeeper::OAuth::IdTokenResponse do
       scopes: Doorkeeper::OAuth::Scopes.from_string("public"),
       error: nil,
       authorizable?: true,
-      nonce: "12345"
+      nonce: "12345",
     )
   end
 
@@ -40,7 +40,7 @@ describe Doorkeeper::OAuth::IdTokenResponse do
     it "returns the id_token and state only (no expires_in per OIDC Core §3.2.2.5)" do
       expect(subject.body).to eq({
         state: pre_auth.state,
-        id_token: id_token.as_jws_token
+        id_token: id_token.as_jws_token,
       })
     end
 

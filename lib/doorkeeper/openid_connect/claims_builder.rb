@@ -31,7 +31,7 @@ module Doorkeeper
             name: name,
             response: response,
             scope: scope,
-            generator: block
+            generator: block,
           )
       end
       alias claim normal_claim
