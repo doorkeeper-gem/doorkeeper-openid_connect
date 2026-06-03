@@ -8,6 +8,10 @@
 
 ## v1.10.0 (2026-06-01)
 
+>[!IMPORTANT]
+>
+>- **Breaking (arity-2 issuer blocks):** `resolve_issuer` now dispatches arity-2 blocks with `(resource_owner, application)` in all contexts, including discovery. In v1.9.0 `DiscoveryController` passed `request` as the first argument; existing arity-2 blocks that relied on this receive `(nil, nil)` in v1.10.0 and should migrate to arity-3 — see [#298](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/298) for details and migration examples
+
 - [#241] Fix NameError on doorkeeper master by deferring AR model loading in run_hooks (see [Doorkeeper PR](https://github.com/doorkeeper-gem/doorkeeper/pull/1804))
 - [#242] Fix `NoMethodError` for openid_request in testing environments.
 - [#246] Fix `at_hash` to use correct hash algorithm based on `signing_algorithm`
