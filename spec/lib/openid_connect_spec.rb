@@ -413,5 +413,30 @@ describe Doorkeeper::OpenidConnect do
         expect(result).to eq "https://example.com"
       end
     end
+
+    context "when issuer resolves to a blank value" do
+      it "raises InvalidConfiguration for a block returning nil in the discovery context" do
+        described_class.configure do
+          issuer do |resource_owner, application|
+            resource_owner && application && "https://example.com"
+          end
+        end
+
+        expect { subject.resolve_issuer(request: request) }
+          .to raise_error(
+            Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+            /issuer must resolve to a non-blank value/,
+          )
+      end
+
+      it "raises InvalidConfiguration for a blank static value" do
+        described_class.configure do
+          issuer "  "
+        end
+
+        expect { subject.resolve_issuer }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
   end
 end

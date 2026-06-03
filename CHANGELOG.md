@@ -6,6 +6,7 @@
 - [#291] Document multi-namespace mount pattern for multiple resource owner models ([#192](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/192))
 - [#292] Drop formatting cops from `.rubocop_todo.yml` and align trailing-comma style with upstream doorkeeper
 - [#296] Fix the `prompt` parameter being rejected with `invalid_request` when it contains leading or duplicate spaces (e.g. `prompt=%20none`) — blank entries in the space-delimited value are now ignored
+- [#299] Raise `InvalidConfiguration` when the `issuer` config resolves to a blank value instead of silently advertising an empty `issuer` in the discovery document. Since v1.10.0 an arity-2 `issuer` block receives `(resource_owner, application)` — both `nil` in the discovery context — so a block relying on the old v1.9.0 request argument could return `nil` and produce a discovery `issuer` that mismatched the ID token `iss` ([#298](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/298))
 
 ## v1.10.0 (2026-06-01)
 

@@ -3,6 +3,8 @@
 module DoorkeeperConfiguration
   def configure_doorkeeper(signing_key, signing_algorithm)
     Doorkeeper::OpenidConnect.configure do
+      issuer "dummy"
+
       signing_key signing_key
 
       signing_algorithm signing_algorithm
