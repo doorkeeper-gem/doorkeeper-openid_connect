@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#303] execute account selection even without owner
 
 ## v1.10.1 (2026-06-03)
 
