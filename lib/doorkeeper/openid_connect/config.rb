@@ -54,6 +54,7 @@ module Doorkeeper
       }
 
       option :auth_time_from_session, default: nil
+      option :auth_time_from_access_token, default: nil
 
       option :reauthenticate_resource_owner, default: lambda { |*_|
         raise Errors::InvalidConfiguration, I18n.translate("doorkeeper.openid_connect.errors.messages.reauthenticate_resource_owner_not_configured")
