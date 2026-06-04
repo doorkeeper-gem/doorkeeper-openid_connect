@@ -126,7 +126,7 @@ describe Doorkeeper::OpenidConnect::IdToken do
     context "when auth_time_from_access_token is configured" do
       before do
         access_token.define_singleton_method(:auth_time_from_custom_mechanism) do
-          @auth_time ||= 5.minutes.ago
+          @auth_time_from_custom_mechanism ||= 5.minutes.ago
         end
 
         Doorkeeper::OpenidConnect.configure do
