@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#304] allow handle auth_time per grant
 
 ## v1.10.1 (2026-06-03)
 
