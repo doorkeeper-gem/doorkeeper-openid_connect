@@ -116,7 +116,7 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     it "defaults to nil" do
       described_class.configure {}
 
-      expect(subject.auth_time_from_session).to be_nil
+      expect(subject.auth_time_from_access_token).to be_nil
     end
 
     it "sets the block that is accessible via auth_time_from_access_token" do
