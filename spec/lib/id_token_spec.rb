@@ -123,6 +123,36 @@ describe Doorkeeper::OpenidConnect::IdToken do
       end
     end
 
+    context "when auth_time_from_access_token is configured" do
+      before do
+        access_token.define_singleton_method(:auth_time_from_custom_mechanism) do
+          @auth_time_from_custom_mechanism ||= 5.minutes.ago
+        end
+
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          auth_time_from_access_token do |access_token|
+            access_token.auth_time_from_custom_mechanism
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it "uses auth_time using auth_time_from_access_token" do
+        expect { subject.claims }.not_to raise_error
+        expect(subject.claims[:auth_time]).to eq access_token.auth_time_from_custom_mechanism.to_i
+        expect(subject.as_json).to include(:auth_time)
+      end
+    end
+
     context "when a custom claim collides with a protected registered claim" do
       before do
         Doorkeeper::OpenidConnect.configure do

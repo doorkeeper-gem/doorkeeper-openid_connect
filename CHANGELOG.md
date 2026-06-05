@@ -2,6 +2,7 @@
 
 - Please add here
 - [#303] execute account selection even without owner
+- [#304] allow handle auth_time per grant
 
 ## v1.10.1 (2026-06-03)
 
