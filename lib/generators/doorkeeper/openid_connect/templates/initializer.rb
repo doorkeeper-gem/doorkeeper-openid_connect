@@ -76,9 +76,11 @@ Doorkeeper::OpenidConnect.configure do
     # redirect_to new_user_session_url
   end
 
-  select_account_for_resource_owner do |resource_owner, return_to|
+  select_account_for_resource_owner do |resource_owner_or_nil, return_to|
     # Example implementation:
-    # store_location_for resource_owner, return_to
+    # if resource_owner_or_nil
+    #   store_location_for resource_owner_or_nil, return_to
+    # end
     # redirect_to account_select_url
   end
 
