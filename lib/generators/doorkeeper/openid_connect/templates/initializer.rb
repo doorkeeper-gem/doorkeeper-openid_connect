@@ -57,6 +57,18 @@ Doorkeeper::OpenidConnect.configure do
   #   session[:auth_time]
   # end
 
+  # Advanced:
+  # If you store `auth_time` in a custom authentication context record linked
+  # to the access token, you can configure a block like below to derive it
+  # from the access token instead of `auth_time_from_resource_owner`.
+  #
+  # This allows you to track `auth_time` per grant instead of per user,
+  # but requires more custom implementation on your part.
+  #
+  # auth_time_from_access_token do |access_token|
+  #   access_token.your_custom_authentication_context_record.auth_time
+  # end
+
   reauthenticate_resource_owner do |resource_owner, return_to|
     # Example implementation:
     # store_location_for resource_owner, return_to
