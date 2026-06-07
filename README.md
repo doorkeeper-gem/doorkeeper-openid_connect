@@ -180,6 +180,16 @@ The following settings are optional, but recommended for better client compatibi
       session[:auth_time]
     end
     ```
+- `auth_time_from_access_token`
+  - Derives the `auth_time` claim from the access token (i.e. per grant) instead of from the resource owner (per user). Useful when you store `auth_time` in a custom authentication-context record linked to the access token.
+  - The block receives the access token and the return value can be a `Time`, `DateTime`, or anything responding to `to_i`. When configured, it takes precedence over `auth_time_from_resource_owner` for populating the `auth_time` claim on the ID Token.
+  - **Note:** this only affects the `auth_time` claim on the ID Token; it is not used for `max_age` enforcement, which still resolves auth_time via `auth_time_from_session` / `auth_time_from_resource_owner`.
+
+    ```ruby
+    auth_time_from_access_token do |access_token|
+      access_token.your_custom_authentication_context_record.auth_time
+    end
+    ```
 - `reauthenticate_resource_owner`
   - Defines how to trigger reauthentication for the current user (e.g. display a password prompt, or sign-out the user and redirect to the login form).
   - Required to support the `max_age` and `prompt=login` parameters.
