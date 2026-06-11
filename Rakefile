@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
-
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 
@@ -12,6 +10,7 @@ task test: :spec
 
 desc "Generate and run migrations in the test application"
 task :migrate do
+  ENV["RAILS_ENV"] ||= "test"
   Dir.chdir("spec/dummy") do
     system("bin/rails generate doorkeeper:openid_connect:migration")
     system("bin/rake db:migrate")
@@ -20,6 +19,7 @@ end
 
 desc "Run server in the test application"
 task :server do
+  ENV["RAILS_ENV"] ||= "development"
   Dir.chdir("spec/dummy") do
     system("bin/rails server")
   end
