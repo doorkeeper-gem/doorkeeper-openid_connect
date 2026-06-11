@@ -14,4 +14,8 @@ group :development, :rubocop do
   gem "rubocop-rspec", require: false
 end
 
+group :development do
+  gem "puma"
+end
+
 gemspec
