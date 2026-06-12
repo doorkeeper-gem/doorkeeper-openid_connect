@@ -10,6 +10,7 @@
 - [#313] Move Configuration documentation from README to Wiki
 - [#312] Raise `Errors::MissingRequiredClaim` instead of silently dropping a blank REQUIRED ID Token claim (`iss`/`sub`/`aud`/`exp`/`iat`) in `IdToken#as_json`, which previously could emit a non-conformant ID Token (OIDC Core 1.0 §2). OPTIONAL claims such as `nonce`/`auth_time` are still omitted when blank
 - [#311] Include the REQUIRED `client_secret_expires_at` member (value `0`, never expires) in the Dynamic Client Registration response whenever a `client_secret` is issued (RFC 7591 §3.2.1 / OpenID Connect Dynamic Client Registration 1.0 §3.2)
+- [#309] Add a browser dashboard to the test application (`spec/dummy`) for exercising the OpenID Connect endpoints by hand — replacing the rails console + curl workflow with forms for Setup, Discovery, Authorization (code / implicit / PKCE / nonce / prompt / `max_age`), token exchange, UserInfo, introspection and revocation
 
 ## v1.10.1 (2026-06-03)
 
