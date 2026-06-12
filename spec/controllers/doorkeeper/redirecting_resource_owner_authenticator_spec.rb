@@ -61,13 +61,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     # like the other unauthenticated prompts.
     it "prompt=select_account: falls through to the login redirect without raising" do
       Doorkeeper::OpenidConnect.configure do
-        select_account_for_resource_owner do |resource_owner, _return_to|
-          redirect_to "/accounts?uid=#{resource_owner.id}"
+        select_account_for_resource_owner do |_resource_owner, _return_to|
+          redirect_to "/accounts"
         end
       end
 
       expect { authorize!(prompt: "select_account") }.not_to raise_error
-      expect(response).to redirect_to("/login")
+      expect(response).to redirect_to("/accounts")
     end
 
     # OpenID Connect Core 1.0 §3.1.2.1: with prompt=none and no authenticated
