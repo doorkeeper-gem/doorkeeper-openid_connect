@@ -1,7 +1,7 @@
 ## Unreleased
 
 - Please add here
-- [#303] execute account selection even without owner
+- [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
 - [#304] allow handle auth_time per grant
 
 ## v1.10.1 (2026-06-03)
