@@ -59,7 +59,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     # select_account_for_resource_owner block and a block that touches the
     # owner blew up. With the guard it falls through to the login redirect
     # like the other unauthenticated prompts.
-    it "prompt=select_account: falls through to the login redirect without raising" do
+    it "prompt=select_account: executes the select_account handler without raising" do
       Doorkeeper::OpenidConnect.configure do
         select_account_for_resource_owner do |_resource_owner, _return_to|
           redirect_to "/accounts"
