@@ -61,6 +61,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       Doorkeeper::OpenidConnect.configure do
         select_account_for_resource_owner do |resource_owner_or_nil, _return_to|
           raise unless resource_owner_or_nil.nil?
+
           redirect_to "/accounts"
         end
       end
