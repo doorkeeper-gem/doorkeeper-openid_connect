@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
 - [#304] allow handle auth_time per grant
 - [#305] Document the `auth_time_from_access_token` config option in the README (per-grant `auth_time`), clarifying that it only affects the ID Token `auth_time` claim and not `max_age` enforcement
 - [#307] Fix `bundle exec rake server` for the test application

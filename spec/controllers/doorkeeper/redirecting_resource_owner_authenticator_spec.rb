@@ -54,20 +54,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(response).to redirect_to("/login")
     end
 
-    # prompt=select_account had no `if owner` guard (unlike prompt=login /
-    # prompt=consent), so the leaked owner reached the host
-    # select_account_for_resource_owner block and a block that touches the
-    # owner blew up. With the guard it falls through to the login redirect
-    # like the other unauthenticated prompts.
-    it "prompt=select_account: falls through to the login redirect without raising" do
+    # prompt=select_account has no `if owner` guard (unlike prompt=login /
+    # prompt=consent), so select_account_for_resource_owner can navigate users to
+    # account selector screen even if they are not authenticated upto your configuration.
+    it "prompt=select_account: executes the select_account handler without raising" do
       Doorkeeper::OpenidConnect.configure do
-        select_account_for_resource_owner do |resource_owner, _return_to|
-          redirect_to "/accounts?uid=#{resource_owner.id}"
+        select_account_for_resource_owner do |resource_owner_or_nil, _return_to|
+          raise unless resource_owner_or_nil.nil?
+
+          redirect_to "/accounts"
         end
       end
 
       expect { authorize!(prompt: "select_account") }.not_to raise_error
-      expect(response).to redirect_to("/login")
+      expect(response).to redirect_to("/accounts")
     end
 
     # OpenID Connect Core 1.0 §3.1.2.1: with prompt=none and no authenticated

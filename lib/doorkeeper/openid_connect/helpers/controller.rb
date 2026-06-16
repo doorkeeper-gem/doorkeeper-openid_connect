@@ -125,7 +125,7 @@ module Doorkeeper
                 render :new
               end
             when "select_account"
-              select_account_for_oidc_resource_owner(owner) if owner
+              select_account_for_oidc_resource_owner(owner)
             when "create"
               # NOTE: not supported, but not raise error.
             else
