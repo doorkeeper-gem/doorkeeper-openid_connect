@@ -191,14 +191,42 @@ describe Doorkeeper::OpenidConnect::IdToken do
   end
 
   describe "#as_json" do
-    it "returns claims with nil values and empty strings removed" do
-      allow(subject).to receive_messages(issuer: nil, subject: "", audience: " ")
+    let(:valid_claims) do
+      {
+        iss: "dummy",
+        sub: user.id.to_s,
+        aud: access_token.application.uid,
+        exp: 180,
+        iat: 60,
+        nonce: "123456",
+      }
+    end
+
+    it "removes OPTIONAL claims with nil or empty values" do
+      # nonce / auth_time and custom claims are OPTIONAL, so blanks are dropped
+      # while the REQUIRED claims remain present.
+      allow(subject).to receive(:claims).and_return(
+        valid_claims.merge(nonce: nil, auth_time: "", custom: " "),
+      )
 
       json = subject.as_json
 
-      expect(json).not_to include :iss
-      expect(json).not_to include :sub
-      expect(json).to include :aud
+      expect(json).not_to include :nonce
+      expect(json).not_to include :auth_time
+      expect(json).to include :iss, :sub, :aud, :exp, :iat, :custom
+    end
+
+    Doorkeeper::OpenidConnect::IdToken::REQUIRED_CLAIMS.each do |claim|
+      [nil, ""].each do |blank|
+        it "raises MissingRequiredClaim when the REQUIRED #{claim} claim is #{blank.inspect}" do
+          allow(subject).to receive(:claims).and_return(valid_claims.merge(claim => blank))
+
+          expect { subject.as_json }
+            .to raise_error(Doorkeeper::OpenidConnect::Errors::MissingRequiredClaim) do |error|
+              expect(error.claim).to eq(claim)
+            end
+        end
+      end
     end
   end
 

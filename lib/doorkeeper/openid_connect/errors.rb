@@ -12,6 +12,18 @@ module Doorkeeper
       # internal errors
       class InvalidConfiguration < OpenidConnectError; end
 
+      # Raised when a REQUIRED ID Token claim (OIDC Core §2: iss/sub/aud/exp/iat)
+      # resolves to a blank value, which would otherwise be silently dropped and
+      # produce a non-conformant ID Token.
+      class MissingRequiredClaim < OpenidConnectError
+        attr_reader :claim
+
+        def initialize(claim)
+          @claim = claim
+          super(I18n.translate("doorkeeper.openid_connect.errors.messages.missing_required_claim", claim: claim))
+        end
+      end
+
       class MissingConfiguration < OpenidConnectError
         def initialize
           super("Configuration for Doorkeeper OpenID Connect missing. Do you have doorkeeper_openid_connect initializer?")

@@ -6,6 +6,7 @@
 - [#305] Document the `auth_time_from_access_token` config option in the README (per-grant `auth_time`), clarifying that it only affects the ID Token `auth_time` claim and not `max_age` enforcement
 - [#307] Fix `bundle exec rake server` for the test application
 - [#313] Move Configuration documentation from README to Wiki
+- [#312] Raise `Errors::MissingRequiredClaim` instead of silently dropping a blank REQUIRED ID Token claim (`iss`/`sub`/`aud`/`exp`/`iat`) in `IdToken#as_json`, which previously could emit a non-conformant ID Token (OIDC Core 1.0 §2). OPTIONAL claims such as `nonce`/`auth_time` are still omitted when blank
 
 ## v1.10.1 (2026-06-03)
 
