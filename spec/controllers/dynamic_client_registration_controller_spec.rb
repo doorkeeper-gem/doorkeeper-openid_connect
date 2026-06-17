@@ -37,6 +37,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         body = JSON.parse(response.body)
         expect(body).to eq({
           "client_secret" => doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
+          "client_secret_expires_at" => 0,
           "client_id" => doorkeeper_application.uid,
           "client_id_issued_at" => doorkeeper_application.created_at.to_i,
           "redirect_uris" => redirect_uris,
@@ -67,6 +68,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("client_secret_basic")
         expect(body["client_secret"]).to be_present
+        expect(body["client_secret_expires_at"]).to eq(0)
       end
     end
 
@@ -87,6 +89,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("client_secret_post")
         expect(body["client_secret"]).to be_present
+        expect(body["client_secret_expires_at"]).to eq(0)
       end
     end
 
@@ -107,6 +110,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("none")
         expect(body).not_to have_key("client_secret")
+        expect(body).not_to have_key("client_secret_expires_at")
       end
     end
 

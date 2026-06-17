@@ -72,6 +72,10 @@ module Doorkeeper
         if registration.confidential_client?
           response[:client_secret] =
             doorkeeper_application.plaintext_secret || doorkeeper_application.secret
+          # RFC 7591 §3.2.1 / OIDC Dynamic Client Registration 1.0 §3.2:
+          # client_secret_expires_at is REQUIRED when a client_secret is issued.
+          # Doorkeeper secrets never expire, so the value is 0 (no expiration).
+          response[:client_secret_expires_at] = 0
         end
 
         response
