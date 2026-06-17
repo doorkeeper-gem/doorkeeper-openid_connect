@@ -4,8 +4,32 @@ module Doorkeeper
   module OpenidConnect
     module OAuth
       module PreAuthorization
+        # Emit the missing-nonce deprecation at most once per process to avoid
+        # spamming logs on every implicit/hybrid authorization request while the
+        # `enforce_implicit_nonce` option is still disabled by default.
+        @implicit_nonce_deprecation_warned = false
+
         def self.prepended(base)
           base.validate :nonce, error: Doorkeeper::Errors::InvalidRequest
+        end
+
+        def self.warn_missing_nonce_deprecation
+          return if @implicit_nonce_deprecation_warned
+
+          @implicit_nonce_deprecation_warned = true
+          warn "DEPRECATION WARNING: an OpenID Connect implicit/hybrid flow " \
+               "authorization request (a `response_type` including `id_token`) " \
+               "was made without a `nonce`. `nonce` is REQUIRED for these flows " \
+               "per OpenID Connect Core 1.0 §3.2.2.1. Such requests are currently " \
+               "accepted for backward compatibility, but this will change: set " \
+               "`enforce_implicit_nonce true` in " \
+               "config/initializers/doorkeeper_openid_connect.rb to reject them " \
+               "now, as this will become the default in a future major version."
+        end
+
+        # Reset the deprecation flag (test helper).
+        def self.reset_implicit_nonce_deprecation_warning!
+          @implicit_nonce_deprecation_warned = false
         end
 
         attr_reader :nonce
@@ -29,22 +53,29 @@ module Doorkeeper
 
         private
 
-        # Per OpenID Connect Core 1.0 Section 3.2.2.1, nonce is REQUIRED for the
-        # implicit flow (id_token and id_token token response types).
+        # Per OpenID Connect Core 1.0 §3.2.2.1, nonce is REQUIRED for the
+        # implicit and hybrid flows (any response_type that includes id_token).
+        #
+        # Enforcement is gated on the `enforce_implicit_nonce` option for
+        # backward compatibility: while it is disabled (the current default) a
+        # missing nonce is allowed but emits a one-time deprecation warning;
+        # once enabled the request is rejected with `invalid_request`.
         def validate_nonce
           return true unless openid_implicit_flow?
+          return true if nonce.present?
 
-          if nonce.blank?
-            @missing_param = :nonce
-            return false
+          unless Doorkeeper::OpenidConnect.configuration.enforce_implicit_nonce
+            OpenidConnect::OAuth::PreAuthorization.warn_missing_nonce_deprecation
+            return true
           end
 
-          true
+          @missing_param = :nonce
+          false
         end
 
         def openid_implicit_flow?
-          scopes.include?('openid') &&
-            response_type.to_s.split(' ').include?('id_token')
+          scopes.include?("openid") &&
+            response_type.to_s.split(" ").include?("id_token")
         end
       end
     end

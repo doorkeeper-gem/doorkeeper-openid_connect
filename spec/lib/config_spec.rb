@@ -254,6 +254,22 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
   end
 
+  describe "enforce_implicit_nonce" do
+    it "defaults to false" do
+      described_class.configure {}
+
+      expect(subject.enforce_implicit_nonce).to be(false)
+    end
+
+    it "can be enabled" do
+      described_class.configure do
+        enforce_implicit_nonce true
+      end
+
+      expect(subject.enforce_implicit_nonce).to be(true)
+    end
+  end
+
   describe "discovery_url_options" do
     it "defaults to empty hash" do
       expect(subject.discovery_url_options.call).to be_a(Hash)

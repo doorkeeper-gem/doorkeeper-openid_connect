@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects implicit/hybrid flow requests (any `response_type` including `id_token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in a future major version ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
 - [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
 - [#304] allow handle auth_time per grant
 - [#305] Document the `auth_time_from_access_token` config option in the README (per-grant `auth_time`), clarifying that it only affects the ID Token `auth_time` claim and not `max_age` enforcement
