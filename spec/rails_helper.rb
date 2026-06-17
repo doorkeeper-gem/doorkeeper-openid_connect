@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
-ENV['RAILS_ENV'] ||= 'test'
-require 'dummy/config/environment'
+ENV["RAILS_ENV"] ||= "test"
+require "dummy/config/environment"
 # Prevent database truncation if the environment is production
-abort('The Rails environment is running in production mode!') if Rails.env.production?
-require 'spec_helper'
-require 'rspec/rails'
+abort("The Rails environment is running in production mode!") if Rails.env.production?
+require "spec_helper"
+require "rspec/rails"
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -26,20 +26,18 @@ require 'rspec/rails'
 
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
-Dir.chdir('spec/dummy') do
+Dir.chdir("spec/dummy") do
   ActiveRecord::Migration.maintain_test_schema!
 end
 
-require_relative 'support/doorkeeper_configuration.rb'
+require_relative "support/doorkeeper_configuration"
 
-require 'factory_bot'
+require "factory_bot"
 FactoryBot.find_definitions
 
 RSpec.configure do |config|
   # Backward compatibility: fixture_path was removed in RSpec-Rails 8.x
-  if config.respond_to?(:fixture_path=)
-    config.fixture_path = "#{::Rails.root}/spec/fixtures"
-  end
+  config.fixture_path = Rails.root.join("spec/fixtures").to_s if config.respond_to?(:fixture_path=)
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -55,7 +53,7 @@ RSpec.configure do |config|
 
   # Reinitialize configuration after each example
   config.after do
-    load Rails.root.join('config/initializers/doorkeeper.rb')
-    load Rails.root.join('config/initializers/doorkeeper_openid_connect.rb')
+    load Rails.root.join("config/initializers/doorkeeper.rb")
+    load Rails.root.join("config/initializers/doorkeeper_openid_connect.rb")
   end
 end

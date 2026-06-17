@@ -7,7 +7,7 @@ Doorkeeper.configure do
     if params[:current_user].present?
       User.find(params[:current_user])
     else
-      redirect_to('/login')
+      redirect_to("/login")
       nil
     end
   end

@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'bundler/setup'
+require "bundler/setup"
 Bundler.require :default
 
-require 'doorkeeper/openid_connect'
+require "doorkeeper/openid_connect"
 
-require 'pry'
+require "pry"
 Pry.start

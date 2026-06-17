@@ -8,6 +8,7 @@ module Doorkeeper
       attr_accessor :pre_auth, :auth, :id_token
 
       def initialize(pre_auth, auth, id_token)
+        super()
         @pre_auth = pre_auth
         @auth = auth
         @id_token = id_token
@@ -19,9 +20,8 @@ module Doorkeeper
 
       def body
         {
-          expires_in: auth.token.expires_in_seconds,
           state: pre_auth.state,
-          id_token: id_token.as_jws_token
+          id_token: id_token.as_jws_token,
         }
       end
 

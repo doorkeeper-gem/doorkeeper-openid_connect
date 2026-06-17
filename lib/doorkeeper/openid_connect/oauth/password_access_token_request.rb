@@ -6,7 +6,7 @@ module Doorkeeper
       module PasswordAccessTokenRequest
         attr_reader :nonce
 
-        if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.1')
+        if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.create("5.5.1")
           def initialize(server, client, credentials, resource_owner, parameters = {})
             super
             @nonce = parameters[:nonce]
@@ -21,8 +21,10 @@ module Doorkeeper
         private
 
         def after_successful_response
-          id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
-          @response.id_token = id_token
+          if access_token.includes_scope?("openid")
+            id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
+            @response.id_token = id_token
+          end
           super
         end
       end

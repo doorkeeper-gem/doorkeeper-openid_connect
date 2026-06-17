@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :access_grant, class: 'Doorkeeper::AccessGrant' do
+  factory :access_grant, class: "Doorkeeper::AccessGrant" do
     resource_owner_id { create(:user).id }
     application
-    redirect_uri { 'https://app.com/callback' }
+    redirect_uri { "https://app.com/callback" }
     expires_in { 100 }
-    scopes { 'public write' }
+    scopes { "public write" }
   end
 
-  factory :access_token, class: 'Doorkeeper::AccessToken' do
+  factory :access_token, class: "Doorkeeper::AccessToken" do
     resource_owner_id { create(:user).id }
     application
     expires_in { 2.hours }
@@ -19,9 +19,9 @@ FactoryBot.define do
     end
   end
 
-  factory :application, class: 'Doorkeeper::Application' do
+  factory :application, class: "Doorkeeper::Application" do
     sequence(:name) { |n| "Application #{n}" }
-    redirect_uri { 'https://app.com/callback' }
+    redirect_uri { "https://app.com/callback" }
   end
 
   factory :user do

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 Doorkeeper::OpenidConnect.configure do
-  issuer do |resource_owner, application, request|
-    # Example implementation:
-    # request&.base_url || 'https://example.com'
-    'issuer string'
+  issuer do |_resource_owner, _application, _request|
+    # Example implementation (the block receives the current request as its
+    # third argument; reference it as `_request` or rename the parameter):
+    # _request&.base_url || 'https://example.com'
+    "issuer string"
   end
 
   signing_key <<~KEY
@@ -12,6 +13,16 @@ Doorkeeper::OpenidConnect.configure do
     ....
     -----END RSA PRIVATE KEY-----
   KEY
+
+  # `signing_key` also accepts an array for key rotation. The first entry is
+  # the active key used to sign newly issued ID tokens; any remaining entries
+  # are published in the JWKS so clients can still validate tokens signed
+  # with a retired key during a rotation window.
+  #
+  # signing_key [
+  #   File.read("config/keys/current.pem"),  # active
+  #   File.read("config/keys/previous.pem"), # retired but still in JWKS
+  # ]
 
   subject_types_supported [:public]
 
@@ -21,9 +32,42 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   auth_time_from_resource_owner do |resource_owner|
+    # Used to populate the `auth_time` claim on the ID Token, and as a
+    # fallback for `max_age` enforcement when `auth_time_from_session` is
+    # not configured.
+    #
     # Example implementation:
     # resource_owner.current_sign_in_at
   end
+
+  # Recommended: derive `auth_time` from the current session for `max_age`
+  # enforcement. `auth_time_from_resource_owner` returns the same value for
+  # every concurrent session of the same user (e.g. PC + smartphone), which
+  # can let a stale session satisfy an RP's `max_age` requirement by
+  # piggy-backing on a fresh login from another device.
+  #
+  # The block is executed in the controller's scope and receives the
+  # current `session` and `request`. Return value can be a `Time`,
+  # `DateTime`, or anything responding to `to_i`. Return `nil` to force
+  # reauthentication.
+  #
+  # auth_time_from_session do |session, _request|
+  #   # Example implementation: capture auth_time on the session at login,
+  #   # and surface it here.
+  #   session[:auth_time]
+  # end
+
+  # Advanced:
+  # If you store `auth_time` in a custom authentication context record linked
+  # to the access token, you can configure a block like below to derive it
+  # from the access token instead of `auth_time_from_resource_owner`.
+  #
+  # This allows you to track `auth_time` per grant instead of per user,
+  # but requires more custom implementation on your part.
+  #
+  # auth_time_from_access_token do |access_token|
+  #   access_token.your_custom_authentication_context_record.auth_time
+  # end
 
   reauthenticate_resource_owner do |resource_owner, return_to|
     # Example implementation:
@@ -32,9 +76,11 @@ Doorkeeper::OpenidConnect.configure do
     # redirect_to new_user_session_url
   end
 
-  select_account_for_resource_owner do |resource_owner, return_to|
+  select_account_for_resource_owner do |resource_owner_or_nil, return_to|
     # Example implementation:
-    # store_location_for resource_owner, return_to
+    # if resource_owner_or_nil
+    #   store_location_for resource_owner_or_nil, return_to
+    # end
     # redirect_to account_select_url
   end
 

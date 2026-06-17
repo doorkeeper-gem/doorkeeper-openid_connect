@@ -1,11 +1,16 @@
 inherit_from: .rubocop_todo.yml
-require:
+plugins:
   - rubocop-performance
   - rubocop-rails
   - rubocop-rspec
 AllCops:
   TargetRubyVersion: 3.1
   Exclude:
+    # CI installs gems into ./vendor/bundle (ruby/setup-ruby bundler-cache),
+    # which RuboCop would otherwise lint. Defining AllCops/Exclude overrides
+    # RuboCop's default vendor exclusion, so list it explicitly here too.
+    - "vendor/**/*"
+    - ".bundle/**/*"
     - "spec/dummy/bin/*"
     - "spec/dummy/db/*"
     - "spec/dummy/db/*/**"
@@ -14,9 +19,26 @@ Layout/TrailingEmptyLines:
   Enabled: true
 Layout/DotPosition:
   EnforcedStyle: leading
+# Keep hashes/arguments aligned to a normal 2-space indent instead of pushing
+# them to the right of the opening brace/paren (the default
+# special_inside_parentheses style), which is hard to read for long entries.
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: consistent
 Layout/LineLength:
   Exclude:
     - spec/**/*
+    # Legacy library files with long lines remaining
+    # (mostly multi-line I18n/deprecation message strings).
+    - app/controllers/doorkeeper/openid_connect/discovery_controller.rb
+    - app/controllers/doorkeeper/openid_connect/dynamic_client_registration_controller.rb
+    - lib/doorkeeper/openid_connect/config.rb
+    - lib/doorkeeper/openid_connect/errors.rb
+    - lib/doorkeeper/openid_connect/helpers/controller.rb
+    - lib/doorkeeper/openid_connect/orm/active_record.rb
+    - lib/doorkeeper/openid_connect/orm/active_record/mixins/openid_request.rb
+    - lib/generators/doorkeeper/openid_connect/templates/initializer.rb
   Max: 100
 Metrics/BlockLength:
   Exclude:
@@ -25,6 +47,17 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Exclude:
     - spec/dummy/db/**/*
+# Match upstream doorkeeper: require trailing commas on multiline literals.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
 Style/FrozenStringLiteralComment:
   Enabled: true
 Style/SymbolArray:
@@ -61,11 +94,11 @@ RSpec/DescribeClass:
   Enabled: false
 RSpec/ExampleLength:
   Enabled: false
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
+  Enabled: false
+RSpec/SpecFilePathSuffix:
   Enabled: false
 RSpec/MultipleExpectations:
   Enabled: false
 RSpec/NestedGroups:
-  Enabled: false
-Capybara/FeatureMethods:
   Enabled: false

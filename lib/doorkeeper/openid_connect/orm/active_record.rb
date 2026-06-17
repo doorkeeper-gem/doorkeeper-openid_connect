@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/lazy_load_hooks'
+require "active_support/lazy_load_hooks"
 
 module Doorkeeper
   module OpenidConnect
@@ -10,14 +10,18 @@ module Doorkeeper
     module Orm
       module ActiveRecord
         module Mixins
-          autoload :OpenidRequest, "doorkeeper/openid_connect/orm/active_record/mixins/openid_request"
+          autoload :OpenidRequest,
+                   "doorkeeper/openid_connect/orm/active_record/mixins/openid_request"
         end
 
         def run_hooks
           super
 
           ActiveSupport.on_load(:active_record) do
-            if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
+            require "doorkeeper/openid_connect/orm/active_record/access_grant"
+            require "doorkeeper/openid_connect/orm/active_record/request"
+
+            if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.create("5.5.0")
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
             else
               Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
@@ -25,7 +29,8 @@ module Doorkeeper
 
             if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
               [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
-                c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
+                c.send :establish_connection,
+                       Doorkeeper.configuration.active_record_options[:establish_connection]
               end
             end
           end
@@ -34,10 +39,10 @@ module Doorkeeper
         def initialize_models!
           super
           ActiveSupport.on_load(:active_record) do
-            require 'doorkeeper/openid_connect/orm/active_record/access_grant'
-            require 'doorkeeper/openid_connect/orm/active_record/request'
+            require "doorkeeper/openid_connect/orm/active_record/access_grant"
+            require "doorkeeper/openid_connect/orm/active_record/request"
 
-            if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
+            if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.create("5.5.0")
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
             else
               Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
@@ -45,7 +50,8 @@ module Doorkeeper
 
             if Doorkeeper.configuration.active_record_options[:establish_connection]
               [Doorkeeper::OpenidConnect.configuration.open_id_request_model].each do |c|
-                c.send :establish_connection, Doorkeeper.configuration.active_record_options[:establish_connection]
+                c.send :establish_connection,
+                       Doorkeeper.configuration.active_record_options[:establish_connection]
               end
             end
           end

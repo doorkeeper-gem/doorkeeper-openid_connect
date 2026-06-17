@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'rails', '~> 8.0.0'
-gem 'rails-controller-testing'
-gem 'sqlite3', '~> 2.3', platform: %i[ruby mswin mingw x64_mingw]
-gem 'doorkeeper', git: 'https://github.com/doorkeeper-gem/doorkeeper.git'
+gem "doorkeeper", git: "https://github.com/doorkeeper-gem/doorkeeper.git"
+gem "rails", "~> 8.0.0"
+gem "rails-controller-testing"
+gem "sqlite3", "~> 2.3", platform: %i[ruby mswin mingw x64_mingw]
 
-gemspec path: '../'
+gemspec path: "../"

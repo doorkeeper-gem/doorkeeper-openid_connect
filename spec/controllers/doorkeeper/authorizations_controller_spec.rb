@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 describe Doorkeeper::AuthorizationsController, type: :controller do
   let(:user) { create :user }
   let(:application) { create :application, scopes: default_scopes }
-  let(:default_scopes) { 'openid profile' }
+  let(:default_scopes) { "openid profile" }
   let(:token_attributes) { { application_id: application.id, resource_owner_id: user.id, scopes: default_scopes } }
 
   def authorize!(params = {})
     get :new, params: {
-      response_type: 'code',
-      response_mode: '',
+      response_type: "code",
+      response_mode: "",
       current_user: user.id,
       client_id: application.uid,
       scope: default_scopes,
@@ -19,11 +19,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     }.merge(params)
   end
 
-  def build_redirect_uri(params = {}, type: 'query')
+  def build_redirect_uri(params = {}, type: "query")
     case type
-    when 'query'
+    when "query"
       Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_query(application.redirect_uri, params)
-    when 'fragment'
+    when "fragment"
       Doorkeeper::OAuth::Authorization::URIBuilder.uri_with_fragment(application.redirect_uri, params)
     else
       raise ArgumentError, "Unsupported uri type #{type}"
@@ -32,7 +32,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
   def expect_authorization_form!
     expect(response).to be_successful
-    expect(response).to render_template('doorkeeper/authorizations/new')
+    expect(response).to render_template("doorkeeper/authorizations/new")
   end
 
   def expect_successful_callback!
@@ -40,308 +40,445 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=[-\w]+$/)
   end
 
-  describe '#authenticate_resource_owner!' do
-    it 'redirects to login form when not logged in' do
+  describe "#authenticate_resource_owner!" do
+    it "redirects to login form when not logged in" do
       authorize! current_user: nil
 
-      expect(response).to redirect_to '/login'
+      expect(response).to redirect_to "/login"
     end
 
-    context 'with OIDC requests' do
+    context "with OIDC requests" do
       before do
         expect(controller).to receive(:handle_oidc_prompt_param!)
         expect(controller).to receive(:handle_oidc_max_age_param!)
       end
 
-      it 'renders the authorization form if logged in' do
+      it "renders the authorization form if logged in" do
         authorize!
 
         expect_authorization_form!
       end
     end
 
-    context 'with non-OIDC requests' do
+    context "with non-OIDC requests" do
       before do
         expect(controller).not_to receive(:handle_oidc_prompt_param!)
         expect(controller).not_to receive(:handle_oidc_max_age_param!)
       end
 
-      it 'when action is not :new' do
+      it "when action is not :new" do
         get :show, params: {
-          response_type: 'code',
+          response_type: "code",
           current_user: user.id,
           client_id: application.uid,
           scope: default_scopes,
           redirect_uri: application.redirect_uri,
         }
 
-        expect(response).to render_template('doorkeeper/authorizations/show')
+        expect(response).to render_template("doorkeeper/authorizations/show")
       end
 
-      context 'when pre_authorization is invalid' do
-        it 'render error when client_id is missing' do
+      context "when pre_authorization is invalid" do
+        it "render error when client_id is missing" do
           authorize!(client_id: nil)
 
           expect(response).to have_http_status(:bad_request)
-          expect(response).to render_template('doorkeeper/authorizations/error')
+          expect(response).to render_template("doorkeeper/authorizations/error")
         end
 
-        it 'render error when response_type is missing' do
+        it "render error when response_type is missing" do
           authorize!(response_type: nil)
 
           expect(response).to have_http_status(:bad_request)
-          expect(response).to render_template('doorkeeper/authorizations/error')
+          expect(response).to render_template("doorkeeper/authorizations/error")
         end
       end
 
-      it 'when openid scope is not present' do
-        authorize!(scope: 'profile')
+      it "when openid scope is not present" do
+        authorize!(scope: "profile")
 
         expect_authorization_form!
+      end
+    end
+
+    context "with non-OIDC requests and apply_prompt_to_non_oidc_requests enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:apply_prompt_to_non_oidc_requests).and_return(true)
+      end
+
+      it "calls the prompt handler" do
+        expect(controller).to receive(:handle_oidc_prompt_param!)
+
+        authorize!(scope: "profile", prompt: "login")
+      end
+
+      it "does not call the max_age handler" do
+        expect(controller).not_to receive(:handle_oidc_max_age_param!)
+
+        authorize!(scope: "profile", prompt: "login", max_age: 10)
       end
     end
   end
 
-  describe '#handle_oidc_prompt_param!' do
-    it 'is ignored when the openid scope is not present' do
-      authorize! scope: 'profile', prompt: 'invalid'
+  describe "#handle_oidc_prompt_param!" do
+    it "is ignored when the openid scope is not present" do
+      authorize! scope: "profile", prompt: "invalid"
 
       expect_authorization_form!
     end
 
-    context 'with a prompt=none parameter' do
-      context 'and a matching token' do
-        before do
-          create :access_token, token_attributes
-        end
-
-        it 'redirects to the callback if logged in' do
-          authorize! prompt: 'none'
-
-          expect_successful_callback!
-        end
-
-        context 'when another prompt value is present' do
-          let(:error_params) do
-            {
-              'error' => 'invalid_request',
-              'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
-            }
-          end
-          let(:request_param) { { prompt: 'none login' } }
-
-          it 'redirect as the query uri with an invalid_request error' do
-            authorize! request_param
-
-            expect(response).to redirect_to build_redirect_uri(error_params)
-          end
-
-          it 'redirect as the fragment style uri when response_type is implicit flow request' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', nonce: 'abc123')
-
-            expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-          end
-
-          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', nonce: 'abc123')
-
-            authorize_response = controller.instance_variable_get :@authorize_response
-            expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
-          end
-        end
-
-        context 'when not logged in' do
-          let(:error_params) do
-            {
-              'error' => 'login_required',
-              'error_description' => 'The authorization server requires end-user authentication',
-              'state' => 'somestate',
-            }
-          end
-          let(:request_param) { { current_user: nil } }
-
-          it 'returns a login_required error' do
-            authorize! request_param.merge(prompt: 'none', state: 'somestate')
-
-            expect(response).to redirect_to build_redirect_uri(error_params)
-          end
-
-          it 'redirect as the fragment style uri when response_type is implicit flow request' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate', nonce: 'abc123')
-
-            expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-          end
-
-          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate', nonce: 'abc123')
-
-            authorize_response = controller.instance_variable_get :@authorize_response
-            expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
-          end
-        end
+    context "when apply_prompt_to_non_oidc_requests is enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:apply_prompt_to_non_oidc_requests).and_return(true)
       end
 
-      context 'and no matching token' do
-        it 'redirects to the callback if skip_authorization is set to true' do
-          allow(controller).to receive(:skip_authorization?).and_return(true)
+      it "honors prompt=login on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "login"
 
-          authorize! prompt: 'none'
-          expect_successful_callback!
-        end
-
-        context 'when not logged in' do
-          let(:error_params) do
-            {
-              'error' => 'login_required',
-              'error_description' => 'The authorization server requires end-user authentication',
-              'state' => 'somestate',
-            }
-          end
-          let(:request_param) { { current_user: nil } }
-
-          it 'returns the login_required error when not logged in' do
-            authorize! request_param.merge(prompt: 'none', state: 'somestate')
-
-            expect(response).to redirect_to build_redirect_uri(error_params)
-          end
-
-          it 'uses the fragment style uris when redirecting an error for implicit flow request' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', prompt: 'none', state: 'somestate', nonce: 'abc123')
-
-            expect(response).to redirect_to build_redirect_uri(error_params, type: 'fragment')
-          end
-
-          it 'set @authorize_response variable and render form_post template and when the form_post response_mode is specified' do
-            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-
-            authorize! request_param.merge(response_type: 'id_token token', response_mode: 'form_post', prompt: 'none', state: 'somestate', nonce: 'abc123')
-
-            authorize_response = controller.instance_variable_get :@authorize_response
-            expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
-          end
-        end
-
-        it 'returns a consent_required error when logged in' do
-          authorize! prompt: 'none'
-
-          error_params = {
-            'error' => 'consent_required',
-            'error_description' => 'The authorization server requires end-user consent',
-          }
-
-          expect(response).to redirect_to build_redirect_uri(error_params)
-        end
-      end
-    end
-
-    context 'with a prompt=login parameter' do
-      it 'redirects to the sign in form if not logged in' do
-        authorize! prompt: 'login', current_user: nil
-
-        expect(response).to redirect_to('/login')
+        expect(response).to redirect_to("/reauthenticate")
       end
 
-      it 'reauthenticates the user if logged in' do
-        authorize! prompt: 'login'
-
-        expect(response).to redirect_to('/reauthenticate')
-      end
-    end
-
-    context 'with a prompt=consent parameter' do
-      it 'redirects to the sign in form if not logged in' do
-        authorize! prompt: 'consent', current_user: nil
-
-        expect(response).to redirect_to('/login')
-      end
-
-      it 'renders the authorization form even if a matching token is present' do
-        create :access_token, token_attributes
-        authorize! prompt: 'consent'
+      it "honors prompt=consent on a non-OIDC request" do
+        create :access_token, token_attributes.merge(scopes: "profile")
+        authorize! scope: "profile", prompt: "consent"
 
         expect_authorization_form!
       end
-    end
 
-    context 'with a prompt=select_account parameter' do
-      it 'redirects to the select account screen' do
-        authorize! prompt: 'select_account'
+      it "honors prompt=select_account on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "select_account"
 
-        expect(response).to redirect_to('/select_account')
-      end
-    end
-
-    context 'with a prompt=create parameter' do
-      it 'ignore it w/o returinig invalid_request error' do
-        authorize! prompt: 'create'
-
-        expect(response).to render_template('doorkeeper/authorizations/new')
-      end
-    end
-
-    context 'with multiple prompt values' do
-      it 'when select_account+login' do
-        authorize! prompt: 'select_account login'
-        expect(response).to redirect_to('/select_account')
+        expect(response).to redirect_to("/select_account")
       end
 
-      it 'when login+select_account' do
-        authorize! prompt: 'login select_account'
-        expect(response).to redirect_to('/select_account')
-      end
-
-      it 'when consent+select_account' do
-        authorize! prompt: 'consent select_account'
-        expect(response).to redirect_to('/select_account')
-      end
-
-      it 'when select_account+consent' do
-        authorize! prompt: 'select_account consent'
-        expect(response).to redirect_to('/select_account')
-      end
-
-      it 'when login+consent' do
-        authorize! prompt: 'login consent'
-        expect(response).to redirect_to('/reauthenticate')
-      end
-    end
-
-    context 'with an unknown prompt parameter' do
-      it 'returns an invalid_request error' do
-        authorize! prompt: 'maybe'
+      it "honors prompt=none on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "none", current_user: nil
 
         error_params = {
-          'error' => 'invalid_request',
-          'error_description' => 'The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.',
+          "error" => "login_required",
+          "error_description" => "The authorization server requires end-user authentication",
         }
 
         expect(response).to redirect_to build_redirect_uri(error_params)
       end
 
-      it 'does not redirect to an invalid redirect_uri' do
-        authorize! prompt: 'maybe', redirect_uri: 'https://evilapp.com'
+      it "still rejects unknown prompt values on a non-OIDC request" do
+        authorize! scope: "profile", prompt: "maybe"
+
+        error_params = {
+          "error" => "invalid_request",
+          "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
+        }
+
+        expect(response).to redirect_to build_redirect_uri(error_params)
+      end
+    end
+
+    context "with a prompt=none parameter" do
+      context "and a matching token" do
+        before do
+          create :access_token, token_attributes
+        end
+
+        it "redirects to the callback if logged in" do
+          authorize! prompt: "none"
+
+          expect_successful_callback!
+        end
+
+        it "ignores leading/duplicate whitespace in the prompt parameter" do
+          authorize! prompt: "  none"
+
+          expect_successful_callback!
+        end
+
+        context "when another prompt value is present" do
+          let(:error_params) do
+            {
+              "error" => "invalid_request",
+              "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
+            }
+          end
+          let(:request_param) { { prompt: "none login" } }
+
+          it "redirect as the query uri with an invalid_request error" do
+            authorize! request_param
+
+            expect(response).to redirect_to build_redirect_uri(error_params)
+          end
+
+          it "redirect as the fragment style uri when response_type is implicit flow request" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token")
+
+            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+          end
+
+          it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token", response_mode: "form_post")
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
+          end
+        end
+
+        context "when not logged in" do
+          let(:error_params) do
+            {
+              "error" => "login_required",
+              "error_description" => "The authorization server requires end-user authentication",
+              "state" => "somestate",
+            }
+          end
+          let(:request_param) { { current_user: nil } }
+
+          it "returns a login_required error" do
+            authorize! request_param.merge(prompt: "none", state: "somestate")
+
+            expect(response).to redirect_to build_redirect_uri(error_params)
+          end
+
+          it "redirect as the fragment style uri when response_type is implicit flow request" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token", prompt: "none", state: "somestate")
+
+            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+          end
+
+          it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token", response_mode: "form_post", prompt: "none", state: "somestate")
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
+          end
+        end
+      end
+
+      context "and no matching token" do
+        it "redirects to the callback if skip_authorization is set to true" do
+          allow(controller).to receive(:skip_authorization?).and_return(true)
+
+          authorize! prompt: "none"
+          expect_successful_callback!
+        end
+
+        context "when not logged in" do
+          let(:error_params) do
+            {
+              "error" => "login_required",
+              "error_description" => "The authorization server requires end-user authentication",
+              "state" => "somestate",
+            }
+          end
+          let(:request_param) { { current_user: nil } }
+
+          it "returns the login_required error when not logged in" do
+            authorize! request_param.merge(prompt: "none", state: "somestate")
+
+            expect(response).to redirect_to build_redirect_uri(error_params)
+          end
+
+          it "uses the fragment style uris when redirecting an error for implicit flow request" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token", prompt: "none", state: "somestate")
+
+            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+          end
+
+          it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
+            allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+
+            authorize! request_param.merge(response_type: "id_token token", response_mode: "form_post", prompt: "none", state: "somestate")
+
+            authorize_response = controller.instance_variable_get :@authorize_response
+            expect(authorize_response.body.to_json).to eq(error_params.to_json)
+            expect(response).to render_template(:form_post)
+          end
+        end
+
+        it "returns a consent_required error when logged in" do
+          authorize! prompt: "none"
+
+          error_params = {
+            "error" => "consent_required",
+            "error_description" => "The authorization server requires end-user consent",
+          }
+
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+      end
+
+      # Issue #63: a `prompt=none` request that asks for a narrower subset of
+      # scopes than was previously granted must succeed without showing the
+      # consent form (which is forbidden under `prompt=none`).
+      context "and a token covering a wider scope than the request (issue #63)" do
+        let(:application) { create :application, scopes: "openid profile email" }
+        let(:granted_scopes) { "openid profile email" }
+        let(:token_attributes) do
+          { application_id: application.id, resource_owner_id: user.id, scopes: granted_scopes }
+        end
+
+        before { create :access_token, token_attributes }
+
+        it "auto-issues a new code when scopes are narrower (openid email)" do
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid email",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+          }
+
+          expect_successful_callback!
+        end
+
+        it "auto-issues a new code when scopes are reduced to just openid" do
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+          }
+
+          expect_successful_callback!
+        end
+
+        it "still raises consent_required when the requested scope is NOT a subset" do
+          # Application supports an extra scope the user hasn't granted yet.
+          application.update!(scopes: "openid profile email address")
+
+          get :new, params: {
+            response_type: "code",
+            response_mode: "",
+            current_user: user.id,
+            client_id: application.uid,
+            scope: "openid address",
+            redirect_uri: application.redirect_uri,
+            prompt: "none",
+            state: "somestate",
+          }
+
+          error_params = {
+            "error" => "consent_required",
+            "error_description" => "The authorization server requires end-user consent",
+            "state" => "somestate",
+          }
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+      end
+    end
+
+    context "with a prompt=login parameter" do
+      it "redirects to the sign in form if not logged in" do
+        authorize! prompt: "login", current_user: nil
+
+        expect(response).to redirect_to("/login")
+      end
+
+      it "reauthenticates the user if logged in" do
+        authorize! prompt: "login"
+
+        expect(response).to redirect_to("/reauthenticate")
+      end
+    end
+
+    context "with a prompt=consent parameter" do
+      it "redirects to the sign in form if not logged in" do
+        authorize! prompt: "consent", current_user: nil
+
+        expect(response).to redirect_to("/login")
+      end
+
+      it "renders the authorization form even if a matching token is present" do
+        create :access_token, token_attributes
+        authorize! prompt: "consent"
+
+        expect_authorization_form!
+      end
+    end
+
+    context "with a prompt=select_account parameter" do
+      it "redirects to the select account screen" do
+        authorize! prompt: "select_account"
+
+        expect(response).to redirect_to("/select_account")
+      end
+    end
+
+    context "with a prompt=create parameter" do
+      it "ignore it w/o returinig invalid_request error" do
+        authorize! prompt: "create"
+
+        expect(response).to render_template("doorkeeper/authorizations/new")
+      end
+    end
+
+    context "with multiple prompt values" do
+      it "when select_account+login" do
+        authorize! prompt: "select_account login"
+        expect(response).to redirect_to("/select_account")
+      end
+
+      it "when login+select_account" do
+        authorize! prompt: "login select_account"
+        expect(response).to redirect_to("/select_account")
+      end
+
+      it "when consent+select_account" do
+        authorize! prompt: "consent select_account"
+        expect(response).to redirect_to("/select_account")
+      end
+
+      it "when select_account+consent" do
+        authorize! prompt: "select_account consent"
+        expect(response).to redirect_to("/select_account")
+      end
+
+      it "when login+consent" do
+        authorize! prompt: "login consent"
+        expect(response).to redirect_to("/reauthenticate")
+      end
+    end
+
+    context "with an unknown prompt parameter" do
+      it "returns an invalid_request error" do
+        authorize! prompt: "maybe"
+
+        error_params = {
+          "error" => "invalid_request",
+          "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
+        }
+
+        expect(response).to redirect_to build_redirect_uri(error_params)
+      end
+
+      it "does not redirect to an invalid redirect_uri" do
+        authorize! prompt: "maybe", redirect_uri: "https://evilapp.com"
 
         expect(response).not_to be_redirect
       end
     end
   end
 
-  describe '#handle_oidc_max_age_param!' do
-    context 'with an invalid max_age parameter' do
-      it 'renders the authorization form' do
+  describe "#handle_oidc_max_age_param!" do
+    context "with an invalid max_age parameter" do
+      it "renders the authorization form" do
         %w[-1 -23 foobar].each do |max_age|
           authorize! max_age: max_age
 
@@ -350,75 +487,216 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
 
-    context 'with a max_age=0 parameter' do
-      it 'renders the authorization form if the users last login was within 10 seconds' do
+    context "with a max_age=0 parameter" do
+      it "renders the authorization form if the users last login was within 10 seconds" do
         user.update! current_sign_in_at: 5.seconds.ago
         authorize! max_age: 0
 
-        expect(response).to redirect_to '/reauthenticate'
+        expect(response).to redirect_to "/reauthenticate"
       end
     end
 
-    context 'with a max_age=10 parameter' do
-      it 'renders the authorization form if the users last login was within 10 seconds' do
+    context "with a max_age=10 parameter" do
+      it "renders the authorization form if the users last login was within 10 seconds" do
         user.update! current_sign_in_at: 5.seconds.ago
         authorize! max_age: 10
 
         expect_authorization_form!
       end
 
-      it 'reauthenticates the user if the last login was longer than 10 seconds ago' do
+      it "reauthenticates the user if the last login was longer than 10 seconds ago" do
         user.update! current_sign_in_at: 5.minutes.ago
         authorize! max_age: 10
 
-        expect(response).to redirect_to '/reauthenticate'
+        expect(response).to redirect_to "/reauthenticate"
       end
 
-      it 'reauthenticates the user if the last login is unknown' do
+      it "reauthenticates the user if the last login is unknown" do
         user.update! current_sign_in_at: nil
         authorize! max_age: 10
 
-        expect(response).to redirect_to '/reauthenticate'
+        expect(response).to redirect_to "/reauthenticate"
       end
     end
 
-    context 'when used along with prompt=select_account' do
-      it 'renders the authorization form' do
+    {
+      "an Integer (epoch seconds)" => ->(time) { time.to_i },
+      "a Time" => ->(time) { time.getlocal },
+      "an ActiveSupport::TimeWithZone" => ->(time) { time.in_time_zone },
+    }.each do |type_description, converter|
+      context "when auth_time_from_resource_owner returns #{type_description}" do
+        before do
+          allow(Doorkeeper::OpenidConnect.configuration)
+            .to receive(:auth_time_from_resource_owner)
+            .and_return(->(resource_owner) { converter.call(resource_owner.current_sign_in_at) })
+        end
+
+        it "renders the authorization form if the last login is within max_age" do
+          user.update! current_sign_in_at: 5.seconds.ago
+          authorize! max_age: 10
+
+          expect_authorization_form!
+        end
+
+        it "reauthenticates the user if the last login is older than max_age" do
+          user.update! current_sign_in_at: 15.seconds.ago
+          authorize! max_age: 10
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+      end
+    end
+
+    context "when auth_time_from_session is configured" do
+      def authorize_with_session!(session_attrs, params = {})
+        get :new, params: {
+          response_type: "code",
+          response_mode: "",
+          current_user: user.id,
+          client_id: application.uid,
+          scope: default_scopes,
+          redirect_uri: application.redirect_uri,
+        }.merge(params), session: session_attrs
+      end
+
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+          auth_time_from_resource_owner do |resource_owner|
+            resource_owner.current_sign_in_at
+          end
+          auth_time_from_session do |session, _request|
+            session[:current_session_auth_time]
+          end
+          reauthenticate_resource_owner do |_resource_owner, _return_to|
+            redirect_to "/reauthenticate"
+          end
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it "uses the session-derived auth_time and renders the form when within max_age" do
+        authorize_with_session!(
+          { current_session_auth_time: 5.seconds.ago },
+          max_age: 10,
+        )
+
+        expect_authorization_form!
+      end
+
+      it "uses the session-derived auth_time and reauthenticates when older than max_age" do
+        authorize_with_session!(
+          { current_session_auth_time: 5.minutes.ago },
+          max_age: 10,
+        )
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "reauthenticates when the session has no auth_time" do
+        authorize_with_session!({}, max_age: 10)
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "respects per-session auth_time even when the resource owner was logged in on another device more recently" do
+        # The resource owner's last sign-in (e.g. on another device) is recent,
+        # but the *current* session is stale: max_age should still trigger
+        # reauthentication. This is the security scenario from issue #150.
         user.update! current_sign_in_at: 5.seconds.ago
-        authorize! max_age: 1, prompt: 'select_account'
 
-        expect(response).to redirect_to '/select_account'
+        authorize_with_session!(
+          { current_session_auth_time: 1.hour.ago },
+          max_age: 60,
+        )
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+
+      it "does not emit the auth_time_from_resource_owner deprecation warning" do
+        expect(Doorkeeper::OpenidConnect::Helpers::Controller)
+          .not_to receive(:warn_auth_time_from_resource_owner_deprecation)
+
+        authorize_with_session!(
+          { current_session_auth_time: 5.seconds.ago },
+          max_age: 10,
+        )
       end
     end
 
-    context 'when used along with prompt=login' do
-      it 'redirects to reauthenticate without raising a DoubleRenderError' do
-        user.update! current_sign_in_at: 5.minutes.ago
-        authorize! max_age: 10, prompt: 'login'
+    context "when only auth_time_from_resource_owner is configured" do
+      before { Doorkeeper::OpenidConnect::Helpers::Controller.reset_auth_time_deprecation_warning! }
 
-        expect(response).to redirect_to '/reauthenticate'
+      it "emits a deprecation warning once per process" do
+        user.update! current_sign_in_at: 5.seconds.ago
+
+        expect { authorize! max_age: 10 }.to output(/auth_time_from_resource_owner.*deprecated/).to_stderr
+
+        # Subsequent calls do not re-emit the warning.
+        expect { authorize! max_age: 10 }.not_to output.to_stderr
       end
     end
 
-    context 'when used along with prompt=consent' do
-      it 'redirects to reauthenticate without raising a DoubleRenderError' do
-        user.update! current_sign_in_at: 5.minutes.ago
-        authorize! max_age: 10, prompt: 'consent'
+    context "when used along with prompt=select_account" do
+      it "renders the authorization form" do
+        user.update! current_sign_in_at: 5.seconds.ago
+        authorize! max_age: 1, prompt: "select_account"
 
-        expect(response).to redirect_to '/reauthenticate'
+        expect(response).to redirect_to "/select_account"
+      end
+    end
+
+    context "when used along with prompt=login" do
+      it "redirects to reauthenticate without raising a DoubleRenderError" do
+        user.update! current_sign_in_at: 5.minutes.ago
+        authorize! max_age: 10, prompt: "login"
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+    end
+
+    context "when used along with prompt=consent" do
+      it "redirects to reauthenticate without raising a DoubleRenderError" do
+        user.update! current_sign_in_at: 5.minutes.ago
+        authorize! max_age: 10, prompt: "consent"
+
+        expect(response).to redirect_to "/reauthenticate"
+      end
+    end
+
+    context "when used along with prompt=none" do
+      # OIDC Core 1.0 §3.1.2.1: with prompt=none the Authorization Server MUST
+      # NOT display any UI; an exceeded max_age must be reported as
+      # login_required rather than triggering interactive reauthentication.
+      it "returns login_required instead of reauthenticating interactively" do
+        create :access_token, token_attributes
+        user.update! current_sign_in_at: 5.minutes.ago
+
+        authorize! max_age: 10, prompt: "none", state: "somestate"
+
+        expect(response).to redirect_to build_redirect_uri({
+          "error" => "login_required",
+          "error_description" => "The authorization server requires end-user authentication",
+          "state" => "somestate",
+        })
       end
     end
   end
 
-  describe '#reauthenticate_oidc_resource_owner' do
+  describe "#reauthenticate_oidc_resource_owner" do
     let(:performed) { true }
 
     before do
       allow(subject).to receive(:clear_oidc_response)
       allow(subject).to receive(:performed?) { performed }
-      allow(subject.request).to receive(:path).and_return('/oauth/authorize')
+      allow(subject.request).to receive(:path).and_return("/oauth/authorize")
       allow(subject.request).to receive(:query_parameters) {
-        { client_id: 'foo', prompt: 'login consent select_account' }.with_indifferent_access
+        { client_id: "foo", prompt: "login consent select_account" }.with_indifferent_access
       }
     end
 
@@ -435,24 +713,24 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       passed_args
     end
 
-    it 'calls reauthenticate_resource_owner with the current user and the return path' do
+    it "calls reauthenticate_resource_owner with the current user and the return path" do
       resource_owner, return_to = reauthenticate!
 
       expect(resource_owner).to eq user
-      expect(return_to).to eq '/oauth/authorize?client_id=foo&prompt=consent+select_account'
+      expect(return_to).to eq "/oauth/authorize?client_id=foo&prompt=consent+select_account"
     end
 
-    it 'removes login from the prompt parameter and keeps other values' do
+    it "removes login from the prompt parameter and keeps other values" do
       _, return_to = reauthenticate!
       return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
 
-      expect(return_params['prompt']).to eq 'consent select_account'
+      expect(return_params["prompt"]).to eq "consent select_account"
     end
 
-    context 'with a reauthenticator that does not generate a response' do
+    context "with a reauthenticator that does not generate a response" do
       let(:performed) { false }
 
-      it 'raises a login_required error' do
+      it "raises a login_required error" do
         expect do
           reauthenticate!
         end.to raise_error(Doorkeeper::OpenidConnect::Errors::LoginRequired)
@@ -460,11 +738,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
-  describe '#clear_oidc_response' do
+  describe "#clear_oidc_response" do
     before { allow(subject).to receive(:response_body=) }
 
-    it 'clears response_body and @_response_body' do
-      subject.instance_variable_set(:@_response_body, 'foo bar')
+    it "clears response_body and @_response_body" do
+      subject.instance_variable_set(:@_response_body, "foo bar")
 
       subject.send :clear_oidc_response
 
@@ -472,17 +750,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(subject.instance_variable_get(:@_response_body)).to be_nil
     end
 
-    it 'does not raise when response body is already nil' do
+    it "does not raise when response body is already nil" do
       expect { subject.send :clear_oidc_response }.not_to raise_error
     end
   end
 
-  describe '#select_account_for_resource_owner' do
+  describe "#select_account_for_oidc_resource_owner" do
+    let(:performed) { true }
+
     before do
       allow(subject).to receive(:clear_oidc_response)
-      allow(subject.request).to receive(:path).and_return('/oauth/authorize')
+      allow(subject).to receive(:performed?) { performed }
+      allow(subject.request).to receive(:path).and_return("/oauth/authorize")
       allow(subject.request).to receive(:query_parameters) {
-        { client_id: 'foo', prompt: 'login consent select_account' }.with_indifferent_access
+        { client_id: "foo", prompt: "login consent select_account" }.with_indifferent_access
       }
     end
 
@@ -499,59 +780,35 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       passed_args
     end
 
-    it 'calls select_account_for_resource_owner with the current user and the return path' do
+    it "calls select_account_for_resource_owner with the current user and the return path" do
       resource_owner, return_to = select_account!
 
       expect(resource_owner).to eq user
-      expect(return_to).to eq '/oauth/authorize?client_id=foo&prompt=login+consent'
+      expect(return_to).to eq "/oauth/authorize?client_id=foo&prompt=login+consent"
     end
 
-    it 'removes select_account from the prompt parameter and keeps other values' do
+    it "removes select_account from the prompt parameter and keeps other values" do
       _, return_to = select_account!
       return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
 
-      expect(return_params['prompt']).to eq 'login consent'
+      expect(return_params["prompt"]).to eq "login consent"
+    end
+
+    context "with a select account handler that does not generate a response" do
+      let(:performed) { false }
+
+      it "raises an account_selection_required error" do
+        expect do
+          select_account!
+        end.to raise_error(Doorkeeper::OpenidConnect::Errors::AccountSelectionRequired)
+      end
     end
   end
 
-  describe '#pre_auth' do
-    it 'permits nonce parameter' do
-      authorize! nonce: '123456'
-      expect(assigns(:pre_auth).nonce).to eq '123456'
-    end
-  end
-
-  describe 'nonce validation' do
-    context 'with implicit flow (id_token response type)' do
-      before do
-        allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(['implicit_oidc'])
-      end
-
-      it 'returns an error when nonce is missing' do
-        get :new, params: {
-          response_type: 'id_token',
-          current_user: user.id,
-          client_id: application.uid,
-          scope: 'openid',
-          redirect_uri: application.redirect_uri,
-        }
-
-        expect(response).to have_http_status(:bad_request)
-        expect(response).to render_template('doorkeeper/authorizations/error')
-      end
-
-      it 'succeeds when nonce is present' do
-        get :new, params: {
-          response_type: 'id_token',
-          current_user: user.id,
-          client_id: application.uid,
-          scope: 'openid',
-          redirect_uri: application.redirect_uri,
-          nonce: 'abc123',
-        }
-
-        expect(response).to render_template('doorkeeper/authorizations/new')
-      end
+  describe "#pre_auth" do
+    it "permits nonce parameter" do
+      authorize! nonce: "123456"
+      expect(assigns(:pre_auth).nonce).to eq "123456"
     end
   end
 end

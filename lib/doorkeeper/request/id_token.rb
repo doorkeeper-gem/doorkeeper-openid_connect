@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'doorkeeper/request/strategy'
+require "doorkeeper/request/strategy"
 
 module Doorkeeper
   module Request
