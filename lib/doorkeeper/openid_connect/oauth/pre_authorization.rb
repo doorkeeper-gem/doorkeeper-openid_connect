@@ -61,7 +61,7 @@ module Doorkeeper
         # missing nonce is allowed but emits a one-time deprecation warning;
         # once enabled the request is rejected with `invalid_request`.
         def validate_nonce
-          return true unless openid_implicit_flow?
+          return true unless nonce_required_flow?
           return true if nonce.present?
 
           unless Doorkeeper::OpenidConnect.configuration.enforce_implicit_nonce
@@ -73,7 +73,10 @@ module Doorkeeper
           false
         end
 
-        def openid_implicit_flow?
+        # True for the OpenID Connect flows that REQUIRE a nonce: the implicit
+        # and hybrid flows, i.e. an `openid`-scoped request whose `response_type`
+        # includes `id_token` (per OpenID Connect Core 1.0 §3.2.2.1 and §3.3.2.11).
+        def nonce_required_flow?
           scopes.include?("openid") &&
             response_type.to_s.split(" ").include?("id_token")
         end

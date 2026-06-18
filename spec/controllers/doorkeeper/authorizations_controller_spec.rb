@@ -843,6 +843,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(assigns(:pre_auth).missing_param).to eq :nonce
       end
 
+      it "renders a bad_request error end-to-end when nonce is missing" do
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response).to render_template("doorkeeper/authorizations/error")
+      end
+
       it "accepts an implicit request that carries a nonce" do
         authorize! response_type: "id_token token", scope: "openid", nonce: "abc123"
 
