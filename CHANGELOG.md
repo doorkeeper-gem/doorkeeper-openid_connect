@@ -1,12 +1,16 @@
 ## Unreleased
 
 - Please add here
+- [#315] Drop support for EOL Ruby 3.1 (EOL 2025-03-25) and require Ruby `>= 3.2`. `i18n 1.15.0` uses the `Fiber[]` storage API which only exists on Ruby 3.2+, so the Ruby 3.1 CI row no longer loads; the matrix now tests Ruby 3.2 as the minimum
+- [#316] Set `fail-fast: false` in CI matrix so a single failing job no longer cancels the rest
 - [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects implicit/hybrid flow requests (any `response_type` including `id_token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in a future major version ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
 - [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
 - [#304] allow handle auth_time per grant
 - [#305] Document the `auth_time_from_access_token` config option in the README (per-grant `auth_time`), clarifying that it only affects the ID Token `auth_time` claim and not `max_age` enforcement
 - [#307] Fix `bundle exec rake server` for the test application
 - [#313] Move Configuration documentation from README to Wiki
+- [#312] Raise `Errors::MissingRequiredClaim` instead of silently dropping a blank REQUIRED ID Token claim (`iss`/`sub`/`aud`/`exp`/`iat`) in `IdToken#as_json`, which previously could emit a non-conformant ID Token (OIDC Core 1.0 §2). OPTIONAL claims such as `nonce`/`auth_time` are still omitted when blank
+- [#311] Include the REQUIRED `client_secret_expires_at` member (value `0`, never expires) in the Dynamic Client Registration response whenever a `client_secret` is issued (RFC 7591 §3.2.1 / OpenID Connect Dynamic Client Registration 1.0 §3.2)
 
 ## v1.10.1 (2026-06-03)
 

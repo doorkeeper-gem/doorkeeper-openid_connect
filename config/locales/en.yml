@@ -24,3 +24,5 @@ en:
           signing_key_not_configured: 'Doorkeeper::OpenidConnect.configure.signing_key must resolve to at least one key.'
           issuer_not_configured: 'Doorkeeper::OpenidConnect.configure.issuer must resolve to a non-blank value.'
           dynamic_client_registration_unauthorized: 'Authorization required for client registration'
+          # ID Token claim error messages
+          missing_required_claim: 'Required ID Token claim `%{claim}` is missing or blank'

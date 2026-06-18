@@ -5,6 +5,10 @@ module Doorkeeper
     class IdToken
       include ActiveModel::Validations
 
+      # OIDC Core 1.0 §2 — these claims are REQUIRED in every ID Token, so they
+      # must never be silently dropped when blank.
+      REQUIRED_CLAIMS = %i[iss sub aud exp iat].freeze
+
       attr_reader :nonce
 
       def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
@@ -31,7 +35,19 @@ module Doorkeeper
       end
 
       def as_json(*_)
-        claims.reject { |_, value| value.nil? || value == "" }
+        claims.each_with_object({}) do |(key, value), result|
+          blank = value.nil? || value == ""
+
+          if blank
+            # A REQUIRED claim must never be silently omitted; surface the
+            # misconfiguration instead of issuing a non-conformant ID Token.
+            raise Errors::MissingRequiredClaim, key if REQUIRED_CLAIMS.include?(key)
+
+            next
+          end
+
+          result[key] = value
+        end
       end
 
       def as_jws_token

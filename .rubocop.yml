@@ -4,7 +4,7 @@ plugins:
   - rubocop-rails
   - rubocop-rspec
 AllCops:
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 3.2
   Exclude:
     # CI installs gems into ./vendor/bundle (ruby/setup-ruby bundler-cache),
     # which RuboCop would otherwise lint. Defining AllCops/Exclude overrides
