@@ -2,6 +2,7 @@
 
 - Please add here
 - [#315] Drop support for EOL Ruby 3.1 (EOL 2025-03-25) and require Ruby `>= 3.2`. `i18n 1.15.0` uses the `Fiber[]` storage API which only exists on Ruby 3.2+, so the Ruby 3.1 CI row no longer loads; the matrix now tests Ruby 3.2 as the minimum
+- [#316] Set `fail-fast: false` in CI matrix so a single failing job no longer cancels the rest
 - [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
 - [#304] allow handle auth_time per grant
 - [#305] Document the `auth_time_from_access_token` config option in the README (per-grant `auth_time`), clarifying that it only affects the ID Token `auth_time` claim and not `max_age` enforcement

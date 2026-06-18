@@ -18,7 +18,7 @@ jobs:
       !(   contains(github.event.pull_request.title,  '[ci skip]')
         || contains(github.event.pull_request.title,  '[skip ci]'))
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         ruby:
