@@ -126,7 +126,7 @@ describe Doorkeeper::OpenidConnect do
       end
     end
 
-    context "when signing_key is an array with an unparseable trailing entry" do
+    context "when signing_key is an array with an unparsable trailing entry" do
       let(:rsa_pem) { OpenSSL::PKey::RSA.generate(2048).to_pem }
 
       before do
