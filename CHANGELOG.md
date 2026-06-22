@@ -1,6 +1,9 @@
 ## Unreleased
 
 - Please add here
+
+## v1.10.2 (2026-06-22)
+
 - [#315] Drop support for EOL Ruby 3.1 (EOL 2025-03-25) and require Ruby `>= 3.2`. `i18n 1.15.0` uses the `Fiber[]` storage API which only exists on Ruby 3.2+, so the Ruby 3.1 CI row no longer loads; the matrix now tests Ruby 3.2 as the minimum
 - [#316] Set `fail-fast: false` in CI matrix so a single failing job no longer cancels the rest
 - [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects implicit/hybrid flow requests (any `response_type` including `id_token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1 for implicit, §3.3.2.1 for hybrid). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in a future major version ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
@@ -11,6 +14,7 @@
 - [#313] Move Configuration documentation from README to Wiki
 - [#312] Raise `Errors::MissingRequiredClaim` instead of silently dropping a blank REQUIRED ID Token claim (`iss`/`sub`/`aud`/`exp`/`iat`) in `IdToken#as_json`, which previously could emit a non-conformant ID Token (OIDC Core 1.0 §2). OPTIONAL claims such as `nonce`/`auth_time` are still omitted when blank
 - [#311] Include the REQUIRED `client_secret_expires_at` member (value `0`, never expires) in the Dynamic Client Registration response whenever a `client_secret` is issued (RFC 7591 §3.2.1 / OpenID Connect Dynamic Client Registration 1.0 §3.2)
+- [#309] Add a browser dashboard to the test application (`spec/dummy`) for exercising the OpenID Connect endpoints by hand — replacing the rails console + curl workflow with forms for Setup, Discovery, Authorization (code / implicit / PKCE / nonce / prompt / `max_age`), token exchange, UserInfo, introspection and revocation
 
 ## v1.10.1 (2026-06-03)
 
