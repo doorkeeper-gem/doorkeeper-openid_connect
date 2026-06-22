@@ -1,6 +1,9 @@
 ## Unreleased
 
 - Please add here
+
+## v1.10.2 (2026-06-22)
+
 - [#315] Drop support for EOL Ruby 3.1 (EOL 2025-03-25) and require Ruby `>= 3.2`. `i18n 1.15.0` uses the `Fiber[]` storage API which only exists on Ruby 3.2+, so the Ruby 3.1 CI row no longer loads; the matrix now tests Ruby 3.2 as the minimum
 - [#316] Set `fail-fast: false` in CI matrix so a single failing job no longer cancels the rest
 - [#303] execute account selection even without owner, and `select_account_for_resource_owner` can now receive `nil` as the first argument.
