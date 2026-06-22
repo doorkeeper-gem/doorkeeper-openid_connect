@@ -20,7 +20,8 @@ module Doorkeeper
           warn "DEPRECATION WARNING: an OpenID Connect implicit/hybrid flow " \
                "authorization request (a `response_type` including `id_token`) " \
                "was made without a `nonce`. `nonce` is REQUIRED for these flows " \
-               "per OpenID Connect Core 1.0 §3.2.2.1. Such requests are currently " \
+               "per OpenID Connect Core 1.0 §3.2.2.1 and §3.3.2.1. Such requests " \
+               "are currently " \
                "accepted for backward compatibility, but this will change: set " \
                "`enforce_implicit_nonce true` in " \
                "config/initializers/doorkeeper_openid_connect.rb to reject them " \
@@ -53,8 +54,8 @@ module Doorkeeper
 
         private
 
-        # Per OpenID Connect Core 1.0 §3.2.2.1, nonce is REQUIRED for the
-        # implicit and hybrid flows (any response_type that includes id_token).
+        # Per OpenID Connect Core 1.0 §3.2.2.1 (implicit) and §3.3.2.1 (hybrid),
+        # nonce is REQUIRED for any response_type that includes id_token.
         #
         # Enforcement is gated on the `enforce_implicit_nonce` option for
         # backward compatibility: while it is disabled (the current default) a
@@ -75,7 +76,7 @@ module Doorkeeper
 
         # True for the OpenID Connect flows that REQUIRE a nonce: the implicit
         # and hybrid flows, i.e. an `openid`-scoped request whose `response_type`
-        # includes `id_token` (per OpenID Connect Core 1.0 §3.2.2.1 and §3.3.2.11).
+        # includes `id_token` (per OpenID Connect Core 1.0 §3.2.2.1 and §3.3.2.1).
         def nonce_required_flow?
           scopes.include?("openid") &&
             response_type.to_s.split(" ").include?("id_token")
