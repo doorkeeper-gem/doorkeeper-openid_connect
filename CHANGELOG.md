@@ -3,6 +3,10 @@
 - Please add here
 - [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects implicit/hybrid flow requests (any `response_type` including `id_token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1 for implicit, §3.3.2.1 for hybrid). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in a future major version ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
 
+## v1.10.3 (2026-06-23)
+
+- [#308] Fix `NameError: uninitialized constant Auth::ApplicationRecord` on boot when using a namespaced custom access grant model (e.g. `Auth::OAuthAccessGrant < ApplicationRecord`). Since v1.10.0 ([#241]) the `openid_request` association was wired inside an `ActiveSupport.on_load(:active_record)` block, which fires while `ActiveRecord::Base` is first loaded and constantizes the grant model too early. The association is now added from Doorkeeper's `AccessGrant` mixin `included` callback — at the model's own load time, without constantizing — mirroring the fix doorkeeper made in [#1830](https://github.com/doorkeeper-gem/doorkeeper/pull/1830) ([#306](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/306))
+
 ## v1.10.2 (2026-06-22)
 
 - [#315] Drop support for EOL Ruby 3.1 (EOL 2025-03-25) and require Ruby `>= 3.2`. `i18n 1.15.0` uses the `Fiber[]` storage API which only exists on Ruby 3.2+, so the Ruby 3.1 CI row no longer loads; the matrix now tests Ruby 3.2 as the minimum
