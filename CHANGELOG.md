@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#308] Fix `NameError: uninitialized constant Auth::ApplicationRecord` on boot when using a namespaced custom access grant model (e.g. `Auth::OAuthAccessGrant < ApplicationRecord`). Since v1.10.0 ([#241]) the `openid_request` association was wired inside an `ActiveSupport.on_load(:active_record)` block, which fires while `ActiveRecord::Base` is first loaded and constantizes the grant model too early. The association is now added from Doorkeeper's `AccessGrant` mixin `included` callback — at the model's own load time, without constantizing — mirroring the fix doorkeeper made in [#1830](https://github.com/doorkeeper-gem/doorkeeper/pull/1830) ([#306](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/306))
 
 ## v1.10.2 (2026-06-22)
 
