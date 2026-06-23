@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects implicit/hybrid flow requests (any `response_type` including `id_token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1 for implicit, §3.3.2.1 for hybrid). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in a future major version ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
 
 ## v1.10.3 (2026-06-23)
 

@@ -811,4 +811,59 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(assigns(:pre_auth).nonce).to eq "123456"
     end
   end
+
+  describe "authorization view" do
+    render_views
+
+    it "renders the nonce hidden field (gem view overrides doorkeeper's default)" do
+      authorize! nonce: "view-nonce-123"
+
+      expect(response).to be_successful
+      expect(response.body).to include('name="nonce"')
+      expect(response.body).to include('value="view-nonce-123"')
+    end
+  end
+
+  describe "implicit flow nonce enforcement" do
+    before do
+      allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+      Doorkeeper::OpenidConnect::OAuth::PreAuthorization.reset_implicit_nonce_deprecation_warning!
+    end
+
+    context "when enforce_implicit_nonce is enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration).to receive(:enforce_implicit_nonce).and_return(true)
+      end
+
+      it "rejects an implicit request without a nonce" do
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(assigns(:pre_auth)).not_to be_authorizable
+        expect(assigns(:pre_auth).error).to eq Doorkeeper::Errors::InvalidRequest
+        expect(assigns(:pre_auth).missing_param).to eq :nonce
+      end
+
+      it "renders a bad_request error end-to-end when nonce is missing" do
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response).to render_template("doorkeeper/authorizations/error")
+      end
+
+      it "accepts an implicit request that carries a nonce" do
+        authorize! response_type: "id_token token", scope: "openid", nonce: "abc123"
+
+        expect(assigns(:pre_auth)).to be_authorizable
+      end
+    end
+
+    context "when enforce_implicit_nonce is disabled (default)" do
+      it "accepts an implicit request without a nonce" do
+        allow(Doorkeeper::OpenidConnect::OAuth::PreAuthorization).to receive(:warn_missing_nonce_deprecation)
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(assigns(:pre_auth)).to be_authorizable
+      end
+    end
+  end
 end
