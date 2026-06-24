@@ -51,6 +51,7 @@ module Doorkeeper
         {
           name: params[:client_name],
           redirect_uri: params[:redirect_uris] || [],
+          post_logout_redirect_uris: params[:post_logout_redirect_uris] || [],
           scopes: params[:scope],
           confidential: registration.confidential_client?,
         }
@@ -61,6 +62,7 @@ module Doorkeeper
           client_id: doorkeeper_application.uid,
           client_id_issued_at: doorkeeper_application.created_at.to_i,
           redirect_uris: doorkeeper_application.redirect_uri.split,
+          post_logout_redirect_uris: doorkeeper_application.post_logout_redirect_uris,
           token_endpoint_auth_method: registration.token_endpoint_auth_method,
           token_endpoint_auth_methods_supported: registration.token_endpoint_auth_methods_supported,
           response_types: registration.requested_response_types,

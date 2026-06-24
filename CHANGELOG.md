@@ -1,6 +1,9 @@
 ## Unreleased
 
-- Please add here
+- [#243] Add `post_logout_redirect_uris` support for RP-Initiated Logout. A new nullable `post_logout_redirect_uris` text column on `oauth_applications` (newline-separated, like `redirect_uri`) stores per-client post-logout redirect URIs, exposed via `Doorkeeper::Application#post_logout_redirect_uris` and `#valid_post_logout_redirect_uri?(uri)`. Registered values are validated by delegating to Doorkeeper's own `RedirectUriValidator`, so they follow exactly the same rules as `redirect_uri` (forbidden schemes, fragments, relative/opaque URIs, missing host and `force_ssl_in_redirect_uri`); registration remains optional, so a blank value is allowed. Dynamic Client Registration accepts `post_logout_redirect_uris` and echoes it back, rejecting invalid values with the same `invalid_client_params` response used for `redirect_uris` (OpenID Connect RP-Initiated Logout 1.0 §2).
+
+>[!NOTE]
+> **Migration required:** this adds a new column to `oauth_applications`. New installations get it from the regular install migration (`rails generate doorkeeper:openid_connect:migration`). Existing installations must add it by running `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` followed by `rake db:migrate`.
 
 ## v1.10.3 (2026-06-23)
 
