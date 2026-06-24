@@ -1,0 +1,373 @@
+<% setup_done = @users.any? && @applications.any? %>
+
+<h1>Dummy Dashboard</h1>
+<p class="hint">A browser stand-in for the curl commands.</p>
+
+<section>
+  <h2>1. Setup</h2>
+  <p class="hint">Create the User and OAuth Application you need before anything else.</p>
+
+  <h3>Users</h3>
+  <% if @users.any? %>
+    <table>
+      <tr><th>id</th><th>name</th></tr>
+      <% @users.each do |user| %>
+        <tr><td><%= user.id %></td><td><%= user.name %></td></tr>
+      <% end %>
+    </table>
+  <% else %>
+    <p class="muted">No users yet.</p>
+  <% end %>
+  <%= form_with url: users_path, method: :post do |f| %>
+    <div class="field">
+      <%= f.text_field :name, placeholder: "name", required: true %>
+      <%= f.text_field :password, placeholder: "password" %>
+      <%= f.submit "Create user" %>
+    </div>
+  <% end %>
+
+  <h3>Applications</h3>
+  <% if @applications.any? %>
+    <table>
+      <tr><th>id</th><th>name</th><th>uid (client_id)</th><th>secret</th><th>redirect_uri</th><th>scopes</th></tr>
+      <% @applications.each do |app| %>
+        <tr>
+          <td><%= app.id %></td>
+          <td><%= app.name %></td>
+          <td><code><%= app.uid %></code></td>
+          <td><code><%= app.secret %></code></td>
+          <td><%= app.redirect_uri %></td>
+          <td><%= app.scopes %></td>
+        </tr>
+      <% end %>
+    </table>
+  <% else %>
+    <p class="muted">No applications yet.</p>
+  <% end %>
+  <%= form_with url: applications_path, method: :post do |f| %>
+    <div class="field"><label>name</label><%= f.text_field :name, placeholder: "my-client", required: true %></div>
+    <div class="field"><label>redirect_uri</label><%= f.text_field :redirect_uri, value: "http://localhost:3000/callback" %></div>
+    <div class="field"><label>scopes</label><%= f.text_field :scopes, value: "openid" %></div>
+    <div class="field"><%= f.submit "Create application" %></div>
+  <% end %>
+  <p class="hint">In development <code>http://</code> redirect URIs are allowed (HTTPS is not enforced in development).</p>
+</section>
+
+<% unless setup_done %>
+  <p class="flash">⚠️ Create at least one user and one application above to use the sections below.</p>
+<% end %>
+
+<section>
+  <h2>2. Discovery</h2>
+  <div class="field">
+    <button type="button" onclick="discover('/.well-known/openid-configuration', 'disc_config')">GET openid-configuration</button>
+    <button type="button" onclick="discover('/oauth/discovery/keys', 'disc_keys')">GET jwks (discovery/keys)</button>
+  </div>
+  <pre id="disc_config" class="muted">openid-configuration response…</pre>
+  <pre id="disc_keys" class="muted">jwks response…</pre>
+
+  <h3>WebFinger</h3>
+  <div class="field">
+    <label>resource</label><input type="text" id="wf_resource" value="acct:user@localhost:3000">
+    <button type="button" onclick="webfinger()">GET webfinger</button>
+  </div>
+  <pre id="disc_webfinger" class="muted">webfinger response…</pre>
+</section>
+
+<section>
+  <h2>3. Authorization</h2>
+
+  <div class="step">
+    <h3>Step 1 — Authorization request</h3>
+    <div class="field">
+      <label>current_user</label>
+      <select id="current_user">
+        <% @users.each do |user| %>
+          <option value="<%= user.id %>"><%= user.id %> — <%= user.name %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="field">
+      <label>client_id</label>
+      <select id="auth_client">
+        <% @applications.each do |app| %>
+          <option value="<%= app.id %>"
+                  data-uid="<%= app.uid %>"
+                  data-secret="<%= app.secret %>"
+                  data-redirect="<%= app.redirect_uri %>"
+                  data-scopes="<%= app.scopes %>"><%= app.name %> — <%= app.uid %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="field">
+      <label>response_type</label>
+      <select id="response_type">
+        <option value="code">code</option>
+        <option value="id_token">id_token</option>
+        <option value="id_token token">id_token token</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>response_mode</label>
+      <select id="response_mode">
+        <option value="auto">auto (server default)</option>
+        <option value="query">query</option>
+        <option value="fragment">fragment</option>
+        <option value="form_post">form_post</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>nonce</label>
+      <input type="checkbox" id="nonce_enabled" onchange="onNonceToggle()">
+      <input type="text" id="nonce" class="hidden" placeholder="nonce">
+    </div>
+    <div class="field">
+      <label>PKCE</label>
+      <input type="checkbox" id="pkce_enabled" onchange="onPkceToggle()">
+      <span id="pkce_box" class="hidden hint">
+        verifier: <code id="code_verifier"></code><br>
+        challenge (S256): <code id="code_challenge"></code>
+      </span>
+    </div>
+    <div class="field">
+      <label>prompt</label>
+      <select id="prompt">
+        <option value="">(none)</option>
+        <option value="login">login</option>
+        <option value="select_account">select_account</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>max_age</label>
+      <input type="number" id="max_age" min="0" placeholder="(unset)">
+    </div>
+    <button type="button" onclick="authorize()">Authorize →</button>
+    <h4>Result</h4>
+    <pre id="authorize_result" class="muted">The authorization response will appear here after the redirect.</pre>
+  </div>
+
+  <div class="step hidden" id="step2">
+    <h3>Step 2 — Token exchange <span class="hint">(response_type=code)</span></h3>
+    <div class="field"><label>code</label><input type="text" id="tok_code"></div>
+    <div class="field"><label>client_id</label><input type="text" id="tok_client_id"></div>
+    <div class="field"><label>client_secret</label><input type="text" id="tok_client_secret"></div>
+    <div class="field"><label>redirect_uri</label><input type="text" id="tok_redirect_uri"></div>
+    <div class="field">
+      <label>code_verifier</label><input type="text" id="tok_code_verifier">
+      <span class="hint">clear this to watch PKCE reject the exchange</span>
+    </div>
+    <button type="button" onclick="exchange()">Exchange</button>
+    <pre id="exchange_result" class="muted">/oauth/token response…</pre>
+  </div>
+
+  <div class="step hidden" id="step3">
+    <h3>Step 3 — ID Token</h3>
+    <pre id="idtoken_raw" class="muted"></pre>
+    <h4>Header</h4>
+    <pre id="idtoken_header"></pre>
+    <h4>Payload</h4>
+    <pre id="idtoken_payload"></pre>
+    <h4>Claims</h4>
+    <table class="claims" id="idtoken_claims"></table>
+  </div>
+</section>
+
+<section>
+  <h2>4. UserInfo</h2>
+  <div class="field"><label>access_token</label><input type="text" id="userinfo_token"></div>
+  <button type="button" onclick="userinfo()">Get UserInfo</button>
+  <pre id="userinfo_result" class="muted">/oauth/userinfo response…</pre>
+</section>
+
+<section>
+  <h2>5. Token Management</h2>
+  <div class="field">
+    <label>client</label>
+    <select id="tm_client">
+      <% @applications.each do |app| %>
+        <option value="<%= app.id %>" data-uid="<%= app.uid %>" data-secret="<%= app.secret %>"><%= app.name %> — <%= app.uid %></option>
+      <% end %>
+    </select>
+    <span class="hint">client_id / client_secret are taken from this selection</span>
+  </div>
+
+  <h3>Introspection</h3>
+  <div class="field"><label>token</label><input type="text" id="introspect_token"></div>
+  <button type="button" onclick="introspect()">Introspect</button>
+  <pre id="introspect_result" class="muted">/oauth/introspect response…</pre>
+
+  <h3>Revocation</h3>
+  <div class="field"><label>token</label><input type="text" id="revoke_token"></div>
+  <button type="button" onclick="revoke()">Revoke</button>
+  <pre id="revoke_result" class="muted">/oauth/revoke response…</pre>
+</section>
+
+<script>
+  function $(id) { return document.getElementById(id); }
+  function show(id, data) {
+    var el = $(id); el.classList.remove('muted');
+    el.textContent = (typeof data === 'string') ? data : JSON.stringify(data, null, 2);
+  }
+
+  function getJson(url, outId, headers) {
+    fetch(url, { headers: headers || { 'Accept': 'application/json' } })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { try { show(outId, JSON.parse(t)); } catch (e) { show(outId, t); } })
+      .catch(function (e) { show(outId, String(e)); });
+  }
+  function postForm(url, params, outId, done) {
+    var body = new URLSearchParams(params);
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body: body })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        if (t.trim() === '') { show(outId, ''); if (done) done({}); return; }
+        var json; try { json = JSON.parse(t); } catch (e) { show(outId, t); return; }
+        show(outId, json); if (done) done(json);
+      })
+      .catch(function (e) { show(outId, String(e)); });
+  }
+
+  function discover(path, outId) { getJson(path, outId); }
+  function webfinger() {
+    var res = encodeURIComponent($('wf_resource').value);
+    var rel = encodeURIComponent('http://openid.net/specs/connect/1.0/issuer');
+    getJson('/.well-known/webfinger?resource=' + res + '&rel=' + rel, 'disc_webfinger');
+  }
+
+  function b64urlEncode(buf) {
+    var bytes = new Uint8Array(buf), s = '';
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64urlDecode(str) {
+    var b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    var pad = (4 - (b64.length % 4)) % 4;
+    if (pad) b64 += '='.repeat(pad);
+    return atob(b64);
+  }
+  async function generatePkce() {
+    var rnd = new Uint8Array(32); crypto.getRandomValues(rnd);
+    var verifier = b64urlEncode(rnd.buffer);
+    var digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    return { verifier: verifier, challenge: b64urlEncode(digest) };
+  }
+
+  function authApp() { return $('auth_client').selectedOptions[0].dataset; }
+  function onNonceToggle() {
+    var on = $('nonce_enabled').checked;
+    $('nonce').classList.toggle('hidden', !on);
+    if (on && !$('nonce').value) $('nonce').value = crypto.randomUUID();
+  }
+  async function onPkceToggle() {
+    var on = $('pkce_enabled').checked;
+    $('pkce_box').classList.toggle('hidden', !on);
+    if (on && !$('code_verifier').textContent) {
+      var pkce = await generatePkce();
+      $('code_verifier').textContent = pkce.verifier;
+      $('code_challenge').textContent = pkce.challenge;
+    }
+  }
+
+  function authorize() {
+    var app = authApp();
+    var p = new URLSearchParams();
+    p.set('client_id', app.uid);
+    p.set('redirect_uri', app.redirect);
+    p.set('response_type', $('response_type').value);
+    p.set('scope', app.scopes || 'openid');
+    p.set('current_user', $('current_user').value);
+    var mode = $('response_mode').value; if (mode !== 'auto') p.set('response_mode', mode);
+    if ($('nonce_enabled').checked) p.set('nonce', $('nonce').value);
+    if ($('pkce_enabled').checked) {
+      p.set('code_challenge', $('code_challenge').textContent);
+      p.set('code_challenge_method', 'S256');
+    }
+    if ($('prompt').value) p.set('prompt', $('prompt').value);
+    if ($('max_age').value !== '') p.set('max_age', $('max_age').value);
+
+    sessionStorage.setItem('oidc_ctx', JSON.stringify({
+      client_id: app.uid,
+      client_secret: app.secret,
+      redirect_uri: app.redirect,
+      code_verifier: $('pkce_enabled').checked ? $('code_verifier').textContent : ''
+    }));
+    window.location = '/oauth/authorize?' + p.toString();
+  }
+
+  function exchange() {
+    postForm('/oauth/token', {
+      grant_type: 'authorization_code',
+      code: $('tok_code').value,
+      client_id: $('tok_client_id').value,
+      client_secret: $('tok_client_secret').value,
+      redirect_uri: $('tok_redirect_uri').value,
+      code_verifier: $('tok_code_verifier').value
+    }, 'exchange_result', function (json) {
+      if (json.id_token) showIdToken(json.id_token);
+      if (json.access_token) $('userinfo_token').value = json.access_token;
+    });
+  }
+
+  var CLAIM_LABELS = {
+    iss: 'issuer', sub: 'subject', aud: 'audience',
+    exp: 'expiration', iat: 'issued at', nbf: 'not before',
+    nonce: 'replay protection', auth_time: 'last authentication',
+    at_hash: 'access_token binding', c_hash: 'code binding', azp: 'authorized party'
+  };
+  function showIdToken(token) {
+    var parts = token.split('.');
+    var header = JSON.parse(b64urlDecode(parts[0]));
+    var payload = JSON.parse(b64urlDecode(parts[1]));
+    $('idtoken_raw').textContent = token; $('idtoken_raw').classList.remove('muted');
+    $('idtoken_header').textContent = JSON.stringify(header, null, 2);
+    $('idtoken_payload').textContent = JSON.stringify(payload, null, 2);
+    var claims = $('idtoken_claims');
+    claims.textContent = '';
+    Object.keys(payload).forEach(function (k) {
+      var row = claims.insertRow();
+      row.insertCell().textContent = CLAIM_LABELS[k] || '';
+      var key = document.createElement('b');
+      key.textContent = k;
+      row.insertCell().appendChild(key);
+      row.insertCell().textContent = String(payload[k]);
+    });
+    $('step3').classList.remove('hidden');
+  }
+
+  function userinfo() {
+    getJson('/oauth/userinfo', 'userinfo_result', { 'Accept': 'application/json', 'Authorization': 'Bearer ' + $('userinfo_token').value });
+  }
+
+  function tmApp() { return $('tm_client').selectedOptions[0].dataset; }
+  function introspect() {
+    var app = tmApp();
+    postForm('/oauth/introspect', { token: $('introspect_token').value, client_id: app.uid, client_secret: app.secret }, 'introspect_result');
+  }
+  function revoke() {
+    var app = tmApp();
+    postForm('/oauth/revoke', { token: $('revoke_token').value, client_id: app.uid, client_secret: app.secret }, 'revoke_result', function (json) {
+      if (!json.error) show('revoke_result', 'Revoked (the endpoint returns an empty 200 on success).');
+    });
+  }
+
+  (function () {
+    var raw = sessionStorage.getItem('oidc_cb');
+    if (!raw) return;
+    sessionStorage.removeItem('oidc_cb');
+    var cb = JSON.parse(raw);
+    var ctx = JSON.parse(sessionStorage.getItem('oidc_ctx') || '{}');
+    show('authorize_result', cb);
+    document.querySelector('#authorize_result').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (cb.code) {
+      $('tok_code').value = cb.code;
+      $('tok_client_id').value = ctx.client_id || '';
+      $('tok_client_secret').value = ctx.client_secret || '';
+      $('tok_redirect_uri').value = ctx.redirect_uri || '';
+      $('tok_code_verifier').value = ctx.code_verifier || '';
+      $('step2').classList.remove('hidden');
+    }
+    if (cb.access_token) $('userinfo_token').value = cb.access_token;
+    if (cb.id_token) showIdToken(cb.id_token);
+  })();
+</script>

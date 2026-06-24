@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'rails', '~> 7.0.0'
-gem 'rails-controller-testing'
-gem 'sqlite3', '~> 1.4', platform: %i[ruby mswin mingw x64_mingw]
 gem "concurrent-ruby", "1.3.4"
+gem "rails", "~> 7.0.0"
+gem "rails-controller-testing"
+gem "sqlite3", "~> 1.4", platform: %i[ruby mswin mingw x64_mingw]
 
-gemspec path: '../'
+gemspec path: "../"

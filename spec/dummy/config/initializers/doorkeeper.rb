@@ -7,10 +7,14 @@ Doorkeeper.configure do
     if params[:current_user].present?
       User.find(params[:current_user])
     else
-      redirect_to('/login')
+      redirect_to("/login")
       nil
     end
   end
 
   grant_flows %w[authorization_code client_credentials implicit_oidc]
+
+  skip_authorization do
+    Rails.env.development?
+  end
 end

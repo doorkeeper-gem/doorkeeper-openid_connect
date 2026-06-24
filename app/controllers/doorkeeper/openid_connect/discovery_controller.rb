@@ -5,8 +5,9 @@ module Doorkeeper
     class DiscoveryController < ::Doorkeeper::ApplicationMetalController
       include Doorkeeper::Helpers::Controller
       include GrantTypesSupportedMixin
+      include TokenEndpointAuthMethodsSupportedMixin
 
-      WEBFINGER_RELATION = 'http://openid.net/specs/connect/1.0/issuer'
+      WEBFINGER_RELATION = "http://openid.net/specs/connect/1.0/issuer"
 
       def provider
         render json: provider_response
@@ -47,16 +48,16 @@ module Doorkeeper
           # TODO: look into doorkeeper-jwt_assertion for these
           #  'client_secret_jwt',
           #  'private_key_jwt'
-          token_endpoint_auth_methods_supported: token_endpoint_auth_methods_supported(doorkeeper),
+          token_endpoint_auth_methods_supported: token_endpoint_auth_methods_supported,
 
           subject_types_supported: openid_connect.subject_types_supported,
 
           id_token_signing_alg_values_supported: [
-            ::Doorkeeper::OpenidConnect.signing_algorithm
+            ::Doorkeeper::OpenidConnect.signing_algorithm,
           ],
 
           claim_types_supported: [
-            'normal',
+            "normal",
 
             # TODO: support these
             # 'aggregated',
@@ -79,11 +80,6 @@ module Doorkeeper
         doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq
       end
 
-      def token_endpoint_auth_methods_supported(doorkeeper)
-        mapping = { from_basic: 'client_secret_basic', from_params: 'client_secret_post' }
-        doorkeeper.client_credentials_methods.filter_map { |method| mapping[method] }
-      end
-
       def code_challenge_methods_supported(doorkeeper)
         return unless doorkeeper.access_grant_model.pkce_supported?
 
@@ -96,27 +92,19 @@ module Doorkeeper
           links: [
             {
               rel: WEBFINGER_RELATION,
-              href: root_url(webfinger_url_options),
-            }
-          ]
+              href: issuer,
+            },
+          ],
         }
       end
 
       def keys_response
-        signing_key = Doorkeeper::OpenidConnect.signing_key_normalized
-
-        {
-          keys: [
-            signing_key.merge(
-              use: 'sig',
-              alg: Doorkeeper::OpenidConnect.signing_algorithm
-            )
-          ]
-        }
+        { keys: Doorkeeper::OpenidConnect.signing_keys_normalized }
       end
 
       def protocol
-        Doorkeeper::OpenidConnect.configuration.protocol.call
+        configured = Doorkeeper::OpenidConnect.configuration.protocol
+        configured.respond_to?(:call) ? configured.call : configured
       end
 
       def discovery_url_options
@@ -125,7 +113,7 @@ module Doorkeeper
 
       def discovery_url_default_options
         {
-          protocol: protocol
+          protocol: protocol,
         }
       end
 
@@ -133,7 +121,8 @@ module Doorkeeper
         Doorkeeper::OpenidConnect.resolve_issuer(request: request)
       end
 
-      %i[authorization token revocation introspection userinfo jwks webfinger dynamic_client_registration].each do |endpoint|
+      %i[authorization token revocation introspection userinfo jwks
+         dynamic_client_registration].each do |endpoint|
         define_method :"#{endpoint}_url_options" do
           discovery_url_default_options.merge(discovery_url_options[endpoint.to_sym] || {})
         end

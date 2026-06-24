@@ -6,35 +6,24 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-Layout/HashAlignment:
-  Enabled: false
-Layout/FirstHashElementIndentation:
-  Enabled: false
-Layout/ArgumentAlignment:
-  Enabled: false
-
-# Configuration parameters: CountComments, ExcludedMethods.
-# ExcludedMethods: refine
-Metrics/BlockLength:
-  Max: 61
-
-# Configuration parameters: CountComments.
-Metrics/ClassLength:
-  Max: 230
-
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
   Max: 209
 
 Metrics/MethodLength:
-  Max: 15
+  Max: 33
 
-Style/TrailingCommaInArguments:
-  Enabled: false
-Style/TrailingCommaInArrayLiteral:
-  Enabled: false
-Style/TrailingCommaInHashLiteral:
-  Enabled: false
+# Configuration parameters: IgnoredMethods.
+Metrics/AbcSize:
+  Max: 35
+
+# Configuration parameters: IgnoredMethods.
+Metrics/CyclomaticComplexity:
+  Max: 13
+
+# Configuration parameters: IgnoredMethods.
+Metrics/PerceivedComplexity:
+  Max: 10
 
 # Configuration parameters: .
 # SupportedStyles: have_received, receive
@@ -46,4 +35,43 @@ RSpec/NamedSubject:
 
 # Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
 RSpec/VerifiedDoubles:
+  Enabled: false
+
+# This gem does not enforce top-level documentation comments.
+Style/Documentation:
+  Enabled: false
+
+# The Doorkeeper config DSL (subject, auth_time_from_resource_owner, claim)
+# invokes these blocks with extra arguments, so a strict-arity `&:sym`
+# lambda raises ArgumentError. Keep explicit blocks here.
+Style/SymbolProc:
+  Exclude:
+    - "spec/controllers/doorkeeper/authorizations_controller_spec.rb"
+    - "spec/dummy/config/initializers/doorkeeper_openid_connect.rb"
+    - "spec/lib/id_token_spec.rb"
+    - "spec/lib/user_info_spec.rb"
+    - "spec/support/doorkeeper_configuration.rb"
+
+# Configuration parameters: Max, AllowSubject.
+RSpec/MultipleMemoizedHelpers:
+  Max: 7
+
+RSpec/SubjectStub:
+  Enabled: false
+
+# Configuration parameters: Prefixes, AllowedPatterns.
+# Prefixes: when, with, without
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/ExpectInHook:
+  Enabled: false
+
+RSpec/IndexedLet:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/DescribeMethod:
   Enabled: false

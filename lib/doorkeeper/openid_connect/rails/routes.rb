@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'doorkeeper/openid_connect/rails/routes/mapping'
-require 'doorkeeper/openid_connect/rails/routes/mapper'
+require "doorkeeper/openid_connect/rails/routes/mapping"
+require "doorkeeper/openid_connect/rails/routes/mapper"
 
 module Doorkeeper
   module OpenidConnect
@@ -28,7 +28,7 @@ module Doorkeeper
           @mapping = Mapper.new.map(&@block)
           openid_connect = ::Doorkeeper::OpenidConnect.configuration
 
-          routes.scope options[:scope] || 'oauth', as: 'oauth' do
+          routes.scope options[:scope] || "oauth", as: "oauth" do
             map_route(:userinfo, :userinfo_routes)
             map_route(:discovery, :discovery_routes)
 
@@ -37,7 +37,7 @@ module Doorkeeper
             end
           end
 
-          routes.scope as: 'oauth' do
+          routes.scope as: "oauth" do
             map_route(:discovery, :discovery_well_known_routes)
           end
         end
@@ -55,26 +55,26 @@ module Doorkeeper
         end
 
         def userinfo_routes
-          routes.get :show, path: 'userinfo', as: ''
-          routes.post :show, path: 'userinfo', as: nil
+          routes.get :show, path: "userinfo", as: ""
+          routes.post :show, path: "userinfo", as: nil
         end
 
         def discovery_routes
-          routes.scope path: 'discovery' do
+          routes.scope path: "discovery" do
             routes.get :keys
           end
         end
 
         def discovery_well_known_routes
-          routes.scope path: '.well-known' do
-            routes.get :provider, path: 'openid-configuration'
-            routes.get :provider, path: 'oauth-authorization-server'
+          routes.scope path: ".well-known" do
+            routes.get :provider, path: "openid-configuration"
+            routes.get :provider, path: "oauth-authorization-server"
             routes.get :webfinger
           end
         end
 
         def dynamic_client_registration_routes
-          routes.post :register, path: 'registration', as: ''
+          routes.post :register, path: "registration", as: ""
         end
       end
     end

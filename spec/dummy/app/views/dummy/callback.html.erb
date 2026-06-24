@@ -1,0 +1,12 @@
+<h1>Returning to the dashboard…</h1>
+<p class="muted">Capturing the authorization response and handing it back to the dashboard.</p>
+<noscript><p>JavaScript is required. <a href="/">Back to dashboard</a>.</p></noscript>
+
+<script>
+  var data = <%= raw json_escape(@params.to_json) %>;
+  if (location.hash.length > 1) {
+    new URLSearchParams(location.hash.slice(1)).forEach(function (v, k) { data[k] = v; });
+  }
+  sessionStorage.setItem('oidc_cb', JSON.stringify(data));
+  location.replace('/');
+</script>

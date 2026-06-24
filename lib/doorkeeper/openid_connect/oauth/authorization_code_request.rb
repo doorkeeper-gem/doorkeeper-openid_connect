@@ -9,11 +9,11 @@ module Doorkeeper
         def after_successful_response
           super
 
-          nonce =
-            if (openid_request = grant.openid_request)
-              openid_request.destroy!
-              openid_request.nonce
-            end
+          openid_request = grant.openid_request
+          nonce = openid_request&.nonce
+          openid_request&.destroy!
+
+          return unless access_token.includes_scope?("openid")
 
           id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
           @response.id_token = id_token

@@ -10,13 +10,16 @@ module Doorkeeper
       end
 
       def claims
-        {
-          sub: subject
-        }.merge ClaimsBuilder.generate(@access_token, :user_info)
+        # NOTE: `sub` is merged last so a custom claim block cannot override
+        # the canonical subject identifier (which would defeat pairwise /
+        # subject-type guarantees).
+        ClaimsBuilder.generate(@access_token, :user_info).merge(
+          sub: subject,
+        )
       end
 
       def as_json(*_)
-        claims.reject { |_, value| value.nil? || value == '' }
+        claims.reject { |_, value| value.nil? || value == "" }
       end
 
       private

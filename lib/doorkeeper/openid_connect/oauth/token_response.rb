@@ -7,7 +7,7 @@ module Doorkeeper
         attr_accessor :id_token
 
         def body
-          if token.includes_scope? 'openid'
+          if token.includes_scope? "openid"
             id_token = self.id_token || Doorkeeper::OpenidConnect::IdToken.new(token)
 
             super

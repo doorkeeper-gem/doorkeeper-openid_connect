@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Doorkeeper
   module OpenidConnect
     module AuthorizationsExtension
@@ -9,4 +11,3 @@ module Doorkeeper
     end
   end
 end
-

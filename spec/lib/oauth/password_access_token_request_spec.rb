@@ -1,35 +1,53 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 describe Doorkeeper::OpenidConnect::OAuth::PasswordAccessTokenRequest do
-  if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.1')
-    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, credentials, resource_owner, { nonce: '123456' } }
+  # TODO: Remove conditional when minimum doorkeeper version is >= 5.5.1
+  # rubocop:disable RSpec/MultipleSubjects, RSpec/LeadingSubject
+  if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.create("5.5.1")
+    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, credentials, resource_owner, { nonce: "123456" } }
   else
-    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: '123456' } }
+    subject { Doorkeeper::OAuth::PasswordAccessTokenRequest.new server, client, resource_owner, { nonce: "123456" } }
   end
+  # rubocop:enable RSpec/MultipleSubjects, RSpec/LeadingSubject
 
   let(:server) { double }
   let(:client) { double }
-  let(:credentials) { }
+  let(:credentials) {}
   let(:resource_owner) { create :user }
-  let(:token) { create :access_token }
+  let(:token) { create :access_token, scopes: "openid" }
   let(:response) { Doorkeeper::OAuth::TokenResponse.new token }
 
-  describe '#initialize' do
-    it 'stores the nonce attribute' do
-      expect(subject.nonce).to eq '123456'
+  describe "#initialize" do
+    it "stores the nonce attribute" do
+      expect(subject.nonce).to eq "123456"
     end
   end
 
-  describe '#after_successful_response' do
-    it 'adds the ID token to the response' do
-      subject.instance_variable_set '@response', response
-      subject.instance_variable_set '@access_token', token
+  describe "#after_successful_response" do
+    it "adds the ID token to the response when the openid scope is granted" do
+      subject.instance_variable_set "@response", response
+      subject.instance_variable_set "@access_token", token
       subject.send :after_successful_response
 
       expect(response.id_token).to be_a Doorkeeper::OpenidConnect::IdToken
-      expect(response.id_token.nonce).to eq '123456'
+      expect(response.id_token.nonce).to eq "123456"
+    end
+
+    context "when the access token does not include the openid scope" do
+      let(:token) { create :access_token, scopes: "public" }
+
+      it "does not build an ID token" do
+        subject.instance_variable_set "@response", response
+        subject.instance_variable_set "@access_token", token
+
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+
+        subject.send :after_successful_response
+
+        expect(response.id_token).to be_nil
+      end
     end
   end
 end
