@@ -27,6 +27,7 @@ module Doorkeeper
         def generate_routes!(options)
           @mapping = Mapper.new.map(&@block)
           openid_connect = ::Doorkeeper::OpenidConnect.configuration
+          prefix = route_helper_prefix(options)
 
           routes.scope options[:scope] || "oauth", as: "oauth" do
             map_route(:userinfo, :userinfo_routes)
@@ -37,12 +38,25 @@ module Doorkeeper
             end
           end
 
-          routes.scope as: "oauth" do
+          well_known_scope = { as: "oauth" }
+          # When the engine is mounted under a named scope (e.g.
+          # `scope :users, as: :users`), Doorkeeper's and this engine's URL
+          # helpers are generated with that prefix (`users_oauth_*`). Pass the
+          # prefix down to the discovery controller via a route default so it can
+          # resolve the correct namespaced helpers for the published endpoints.
+          well_known_scope[:defaults] = { route_helper_prefix: prefix } if prefix.present?
+
+          routes.scope(**well_known_scope) do
             map_route(:discovery, :discovery_well_known_routes)
           end
         end
 
         private
+
+        def route_helper_prefix(options)
+          name = options[:as]
+          name.present? ? "#{name}_" : ""
+        end
 
         def map_route(name, method)
           return if @mapping.skipped?(name)

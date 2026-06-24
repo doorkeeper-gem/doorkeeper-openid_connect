@@ -29,14 +29,14 @@ module Doorkeeper
 
         {
           issuer: issuer,
-          authorization_endpoint: oauth_authorization_url(authorization_url_options),
-          token_endpoint: oauth_token_url(token_url_options),
-          revocation_endpoint: oauth_revoke_url(revocation_url_options),
-          introspection_endpoint: respond_to?(:oauth_introspect_url) ? oauth_introspect_url(introspection_url_options) : nil,
-          userinfo_endpoint: oauth_userinfo_url(userinfo_url_options),
-          jwks_uri: oauth_discovery_keys_url(jwks_url_options),
+          authorization_endpoint: endpoint_url(:oauth_authorization_url, authorization_url_options),
+          token_endpoint: endpoint_url(:oauth_token_url, token_url_options),
+          revocation_endpoint: endpoint_url(:oauth_revoke_url, revocation_url_options),
+          introspection_endpoint: endpoint_defined?(:oauth_introspect_url) ? endpoint_url(:oauth_introspect_url, introspection_url_options) : nil,
+          userinfo_endpoint: endpoint_url(:oauth_userinfo_url, userinfo_url_options),
+          jwks_uri: endpoint_url(:oauth_discovery_keys_url, jwks_url_options),
           end_session_endpoint: instance_exec(&openid_connect.end_session_endpoint),
-          registration_endpoint: openid_connect.dynamic_client_registration ? oauth_dynamic_client_registration_url(dynamic_client_registration_url_options) : nil,
+          registration_endpoint: openid_connect.dynamic_client_registration ? endpoint_url(:oauth_dynamic_client_registration_url, dynamic_client_registration_url_options) : nil,
 
           scopes_supported: doorkeeper.scopes,
 
@@ -119,6 +119,25 @@ module Doorkeeper
 
       def issuer
         Doorkeeper::OpenidConnect.resolve_issuer(request: request)
+      end
+
+      # Resolves a Doorkeeper URL helper, honouring the namespace under which the
+      # engine is mounted. When mounted under a named scope (e.g.
+      # `scope :users, as: :users`), the route helpers are prefixed
+      # (`users_oauth_authorization_url`); the prefix is supplied as a route
+      # default by `use_doorkeeper_openid_connect as: :users`. With no namespace
+      # the prefix is empty and the bare helper (`oauth_authorization_url`) is
+      # used, preserving the single-mount behaviour.
+      def endpoint_url(helper, options = {})
+        public_send(:"#{route_helper_prefix}#{helper}", options)
+      end
+
+      def endpoint_defined?(helper)
+        respond_to?(:"#{route_helper_prefix}#{helper}")
+      end
+
+      def route_helper_prefix
+        request.path_parameters[:route_helper_prefix].to_s
       end
 
       %i[authorization token revocation introspection userinfo jwks
