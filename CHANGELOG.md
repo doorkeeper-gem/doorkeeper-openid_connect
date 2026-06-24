@@ -1,5 +1,6 @@
 ## Unreleased
 
+- [#320] Add first-class support for mounting the engine under multiple named scopes. Passing `as:` to `use_doorkeeper_openid_connect` (e.g. `scope :users, as: :users { use_doorkeeper_openid_connect as: :users }`) makes the discovery document resolve that namespace's own URL helpers (`users_oauth_*`), so each mount advertises its own endpoints instead of always pointing at the first mount. Single-mount setups are unaffected ([#192](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/192))
 - Please add here
 
 ## v1.10.3 (2026-06-23)
