@@ -77,6 +77,24 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    context "when post_logout_redirect_uris contains an invalid URI" do
+      it "rejects the request with invalid_client_params and does not create a client" do
+        post :register, params: {
+          client_name: "dummy_client",
+          redirect_uris: redirect_uris,
+          post_logout_redirect_uris: ["javascript:alert(1)"],
+          scope: "public",
+        }
+
+        expect(response.status).to eq 400
+        expect(Doorkeeper::Application.count).to eq(0)
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_params")
+        expect(body["error_description"]).to be_present
+      end
+    end
+
     context "when token_endpoint_auth_method is client_secret_basic" do
       it "creates a confidential client with a secret" do
         post :register, params: {
