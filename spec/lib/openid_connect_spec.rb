@@ -414,6 +414,82 @@ describe Doorkeeper::OpenidConnect do
       end
     end
 
+    context "when the OpenID Connect issuer is unset and Doorkeeper has an issuer" do
+      # Doorkeeper >= the release shipping doorkeeper-gem/doorkeeper#1838
+      # exposes `Doorkeeper.config.issuer`. We emulate that surface with a
+      # double so the fallback can be exercised regardless of the installed
+      # Doorkeeper version.
+      let(:doorkeeper_config) { double("Doorkeeper::Config", issuer: "https://doorkeeper-issuer.example.com") }
+
+      before do
+        described_class.configure {}
+        allow(Doorkeeper).to receive(:config).and_return(doorkeeper_config)
+      end
+
+      it "falls back to the Doorkeeper issuer" do
+        expect(subject.resolve_issuer).to eq "https://doorkeeper-issuer.example.com"
+      end
+
+      it "falls back to the Doorkeeper issuer in the discovery context" do
+        expect(subject.resolve_issuer(request: request)).to eq "https://doorkeeper-issuer.example.com"
+      end
+    end
+
+    context "when the OpenID Connect issuer is set and Doorkeeper also has an issuer" do
+      let(:doorkeeper_config) { spy("Doorkeeper::Config", issuer: "https://doorkeeper-issuer.example.com") }
+
+      before do
+        described_class.configure do
+          issuer "https://oidc-issuer.example.com"
+        end
+        allow(Doorkeeper).to receive(:config).and_return(doorkeeper_config)
+      end
+
+      it "prefers the OpenID Connect issuer for backward compatibility" do
+        expect(subject.resolve_issuer).to eq "https://oidc-issuer.example.com"
+      end
+
+      it "never consults the Doorkeeper issuer" do
+        subject.resolve_issuer
+        expect(doorkeeper_config).not_to have_received(:issuer)
+      end
+    end
+
+    context "when neither the OpenID Connect nor the Doorkeeper issuer is set" do
+      let(:doorkeeper_config) { spy("Doorkeeper::Config", issuer: nil) }
+
+      before do
+        described_class.configure {}
+        allow(Doorkeeper).to receive(:config).and_return(doorkeeper_config)
+      end
+
+      it "preserves the existing InvalidConfiguration behavior" do
+        expect { subject.resolve_issuer(request: request) }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+
+    context "when the installed Doorkeeper has no issuer option" do
+      # Emulate a Doorkeeper version that predates `config.issuer` (i.e. before
+      # the release shipping doorkeeper-gem/doorkeeper#1838). A bare double does
+      # not respond to `issuer`, so the fallback's `respond_to?` guard must skip
+      # it rather than blow up. We cannot assert this against the real
+      # Doorkeeper.config because CI tracks Doorkeeper main, which already
+      # exposes `issuer`.
+      let(:doorkeeper_config) { double("Doorkeeper::Config") }
+
+      before do
+        described_class.configure {}
+        allow(Doorkeeper).to receive(:config).and_return(doorkeeper_config)
+      end
+
+      it "does not call a missing issuer method and raises InvalidConfiguration" do
+        expect(doorkeeper_config).not_to respond_to(:issuer)
+        expect { subject.resolve_issuer(request: request) }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+
     context "when issuer resolves to a blank value" do
       it "raises InvalidConfiguration for a block returning nil in the discovery context" do
         described_class.configure do
