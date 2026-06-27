@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#323] Resolve `token_endpoint_auth_methods_supported` from Doorkeeper's new client authentication methods registry when available, falling back to translating legacy `client_credentials_methods` on older Doorkeeper versions. The advertised methods remain unchanged: the `none` public-client pseudo-method is filtered out of discovery/registration responses and is only considered during dynamic client registration validation.
 
 ## v1.10.3 (2026-06-23)
 
