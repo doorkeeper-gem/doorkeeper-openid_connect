@@ -133,6 +133,14 @@ module Doorkeeper
     def self.resolve_issuer(resource_owner: nil, application: nil, request: nil)
       issuer = configuration.issuer
 
+      # Fall back to Doorkeeper's own `issuer` configuration (RFC 8414
+      # Authorization Server Metadata) when the OpenID Connect issuer is not
+      # set. RFC 8414's `issuer` and the OIDC `iss` claim identify the same
+      # authorization server, so a single Doorkeeper-level setting can drive
+      # both without duplicate configuration. When neither is configured the
+      # existing "issuer not configured" behavior below is preserved.
+      issuer = doorkeeper_issuer if issuer.nil?
+
       value =
         if issuer.respond_to?(:call)
           case issuer.arity
@@ -156,6 +164,22 @@ module Doorkeeper
 
       value
     end
+
+    # Returns the issuer configured on Doorkeeper itself, or nil when the
+    # installed Doorkeeper version does not expose one.
+    #
+    # Doorkeeper added a top-level `issuer` option for RFC 8414 metadata
+    # (doorkeeper-gem/doorkeeper#1838). The `respond_to?` guard keeps this
+    # gem working on Doorkeeper versions that predate that option, where
+    # the OpenID Connect `issuer` remains the sole source.
+    #
+    # TODO: remove the `respond_to?` guard and bump the gemspec Doorkeeper
+    # version constraint once a Doorkeeper release ships `config.issuer`.
+    def self.doorkeeper_issuer
+      config = Doorkeeper.config
+      config.issuer if config.respond_to?(:issuer)
+    end
+    private_class_method :doorkeeper_issuer
 
     Doorkeeper::GrantFlow.register(
       :id_token,

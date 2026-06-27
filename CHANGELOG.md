@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#322] Fall back to Doorkeeper's own `issuer` configuration when the OpenID Connect `issuer` is not set. Doorkeeper added a top-level `issuer` option for RFC 8414 Authorization Server Metadata ([doorkeeper#1838](https://github.com/doorkeeper-gem/doorkeeper/pull/1838)); since RFC 8414's `issuer` and the OIDC `iss` claim identify the same authorization server, `resolve_issuer` now uses `Doorkeeper.config.issuer` when the OpenID Connect `issuer` is not set. The OpenID Connect `issuer` still takes precedence (backward compatible), and when neither is configured the existing `InvalidConfiguration` behavior is preserved. The fallback is guarded with `respond_to?` so it is a no-op on Doorkeeper versions that predate `config.issuer` ([#321](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/321))
 
 ## v1.10.3 (2026-06-23)
 
