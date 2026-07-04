@@ -5,8 +5,17 @@ require "ostruct"
 module Doorkeeper
   module OpenidConnect
     class ClaimsBuilder
-      def self.generate(access_token, response)
-        resource_owner = Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
+      # Sentinel distinct from any real resource owner (including `nil`) so a
+      # caller that already resolved the owner can pass it in — even a nil one —
+      # and skip the second `resource_owner_from_access_token` lookup.
+      NO_RESOURCE_OWNER = Object.new
+      private_constant :NO_RESOURCE_OWNER
+
+      def self.generate(access_token, response, resource_owner = NO_RESOURCE_OWNER)
+        if resource_owner.equal?(NO_RESOURCE_OWNER)
+          resource_owner =
+            Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(access_token)
+        end
 
         Doorkeeper::OpenidConnect.configuration.claims.to_h.map do |name, claim|
           if claim.scopes.any? { |scope| access_token.scopes.exists?(scope) } &&

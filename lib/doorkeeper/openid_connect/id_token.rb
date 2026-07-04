@@ -23,7 +23,9 @@ module Doorkeeper
         # NOTE: framework-controlled claims are merged last so a custom claim
         # block cannot override security-critical registered claims such as
         # `sub`, `aud`, `exp`, `iss` or `iat` in the signed ID token.
-        ClaimsBuilder.generate(@access_token, :id_token).merge(
+        # `@resource_owner` (resolved once in the constructor) is passed through
+        # so the claims builder does not look the owner up a second time.
+        ClaimsBuilder.generate(@access_token, :id_token, @resource_owner).merge(
           iss: issuer,
           sub: subject,
           aud: audience,

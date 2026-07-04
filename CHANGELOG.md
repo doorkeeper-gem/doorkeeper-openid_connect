@@ -15,6 +15,10 @@
   - Treat a malformed, non-scalar `max_age` parameter (e.g. `max_age[]=1`) as absent instead of returning a 500 (OIDC Core §3.1.2.1)
   - Build the `prompt=login` / `prompt=select_account` return URL from a copy of `request.query_parameters` instead of mutating the shared, memoized hash
   - Redirect only OAuth/OIDC protocol errors (grouped under the new `Errors::AuthorizationError`) to the client; internal errors like `Errors::InvalidConfiguration` now propagate as a 500 instead of leaking as a spurious authorization error
+- [#349] Claims pipeline fixes:
+  - Dispatch claims whose `response:` option is configured with strings (e.g. `response: ["id_token"]`) instead of silently dropping them
+  - Omit `id_token` from the token response when the access token has no resource owner (e.g. a `client_credentials` grant with the `openid` scope) instead of returning a 500
+  - Resolve the access token's resource owner once per UserInfo / ID Token response instead of twice
 - [#350] Discovery / Dynamic Client Registration spec compliance fixes:
   - Advertise and accept the standard `implicit` grant type instead of doorkeeper's internal `implicit_oidc` name (RFC 7591 §2)
   - **Breaking:** omitted `response_types` / `grant_types` in a registration request now default to `["code"]` / `["authorization_code"]` per RFC 7591 §2, instead of echoing every type the server supports
