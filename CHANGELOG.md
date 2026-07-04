@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Please add here
+- [#325] Remove the dead `Claims::AggregatedClaim` and `Claims::DistributedClaim` classes. They have never been required, instantiated, or reachable through the claims DSL (`ClaimsBuilder` only builds `NormalClaim`), and the discovery document only advertises `claim_types_supported: ["normal"]` — the files just shipped in the gem unused since 2016
 
 ## v1.10.3 (2026-06-23)
 
