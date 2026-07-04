@@ -12,6 +12,11 @@ module Doorkeeper
         PUBLIC_CLIENT_AUTH_METHOD = "none"
         DEFAULT_APPLICATION_TYPE = "web"
         SUPPORTED_APPLICATION_TYPES = %w[web native].freeze
+        # RFC 7591 §2: when omitted, a client registers for the
+        # `authorization_code` grant type and the `code` response type — not
+        # for everything the server happens to support.
+        DEFAULT_RESPONSE_TYPES = %w[code].freeze
+        DEFAULT_GRANT_TYPES = %w[authorization_code].freeze
 
         validate :token_endpoint_auth_method, error: :invalid_client_metadata
         validate :application_type,           error: :invalid_client_metadata
@@ -34,12 +39,12 @@ module Doorkeeper
 
         def requested_response_types
           types = Array(@params[:response_types]).compact_blank
-          types.presence || server_response_types
+          types.presence || DEFAULT_RESPONSE_TYPES
         end
 
         def requested_grant_types
           types = Array(@params[:grant_types]).compact_blank
-          types.presence || server_grant_types
+          types.presence || DEFAULT_GRANT_TYPES
         end
 
         def confidential_client?
