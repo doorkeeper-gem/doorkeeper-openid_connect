@@ -38,7 +38,7 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
       expect(subject.body).to eq({
         state: pre_auth.state,
         id_token: id_token.as_jws_token,
-        access_token: auth.token.token,
+        access_token: auth.token.plaintext_token,
         token_type: auth.token.token_type,
         expires_in: auth.token.expires_in_seconds,
       })
@@ -54,13 +54,25 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
         expect(subject.body[:iss]).to eq(id_token.issuer)
       end
     end
+
+    it "returns the plaintext access token, not the stored (possibly hashed) value" do
+      allow(auth.token).to receive_messages(plaintext_token: "PLAINTEXT", token: "HASHED")
+
+      expect(subject.body[:access_token]).to eq("PLAINTEXT")
+    end
+  end
+
+  describe "#issued_token" do
+    it "returns the issued access token, for hook contexts" do
+      expect(subject.issued_token).to eq(auth.token)
+    end
   end
 
   describe "#redirect_uri" do
     it "includes id_token, info of access_token and state" do
       expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#state=#{pre_auth.state}&" \
         "id_token=#{id_token.as_jws_token}&" \
-        "access_token=#{auth.token.token}&" \
+        "access_token=#{auth.token.plaintext_token}&" \
         "token_type=#{auth.token.token_type}&" \
         "expires_in=#{auth.token.expires_in_seconds}")
     end

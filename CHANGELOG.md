@@ -15,6 +15,10 @@
   - Treat a malformed, non-scalar `max_age` parameter (e.g. `max_age[]=1`) as absent instead of returning a 500 (OIDC Core §3.1.2.1)
   - Build the `prompt=login` / `prompt=select_account` return URL from a copy of `request.query_parameters` instead of mutating the shared, memoized hash
   - Redirect only OAuth/OIDC protocol errors (grouped under the new `Errors::AuthorizationError`) to the client; internal errors like `Errors::InvalidConfiguration` now propagate as a 500 instead of leaking as a spurious authorization error
+- [#351] Align the OpenID Connect token/authorization responses with doorkeeper's core response contract:
+  - Return the plaintext access token from the `id_token token` implicit response, so it stays usable when `hash_token_secrets` is enabled
+  - Define `#issued_token` on `IdTokenResponse` / `IdTokenTokenResponse`, so `after_successful_authorization` hooks can read `context.issued_token` without raising
+  - Attach the ID token before the `after_successful_strategy_response` hook fires in the authorization-code flow, matching the password flow
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
