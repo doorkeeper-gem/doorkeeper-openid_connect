@@ -11,8 +11,8 @@ module Doorkeeper
           private
 
           def handle_oidc_max_age_param!(owner)
-            max_age = params[:max_age].to_i
-            return unless (params[:max_age].to_s == "0" || max_age > 0) && owner
+            max_age = oidc_max_age_seconds
+            return unless max_age && owner
 
             auth_time = normalized_oidc_auth_time(owner)
 
@@ -30,6 +30,24 @@ module Doorkeeper
             raise Errors::LoginRequired if oidc_prompt_values == ["none"]
 
             reauthenticate_oidc_resource_owner(owner)
+          end
+
+          # Parse the `max_age` request parameter into a non-negative number of
+          # seconds, or nil when it is absent, malformed, or non-scalar.
+          #
+          # `max_age` is a single string per OIDC Core §3.1.2.1. A malformed
+          # request can supply an Array (`max_age[]=1`) or a hash-like
+          # ActionController::Parameters (`max_age[a]=1`), which does not
+          # respond to `to_i` — such values are ignored rather than raising a
+          # 500.
+          def oidc_max_age_seconds
+            raw_max_age = params[:max_age]
+            return unless raw_max_age.is_a?(String) || raw_max_age.is_a?(Integer)
+
+            max_age = raw_max_age.to_i
+            return unless raw_max_age.to_s == "0" || max_age > 0
+
+            max_age
           end
 
           # Normalize non-Time values (e.g. an Integer epoch) so that the

@@ -68,7 +68,11 @@ module Doorkeeper
             handle_oidc_max_age_param!(owner) if oidc_authorization_request?
             handle_oidc_prompt_param!(owner)
           end
-        rescue Errors::OpenidConnectError => e
+        rescue Errors::AuthorizationError => e
+          # Only OAuth/OIDC protocol errors are reported to the client. Internal
+          # errors (e.g. Errors::InvalidConfiguration from an unconfigured
+          # callback) must propagate as a 500 rather than being leaked to the
+          # client as a spurious authorization error.
           handle_oidc_error!(e)
         end
 

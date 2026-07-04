@@ -70,10 +70,21 @@ module Doorkeeper
 
           def return_without_oidc_prompt_param(prompt_value)
             return_to = URI.parse(request.path)
-            return_to.query = request.query_parameters.tap do |params|
-              params["prompt"] = params["prompt"].to_s.sub(/\b#{prompt_value}\s*\b/, "").strip
-              params.delete("prompt") if params["prompt"].blank?
-            end.to_query
+            # Work on a copy: `request.query_parameters` is memoized and shared, so
+            # mutating it in place would corrupt the parameters seen by the rest of
+            # the request (and any subsequent prompt value in the same loop).
+            query = request.query_parameters.dup
+            # Remove every occurrence of the value: the raw query string may
+            # contain duplicates (e.g. `prompt=login login`) even though
+            # #oidc_prompt_values deduplicates, and a leftover `prompt=login`
+            # in the return URL would trigger reauthentication again.
+            remaining = query["prompt"].to_s.split(/ +/).reject(&:blank?) - [prompt_value]
+            if remaining.any?
+              query["prompt"] = remaining.join(" ")
+            else
+              query.delete("prompt")
+            end
+            return_to.query = query.to_query
             return_to.to_s
           end
 

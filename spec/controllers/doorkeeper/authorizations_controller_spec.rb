@@ -128,6 +128,22 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  describe "error handling in #authenticate_resource_owner!" do
+    context "when OIDC param handling raises a server-side configuration error" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:select_account_for_resource_owner)
+          .and_return(->(*) { raise Doorkeeper::OpenidConnect::Errors::InvalidConfiguration })
+      end
+
+      it "propagates the error instead of redirecting it to the client" do
+        expect do
+          authorize! prompt: "select_account"
+        end.to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+  end
+
   describe "#handle_oidc_prompt_param!" do
     it "is ignored when the openid scope is not present" do
       authorize! scope: "profile", prompt: "invalid"
@@ -430,6 +446,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         expect(response).to redirect_to("/reauthenticate")
       end
+
+      it "does not mutate the request's query parameters when building the return URL" do
+        authorize! prompt: "login"
+
+        expect(request.query_parameters["prompt"]).to eq "login"
+      end
     end
 
     context "with a prompt=consent parameter" do
@@ -518,6 +540,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
           expect_authorization_form!
         end
+      end
+    end
+
+    context "with a non-scalar max_age parameter" do
+      it "ignores an array value instead of raising" do
+        authorize! max_age: %w[10 20]
+
+        expect_authorization_form!
+      end
+
+      it "ignores a hash value instead of raising" do
+        authorize! max_age: { nested: "10" }
+
+        expect_authorization_form!
       end
     end
 
@@ -759,6 +795,21 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
 
       expect(return_params["prompt"]).to eq "consent select_account"
+    end
+
+    context "when the query string contains duplicate prompt values" do
+      before do
+        allow(subject.request).to receive(:query_parameters) {
+          { client_id: "foo", prompt: "login consent login" }.with_indifferent_access
+        }
+      end
+
+      it "removes every occurrence of the value from the return path" do
+        _, return_to = reauthenticate!
+        return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
+
+        expect(return_params["prompt"]).to eq "consent"
+      end
     end
 
     context "with a reauthenticator that does not generate a response" do
