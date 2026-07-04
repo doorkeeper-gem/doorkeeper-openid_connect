@@ -80,6 +80,50 @@ describe Doorkeeper::OpenidConnect::UserInfo do
       end
     end
 
+    context "with a claim configured with a string response value" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+
+          claims do
+            claim(:nickname, scope: :openid, response: ["user_info"]) { |user| user.name }
+          end
+        end
+      end
+
+      it "still dispatches the claim for the user_info response" do
+        expect(subject.claims[:nickname]).to eq user.name
+      end
+    end
+
+    it "resolves the resource owner only once per response" do
+      call_count = 0
+      Doorkeeper::OpenidConnect.configure do
+        resource_owner_from_access_token do |access_token|
+          call_count += 1
+          User.find_by(id: access_token.resource_owner_id)
+        end
+
+        subject do |resource_owner|
+          resource_owner.id
+        end
+
+        claims do
+          claim(:nickname, scope: :openid, response: [:user_info]) { |user| user.name }
+        end
+      end
+
+      subject.claims
+
+      expect(call_count).to eq 1
+    end
+
     context "when a custom claim collides with the protected sub claim" do
       before do
         Doorkeeper::OpenidConnect.configure do

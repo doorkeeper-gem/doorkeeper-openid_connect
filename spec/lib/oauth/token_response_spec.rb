@@ -62,5 +62,18 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
         expect(subject.body).not_to include :id_token
       end
     end
+
+    context "with the openid scope present but no resource owner (e.g. client_credentials)" do
+      let(:token) { create :access_token, resource_owner_id: nil, scopes: "openid email" }
+      # Override so the outer `before { subject.id_token = id_token }` assigns
+      # nil instead of eagerly instantiating an IdToken, which would defeat the
+      # `not_to receive(:new)` expectation below.
+      let(:id_token) { nil }
+
+      it "does not build an ID token and does not raise" do
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+        expect(subject.body).not_to include :id_token
+      end
+    end
   end
 end

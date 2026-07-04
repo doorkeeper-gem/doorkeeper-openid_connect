@@ -21,7 +21,11 @@ module Doorkeeper
 
         def initialize(options = {})
           @name = options[:name].to_sym
-          @response = Array.wrap(options[:response]).freeze
+          # Symbolize so a claim configured with string responses
+          # (`response: ["id_token"]`) matches the symbol tokens the builder
+          # dispatches with (`:id_token` / `:user_info`); otherwise such a
+          # claim would be silently dropped from every response.
+          @response = Array.wrap(options[:response]).compact.map(&:to_sym).freeze
           @scopes = normalize_scopes(options[:scope])
 
           # use default scope for Standard Claims, fallback to profile
