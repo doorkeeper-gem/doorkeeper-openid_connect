@@ -20,7 +20,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         "scopes_supported" => ["openid"],
         "response_types_supported" => ["code", "token", "id_token", "id_token token"],
         "response_modes_supported" => %w[query fragment form_post],
-        "grant_types_supported" => %w[authorization_code client_credentials implicit_oidc],
+        "grant_types_supported" => %w[authorization_code client_credentials implicit],
 
         "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
         "authorization_response_iss_parameter_supported" => false,
@@ -84,7 +84,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         "scopes_supported" => ["openid"],
         "response_types_supported" => ["code", "token", "id_token", "id_token token"],
         "response_modes_supported" => %w[query fragment form_post],
-        "grant_types_supported" => %w[authorization_code client_credentials implicit_oidc],
+        "grant_types_supported" => %w[authorization_code client_credentials implicit],
 
         "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
         "authorization_response_iss_parameter_supported" => false,
@@ -424,6 +424,13 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       expect do
         get :webfinger
       end.to raise_error ActionController::ParameterMissing
+    end
+
+    it "responds with the JRD media type and allows cross-origin requests" do
+      get :webfinger, params: { resource: "user@example.com" }
+
+      expect(response.media_type).to eq "application/jrd+json"
+      expect(response.headers["Access-Control-Allow-Origin"]).to eq "*"
     end
 
     it "returns the OpenID Connect relation" do

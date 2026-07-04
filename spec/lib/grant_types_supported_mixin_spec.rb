@@ -14,10 +14,22 @@ RSpec.describe Doorkeeper::OpenidConnect::GrantTypesSupportedMixin do
       double("Doorkeeper::Config", grant_flows: grant_flows, refresh_token_enabled?: refresh_token_enabled)
     end
 
-    it "returns the configured grant flows as-is when refresh tokens are disabled" do
+    it "returns the configured grant flows when refresh tokens are disabled" do
+      config = doorkeeper_config(grant_flows: %w[authorization_code client_credentials], refresh_token_enabled: false)
+
+      expect(host.grant_types_supported(config)).to eq %w[authorization_code client_credentials]
+    end
+
+    it "maps the internal implicit_oidc flow name to the standard implicit grant type" do
       config = doorkeeper_config(grant_flows: %w[authorization_code implicit_oidc], refresh_token_enabled: false)
 
-      expect(host.grant_types_supported(config)).to eq %w[authorization_code implicit_oidc]
+      expect(host.grant_types_supported(config)).to eq %w[authorization_code implicit]
+    end
+
+    it "does not duplicate implicit when both implicit and implicit_oidc are configured" do
+      config = doorkeeper_config(grant_flows: %w[implicit implicit_oidc], refresh_token_enabled: false)
+
+      expect(host.grant_types_supported(config)).to eq %w[implicit]
     end
 
     it "appends refresh_token when use_refresh_token is enabled" do
