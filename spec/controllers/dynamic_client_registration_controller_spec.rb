@@ -29,19 +29,21 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
   describe "#register" do
     context "when token_endpoint_auth_method is omitted" do
       it "defaults to client_secret_basic and creates a confidential client with a secret" do
-        post :register, params: {
-          client_name: "dummy_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-        }
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
-        expect(Doorkeeper::Application.count).to eq(1)
-
-        doorkeeper_application = Doorkeeper::Application.first
-        expect(doorkeeper_application.confidential).to be true
 
         body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
+        expect(doorkeeper_application.confidential).to be true
+
         expect(body).to eq({
           "client_secret" => doorkeeper_application.plaintext_secret || doorkeeper_application.secret,
           "client_secret_expires_at" => 0,
@@ -60,19 +62,22 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when token_endpoint_auth_method is client_secret_basic" do
       it "creates a confidential client with a secret" do
-        post :register, params: {
-          client_name: "basic_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "client_secret_basic",
-        }
+        expect do
+          post :register, params: {
+            client_name: "basic_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "client_secret_basic",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
 
-        doorkeeper_application = Doorkeeper::Application.first
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
         expect(doorkeeper_application.confidential).to be true
 
-        body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("client_secret_basic")
         expect(body["client_secret"]).to be_present
         expect(body["client_secret_expires_at"]).to eq(0)
@@ -81,19 +86,22 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when token_endpoint_auth_method is client_secret_post" do
       it "creates a confidential client with a secret" do
-        post :register, params: {
-          client_name: "post_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "client_secret_post",
-        }
+        expect do
+          post :register, params: {
+            client_name: "post_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "client_secret_post",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
 
-        doorkeeper_application = Doorkeeper::Application.first
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
         expect(doorkeeper_application.confidential).to be true
 
-        body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("client_secret_post")
         expect(body["client_secret"]).to be_present
         expect(body["client_secret_expires_at"]).to eq(0)
@@ -102,19 +110,22 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when token_endpoint_auth_method is none" do
       it "creates a public client and omits client_secret from the response" do
-        post :register, params: {
-          client_name: "public_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "none",
-        }
+        expect do
+          post :register, params: {
+            client_name: "public_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "none",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
 
-        doorkeeper_application = Doorkeeper::Application.first
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
         expect(doorkeeper_application.confidential).to be false
 
-        body = JSON.parse(response.body)
         expect(body["token_endpoint_auth_method"]).to eq("none")
         expect(body).not_to have_key("client_secret")
         expect(body).not_to have_key("client_secret_expires_at")
@@ -123,15 +134,16 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when token_endpoint_auth_method is private_key_jwt" do
       it "rejects the request with invalid_client_metadata" do
-        post :register, params: {
-          client_name: "jwt_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "private_key_jwt",
-        }
+        expect do
+          post :register, params: {
+            client_name: "jwt_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "private_key_jwt",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
 
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
@@ -141,15 +153,16 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when token_endpoint_auth_method is an unknown value" do
       it "rejects the request with invalid_client_metadata" do
-        post :register, params: {
-          client_name: "weird_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "unknown_value",
-        }
+        expect do
+          post :register, params: {
+            client_name: "weird_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "unknown_value",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
 
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
@@ -179,29 +192,37 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "security regression: confidential client cannot bypass credentials" do
       it "is not returned by by_uid_and_secret(uid, nil)" do
-        post :register, params: {
-          client_name: "secure_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-        }
+        expect do
+          post :register, params: {
+            client_name: "secure_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
-        doorkeeper_application = Doorkeeper::Application.first
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
         expect(doorkeeper_application.confidential).to be true
 
         expect(Doorkeeper::Application.by_uid_and_secret(doorkeeper_application.uid, nil)).to be_nil
       end
 
       it "is returned by by_uid_and_secret(uid, nil) when token_endpoint_auth_method is none" do
-        post :register, params: {
-          client_name: "intentionally_public",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          token_endpoint_auth_method: "none",
-        }
+        expect do
+          post :register, params: {
+            client_name: "intentionally_public",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            token_endpoint_auth_method: "none",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
 
         expect(response.status).to eq 201
-        doorkeeper_application = Doorkeeper::Application.first
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
         expect(doorkeeper_application.confidential).to be false
 
         expect(Doorkeeper::Application.by_uid_and_secret(doorkeeper_application.uid, nil)).to eq(doorkeeper_application)
@@ -225,15 +246,16 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when application_type is not supported" do
       it "rejects the request with invalid_client_metadata" do
-        post :register, params: {
-          client_name: "weird_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          application_type: "service",
-        }
+        expect do
+          post :register, params: {
+            client_name: "weird_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            application_type: "service",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
 
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
@@ -258,15 +280,16 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when response_types contains an unsupported value" do
       it "rejects the request with invalid_client_metadata" do
-        post :register, params: {
-          client_name: "bad_response_type_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          response_types: %w[code unsupported_type],
-        }
+        expect do
+          post :register, params: {
+            client_name: "bad_response_type_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            response_types: %w[code unsupported_type],
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
 
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
@@ -291,15 +314,16 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when grant_types contains an unsupported value" do
       it "rejects the request with invalid_client_metadata" do
-        post :register, params: {
-          client_name: "bad_grant_client",
-          redirect_uris: redirect_uris,
-          scope: "public",
-          grant_types: %w[authorization_code password],
-        }
+        expect do
+          post :register, params: {
+            client_name: "bad_grant_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+            grant_types: %w[authorization_code password],
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
 
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
@@ -327,10 +351,11 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         end
 
         it "allows the request" do
-          post :register, params: valid_register_params
+          expect do
+            post :register, params: valid_register_params
+          end.to change(Doorkeeper::Application, :count).by(1)
 
           expect(response.status).to eq 201
-          expect(Doorkeeper::Application.count).to eq(1)
         end
       end
 
@@ -345,10 +370,11 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         end
 
         it "rejects the request with 401 invalid_token" do
-          post :register, params: valid_register_params
+          expect do
+            post :register, params: valid_register_params
+          end.not_to change(Doorkeeper::Application, :count)
 
           expect(response.status).to eq 401
-          expect(Doorkeeper::Application.count).to eq(0)
           expect(response.headers["WWW-Authenticate"]).to include("Bearer")
           expect(response.headers["WWW-Authenticate"]).to include("error=\"invalid_token\"")
 
@@ -378,10 +404,12 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
         it "rejects the request when the header does not match" do
           request.headers["Authorization"] = "Bearer wrong"
-          post :register, params: valid_register_params
+
+          expect do
+            post :register, params: valid_register_params
+          end.not_to change(Doorkeeper::Application, :count)
 
           expect(response.status).to eq 401
-          expect(Doorkeeper::Application.count).to eq(0)
         end
       end
     end
@@ -457,16 +485,17 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "with invalid redirect_uris" do
       it "errors and returns errors" do
-        post :register, params: {
-          client_name: "dummy_client",
-          redirect_uris: [
-            "http://test.host/registration_success",
-          ],
-          scope: "openid",
-        }
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: [
+              "http://test.host/registration_success",
+            ],
+            scope: "openid",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
 
         expect(response.status).to eq 400
-        expect(Doorkeeper::Application.count).to eq(0)
         expect(JSON.parse(response.body)).to eq({
           "error" => "invalid_client_params",
           "error_description" => "Redirect URI must be an HTTPS/SSL URI.",
