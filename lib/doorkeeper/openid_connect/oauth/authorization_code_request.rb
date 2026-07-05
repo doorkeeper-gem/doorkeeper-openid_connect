@@ -9,6 +9,11 @@ module Doorkeeper
         def after_successful_response
           super
 
+          # The nonce was stashed on a one-time OpenidRequest row when the
+          # authorization code was issued (see OAuth::Authorization::Code).
+          # Read it before destroying the row so it can be bound to the ID
+          # Token, then delete the row so a leaked/replayed code cannot mint
+          # another token carrying the same nonce.
           openid_request = grant.openid_request
           nonce = openid_request&.nonce
           openid_request&.destroy!

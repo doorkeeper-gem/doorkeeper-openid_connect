@@ -112,7 +112,18 @@ Doorkeeper::OpenidConnect.configure do
   #
   # authorize_dynamic_client_registration do
   #   # Example: require an Initial Access Token in the Authorization header.
-  #   request.headers["Authorization"] == "Bearer #{ENV['DCR_INITIAL_ACCESS_TOKEN']}"
+  #   # Fail closed when the token isn't configured, so an unset env var can't
+  #   # leave the endpoint open. Compare in constant time to avoid leaking the
+  #   # token via timing; digesting first keeps the comparison fixed-length so
+  #   # the token's length isn't leaked either.
+  #   expected = ENV["DCR_INITIAL_ACCESS_TOKEN"].to_s
+  #   next false if expected.empty?
+  #
+  #   provided = request.headers["Authorization"].to_s
+  #   ActiveSupport::SecurityUtils.secure_compare(
+  #     Digest::SHA256.hexdigest(provided),
+  #     Digest::SHA256.hexdigest("Bearer #{expected}"),
+  #   )
   # end
 
   # By default the `prompt` parameter (`none`, `login`, `consent`,
