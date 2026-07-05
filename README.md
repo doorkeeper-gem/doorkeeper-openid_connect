@@ -66,7 +66,7 @@ rails generate doorkeeper:openid_connect:migration
 rake db:migrate
 ```
 
-If you're upgrading from an earlier version, check [Migration from old versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration%E2%80%90from%E2%80%90old%E2%80%90versions)
+If you're upgrading from an earlier version, check [Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions)
 wiki and [CHANGELOG.md](CHANGELOG.md) for upgrade instructions.
 
 ## Configuration
