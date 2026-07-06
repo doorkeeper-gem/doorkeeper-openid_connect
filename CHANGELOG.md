@@ -2,6 +2,10 @@
 
 - Please add here
 
+## v1.10.4 (2026-07-02)
+
+- Validate the `scope` supplied to Dynamic Client Registration against the server's configured scopes (`default_scopes` + `optional_scopes`) before persisting it. Unrecognized scopes are silently dropped and the confirmed set is echoed in the registration response (RFC 7591 §2); a request whose scopes are all unsupported is rejected with `invalid_client_metadata` instead of being registered with an empty scope set.
+
 ## v1.10.3 (2026-06-23)
 
 - [#308] Fix `NameError: uninitialized constant Auth::ApplicationRecord` on boot when using a namespaced custom access grant model (e.g. `Auth::OAuthAccessGrant < ApplicationRecord`). Since v1.10.0 ([#241]) the `openid_request` association was wired inside an `ActiveSupport.on_load(:active_record)` block, which fires while `ActiveRecord::Base` is first loaded and constantizes the grant model too early. The association is now added from Doorkeeper's `AccessGrant` mixin `included` callback — at the model's own load time, without constantizing — mirroring the fix doorkeeper made in [#1830](https://github.com/doorkeeper-gem/doorkeeper/pull/1830) ([#306](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/306))
