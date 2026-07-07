@@ -434,7 +434,10 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
     context "when Scopes#allowed is unavailable (doorkeeper < 5.8.1)" do
       before do
-        Doorkeeper.configuration.scopes.singleton_class.send(:undef_method, :allowed)
+        # On doorkeeper < 5.8.1 the method is genuinely absent, so there is
+        # nothing to undefine — the fallback is then exercised natively.
+        scopes = Doorkeeper.configuration.scopes
+        scopes.singleton_class.send(:undef_method, :allowed) if scopes.respond_to?(:allowed)
       end
 
       it "still drops the unconfigured scopes via plain intersection" do

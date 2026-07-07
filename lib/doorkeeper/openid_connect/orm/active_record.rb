@@ -48,6 +48,13 @@ module Doorkeeper
     end
   end
 
+  # Doorkeeper 5.5.x ships the very same mixin file, but only 5.6.0+
+  # registers an autoload for `Doorkeeper::Orm::ActiveRecord::Mixins`, so
+  # on 5.5.x the constant has to be resolved by requiring it explicitly.
+  unless defined?(Orm::ActiveRecord::Mixins::AccessGrant)
+    require "doorkeeper/orm/active_record/mixins/access_grant"
+  end
+
   Orm::ActiveRecord::Mixins::AccessGrant.singleton_class.prepend(
     OpenidConnect::Orm::ActiveRecord::AccessGrantExtension,
   )
