@@ -2,7 +2,7 @@
 
 - Please add here
 
-## v1.10.4 (2026-07-02)
+## v1.10.4 (2026-07-07)
 
 - Validate the `scope` supplied to Dynamic Client Registration against the server's configured scopes (`default_scopes` + `optional_scopes`) before persisting it. Unrecognized scopes are silently dropped and the confirmed set is echoed in the registration response (RFC 7591 §2); a request whose scopes are all unsupported is rejected with `invalid_client_metadata` instead of being registered with an empty scope set.
 
