@@ -17,6 +17,7 @@ module Doorkeeper
         validate :application_type,           error: :invalid_client_metadata
         validate :response_types,             error: :invalid_client_metadata
         validate :grant_types,                error: :invalid_client_metadata
+        validate :scope,                      error: :invalid_client_metadata
 
         def initialize(server, params)
           @server = server
@@ -43,6 +44,26 @@ module Doorkeeper
 
         def confidential_client?
           token_endpoint_auth_method != PUBLIC_CLIENT_AUTH_METHOD
+        end
+
+        # RFC 7591 §2 lets the authorization server replace or omit requested
+        # scopes. The requested scope is intersected against the server's
+        # configured scopes (default + optional): partially unrecognized
+        # scopes are silently dropped, while a request whose scopes are all
+        # unsupported is rejected via #validate_scope, since persisting an
+        # empty scope set would make Doorkeeper's ScopeChecker fall back to
+        # the full server scope set. `Scopes#allowed` honors dynamic scopes
+        # and preserves the requested order, but only exists on Doorkeeper
+        # 5.8.1+; older versions fall back to plain intersection (dynamic
+        # scopes do not exist there, so nothing is lost).
+        def permitted_scopes
+          server_scopes = server.scopes
+
+          if server_scopes.respond_to?(:allowed)
+            server_scopes.allowed(requested_scopes).to_s
+          else
+            (server_scopes & requested_scopes).to_s
+          end
         end
 
         def error_response
@@ -88,6 +109,19 @@ module Doorkeeper
           @error_description =
             "grant_types #{unsupported.join(", ")} are not supported. " \
             "Supported types: #{server_grant_types.join(", ")}"
+          false
+        end
+
+        def requested_scopes
+          ::Doorkeeper::OAuth::Scopes.from_string(@params[:scope].to_s)
+        end
+
+        def validate_scope
+          return true if requested_scopes.blank? || permitted_scopes.present?
+
+          @error_description =
+            "scope '#{requested_scopes}' contains no scopes supported by this server. " \
+            "Supported scopes: #{server.scopes}"
           false
         end
 

@@ -164,7 +164,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context "when pkce_code_challenge_methods is configured with only S256" do
+    context "when pkce_code_challenge_methods is configured with only S256",
+            if: Doorkeeper::Config.method_defined?(:pkce_code_challenge_methods) do
       before { Doorkeeper.configure { pkce_code_challenge_methods %w[S256] } }
 
       it "return only S256 in code_challenge_methods_supported" do
@@ -175,7 +176,8 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       end
     end
 
-    context "when pkce_code_challenge_methods is configured with only plain" do
+    context "when pkce_code_challenge_methods is configured with only plain",
+            if: Doorkeeper::Config.method_defined?(:pkce_code_challenge_methods) do
       before { Doorkeeper.configure { pkce_code_challenge_methods %w[plain] } }
 
       it "return only plain in code_challenge_methods_supported" do

@@ -83,6 +83,10 @@ module Doorkeeper
       def code_challenge_methods_supported(doorkeeper)
         return unless doorkeeper.access_grant_model.pkce_supported?
 
+        # Doorkeeper < 5.8 has no `pkce_code_challenge_methods` option and
+        # always accepts both methods whenever PKCE is available.
+        return %w[plain S256] unless doorkeeper.respond_to?(:pkce_code_challenge_methods)
+
         doorkeeper.pkce_code_challenge_methods
       end
 

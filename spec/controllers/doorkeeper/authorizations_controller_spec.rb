@@ -79,17 +79,24 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
 
       context "when pre_authorization is invalid" do
+        # Doorkeeper renders the error template with a 200 before 5.6.7;
+        # doorkeeper-gem/doorkeeper@6cd5cca2 started propagating the error
+        # status to the response.
+        let(:error_status) do
+          Gem::Version.new(Doorkeeper::VERSION::STRING) >= Gem::Version.new("5.6.7") ? :bad_request : :ok
+        end
+
         it "render error when client_id is missing" do
           authorize!(client_id: nil)
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_http_status(error_status)
           expect(response).to render_template("doorkeeper/authorizations/error")
         end
 
         it "render error when response_type is missing" do
           authorize!(response_type: nil)
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_http_status(error_status)
           expect(response).to render_template("doorkeeper/authorizations/error")
         end
       end

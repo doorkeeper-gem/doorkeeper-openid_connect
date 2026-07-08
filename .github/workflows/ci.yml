@@ -36,6 +36,18 @@ jobs:
         exclude:
           - ruby: head
             gemfile: gemfiles/rails_7.0.gemfile
+        # Oldest supported Doorkeeper series — one Ruby each is enough to
+        # keep the `>= 5.5` gemspec constraint honest.
+        include:
+          - ruby: "3.4"
+            os: ubuntu-latest
+            gemfile: gemfiles/doorkeeper_5.5.gemfile
+          - ruby: "3.4"
+            os: ubuntu-latest
+            gemfile: gemfiles/doorkeeper_5.6.gemfile
+          - ruby: "3.4"
+            os: ubuntu-latest
+            gemfile: gemfiles/doorkeeper_5.7.gemfile
     steps:
       - name: Repo checkout
         uses: actions/checkout@v3

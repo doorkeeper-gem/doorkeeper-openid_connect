@@ -11,6 +11,13 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
   end
 
   before do
+    Doorkeeper.configure do
+      orm :active_record
+      grant_flows %w[authorization_code client_credentials implicit_oidc]
+      default_scopes :public
+      optional_scopes :openid, :profile
+    end
+
     Doorkeeper::OpenidConnect.configure do
       issuer "dummy"
       dynamic_client_registration true
@@ -155,6 +162,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         Doorkeeper.configure do
           orm :active_record
           client_credentials :from_basic
+          default_scopes :public
         end
 
         post :register, params: {
@@ -375,6 +383,75 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           expect(response.status).to eq 401
           expect(Doorkeeper::Application.count).to eq(0)
         end
+      end
+    end
+
+    context "when the requested scope contains values the server does not offer" do
+      it "silently drops the unconfigured scopes and persists only the permitted ones" do
+        post :register, params: {
+          client_name: "scoped_client",
+          redirect_uris: redirect_uris,
+          scope: "public admin openid",
+        }
+
+        expect(response.status).to eq 201
+        doorkeeper_application = Doorkeeper::Application.first
+        expect(doorkeeper_application.scopes.to_s).to eq("public openid")
+
+        body = JSON.parse(response.body)
+        expect(body["scope"]).to eq("public openid")
+      end
+    end
+
+    context "when every requested scope is unconfigured" do
+      it "rejects the registration with invalid_client_metadata" do
+        post :register, params: {
+          client_name: "greedy_client",
+          redirect_uris: redirect_uris,
+          scope: "admin superuser",
+        }
+
+        expect(response.status).to eq 400
+        expect(Doorkeeper::Application.count).to eq(0)
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+        expect(body["error_description"]).to include("no scopes supported")
+      end
+    end
+
+    context "when the scope parameter is omitted" do
+      it "registers the client with an empty scope set without raising" do
+        post :register, params: {
+          client_name: "no_scope_client",
+          redirect_uris: redirect_uris,
+        }
+
+        expect(response.status).to eq 201
+        expect(Doorkeeper::Application.first.scopes.to_s).to eq("")
+      end
+    end
+
+    context "when Scopes#allowed is unavailable (doorkeeper < 5.8.1)" do
+      before do
+        # On doorkeeper < 5.8.1 the method is genuinely absent, so there is
+        # nothing to undefine — the fallback is then exercised natively.
+        scopes = Doorkeeper.configuration.scopes
+        scopes.singleton_class.send(:undef_method, :allowed) if scopes.respond_to?(:allowed)
+      end
+
+      it "still drops the unconfigured scopes via plain intersection" do
+        post :register, params: {
+          client_name: "legacy_doorkeeper_client",
+          redirect_uris: redirect_uris,
+          scope: "public admin openid",
+        }
+
+        expect(response.status).to eq 201
+        expect(Doorkeeper::Application.first.scopes.to_s).to eq("public openid")
+
+        body = JSON.parse(response.body)
+        expect(body["scope"]).to eq("public openid")
       end
     end
 
