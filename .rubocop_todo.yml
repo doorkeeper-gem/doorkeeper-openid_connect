@@ -6,24 +6,12 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Configuration parameters: CountComments.
-Metrics/ModuleLength:
-  Max: 209
-
 Metrics/MethodLength:
   Max: 33
 
 # Configuration parameters: IgnoredMethods.
 Metrics/AbcSize:
   Max: 35
-
-# Configuration parameters: IgnoredMethods.
-Metrics/CyclomaticComplexity:
-  Max: 13
-
-# Configuration parameters: IgnoredMethods.
-Metrics/PerceivedComplexity:
-  Max: 10
 
 # Configuration parameters: .
 # SupportedStyles: have_received, receive
