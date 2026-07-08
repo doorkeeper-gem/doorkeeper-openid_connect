@@ -4,7 +4,7 @@ module Doorkeeper
   module OpenidConnect
     MAJOR = 1
     MINOR = 10
-    TINY = 3
+    TINY = 4
     PRE = nil
 
     # Full version number

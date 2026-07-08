@@ -52,7 +52,7 @@ module Doorkeeper
           name: params[:client_name],
           redirect_uri: params[:redirect_uris] || [],
           post_logout_redirect_uris: params[:post_logout_redirect_uris] || [],
-          scopes: params[:scope],
+          scopes: registration.permitted_scopes,
           confidential: registration.confidential_client?,
         }
       end
