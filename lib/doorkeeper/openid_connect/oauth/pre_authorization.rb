@@ -10,7 +10,22 @@ module Doorkeeper
         @implicit_nonce_deprecation_warned = false
 
         def self.prepended(base)
-          base.validate :nonce, error: Doorkeeper::Errors::InvalidRequest
+          base.validate :nonce, error: invalid_request_error
+        end
+
+        # Doorkeeper's `PreAuthorization#error_response` matches the validation
+        # error against `:invalid_request` on 5.5.x (a symbol) and against
+        # `Doorkeeper::Errors::InvalidRequest` on 5.6.7+ (an error class). Pick
+        # whichever the running Doorkeeper understands so a missing-nonce
+        # rejection yields a proper `invalid_request` response on every
+        # supported version — the class constant does not even exist on 5.5.x,
+        # so referencing it unconditionally raised `NameError` at load time.
+        def self.invalid_request_error
+          if defined?(Doorkeeper::Errors::InvalidRequest)
+            Doorkeeper::Errors::InvalidRequest
+          else
+            :invalid_request
+          end
         end
 
         def self.warn_missing_nonce_deprecation
