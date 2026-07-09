@@ -4,6 +4,7 @@
 - Please add here
 - [#325] Remove the dead `Claims::AggregatedClaim` and `Claims::DistributedClaim` classes. They have never been required, instantiated, or reachable through the claims DSL (`ClaimsBuilder` only builds `NormalClaim`), and the discovery document only advertises `claim_types_supported: ["normal"]` — the files just shipped in the gem unused since 2016
 - [#324] Split `Helpers::Controller` (294 lines, one module) into focused submodules — `Prompt`, `MaxAge`, `ErrorResponse`, `TokenMatching` — and decompose the two most complex methods (`handle_oidc_prompt_param!`, `handle_oidc_max_age_param!`). This is a behavior-preserving refactor that allows dropping the `Metrics/ModuleLength`, `Metrics/CyclomaticComplexity` and `Metrics/PerceivedComplexity` overrides from `.rubocop_todo.yml`; the codebase now passes those cops at RuboCop's default thresholds
+- [#326] Make the dynamic client registration spec robust against pre-existing `Doorkeeper::Application` rows: replace absolute `Application.count` assertions and `Application.first` lookups with relative `change` matchers and `Application.find_by(uid:)` lookups keyed on the `client_id` returned by each request. With a polluted `test.sqlite3` (e.g. left behind by a `rake server` session against the same dummy app) 12 of the 20 examples failed spuriously; they now pass regardless of prior DB state
 
 ## v1.10.4 (2026-07-07)
 
