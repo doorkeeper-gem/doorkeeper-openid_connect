@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add entry here
+
+## v1.10.5 (2026-07-09)
+
 - [#329] Restore compatibility with the full `doorkeeper >= 5.5` range declared in the gemspec ([#328](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/328)). Doorkeeper 5.5.x raised `NameError: uninitialized constant Doorkeeper::Orm::ActiveRecord::Mixins` at load time (the mixin file ships since 5.5.0 but is only autoloadable since 5.6.0 — it is now required explicitly when absent), and Doorkeeper 5.6/5.7 broke the discovery endpoint because `pkce_code_challenge_methods` only exists since 5.8.0 (the discovery response now falls back to `plain S256`, which is what those versions accept). CI now exercises the oldest supported Doorkeeper series via `gemfiles/doorkeeper_5.{5,6,7}.gemfile`
 - Please add here
 - [#325] Remove the dead `Claims::AggregatedClaim` and `Claims::DistributedClaim` classes. They have never been required, instantiated, or reachable through the claims DSL (`ClaimsBuilder` only builds `NormalClaim`), and the discovery document only advertises `claim_types_supported: ["normal"]` — the files just shipped in the gem unused since 2016
