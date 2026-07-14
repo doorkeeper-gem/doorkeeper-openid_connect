@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 Doorkeeper::OpenidConnect.configure do
+  # The issuer identifies this authorization server: it becomes the `iss`
+  # claim in issued ID Tokens and the `issuer` member of the discovery
+  # document.
+  #
+  # If Doorkeeper itself is configured with an `issuer` (added for RFC 8414
+  # Authorization Server Metadata), you can omit this block and the
+  # Doorkeeper-level setting is used for OpenID Connect as well — both
+  # identify the same authorization server. When both are configured, the
+  # value here takes precedence. On Doorkeeper versions without an `issuer`
+  # option, or when neither is configured, OpenID Connect requests fail
+  # with an "issuer not configured" error, so only remove this block once
+  # Doorkeeper's `issuer` is set.
   issuer do |_resource_owner, _application, _request|
     # Example implementation (the block receives the current request as its
     # third argument; reference it as `_request` or rename the parameter):
