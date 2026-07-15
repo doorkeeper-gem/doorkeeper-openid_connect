@@ -57,14 +57,19 @@ module Doorkeeper
                      { typ: "JWT", kid: Doorkeeper::OpenidConnect.signing_key.kid }).to_s
       end
 
-      private
-
+      # Public: the RFC 9207 `iss` authorization response parameter must be
+      # identical to this token's `iss` claim (RFC 9207 §2), so IdTokenResponse
+      # reads the claim value from here instead of re-deriving it. Memoized so
+      # a callable issuer resolves exactly once per token — `claims` and the
+      # `iss` parameter would otherwise re-invoke it and could diverge.
       def issuer
-        Doorkeeper::OpenidConnect.resolve_issuer(
+        @issuer ||= Doorkeeper::OpenidConnect.resolve_issuer(
           resource_owner: @resource_owner,
           application: @access_token.application,
         )
       end
+
+      private
 
       def subject
         Doorkeeper::OpenidConnect.configuration.subject.call(

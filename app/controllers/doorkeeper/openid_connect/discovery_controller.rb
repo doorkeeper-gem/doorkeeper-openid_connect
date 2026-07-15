@@ -50,6 +50,12 @@ module Doorkeeper
           #  'private_key_jwt'
           token_endpoint_auth_methods_supported: token_endpoint_auth_methods_supported,
 
+          # RFC 9207: mirrors Doorkeeper's own RFC 8414 document — true exactly
+          # when Doorkeeper is configured with an issuer and therefore emits the
+          # `iss` authorization response parameter. `false` survives the
+          # `.compact` below, so it is advertised explicitly.
+          authorization_response_iss_parameter_supported: Doorkeeper::OpenidConnect.doorkeeper_issuer.present?,
+
           subject_types_supported: openid_connect.subject_types_supported,
 
           id_token_signing_alg_values_supported: [
@@ -64,16 +70,14 @@ module Doorkeeper
             # 'distributed',
           ],
 
-          claims_supported: %w[
-            iss
-            sub
-            aud
-            exp
-            iat
-          ] | openid_connect.claims.to_h.keys,
+          claims_supported: claims_supported(openid_connect),
 
           code_challenge_methods_supported: code_challenge_methods_supported(doorkeeper),
         }.compact
+      end
+
+      def claims_supported(openid_connect)
+        %w[iss sub aud exp iat] | openid_connect.claims.to_h.keys
       end
 
       def response_modes_supported(doorkeeper)

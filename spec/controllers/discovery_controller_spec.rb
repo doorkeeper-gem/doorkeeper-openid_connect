@@ -23,6 +23,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         "grant_types_supported" => %w[authorization_code client_credentials implicit_oidc],
 
         "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
+        "authorization_response_iss_parameter_supported" => false,
 
         "subject_types_supported" => [
           "public",
@@ -86,6 +87,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         "grant_types_supported" => %w[authorization_code client_credentials implicit_oidc],
 
         "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
+        "authorization_response_iss_parameter_supported" => false,
 
         "subject_types_supported" => [
           "public",
@@ -112,6 +114,20 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           S256
         ],
       }.sort)
+    end
+
+    context "when Doorkeeper is configured with an issuer (RFC 9207)" do
+      before do
+        allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
+          .and_return("https://issuer.example.com")
+      end
+
+      it "advertises authorization_response_iss_parameter_supported as true" do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data["authorization_response_iss_parameter_supported"]).to be true
+      end
     end
 
     context "when refresh_token grant type is enabled" do
