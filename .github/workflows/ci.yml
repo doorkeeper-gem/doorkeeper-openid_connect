@@ -48,6 +48,13 @@ jobs:
           - ruby: "3.4"
             os: ubuntu-latest
             gemfile: gemfiles/doorkeeper_5.7.gemfile
+          # Newest supported Doorkeeper major — pins the 6.0 series
+          # (currently 6.0.0.beta1), which `doorkeeper_master.gemfile` stops
+          # covering as soon as upstream `main` moves on. Keeps the `< 7.0`
+          # cap honest.
+          - ruby: "3.4"
+            os: ubuntu-latest
+            gemfile: gemfiles/doorkeeper_6.0.gemfile
     steps:
       - name: Repo checkout
         uses: actions/checkout@v7
