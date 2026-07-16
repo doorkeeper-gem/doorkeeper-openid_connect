@@ -39,7 +39,14 @@ module Doorkeeper
               # Returns the list of registered post-logout redirect URIs as an
               # array. The stored value is whitespace/newline-separated, matching
               # the way Doorkeeper parses `redirect_uri`.
+              #
+              # Returns an empty array when the `post_logout_redirect_uris`
+              # column has not been added yet (an existing installation that has
+              # not run the upgrade migration), so logout-time validation and
+              # the DCR response degrade gracefully instead of raising.
               def post_logout_redirect_uris
+                return [] unless has_attribute?(:post_logout_redirect_uris)
+
                 super.to_s.split
               end
 

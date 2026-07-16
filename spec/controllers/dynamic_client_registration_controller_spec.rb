@@ -50,7 +50,6 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           "client_id" => doorkeeper_application.uid,
           "client_id_issued_at" => doorkeeper_application.created_at.to_i,
           "redirect_uris" => redirect_uris,
-          "post_logout_redirect_uris" => [],
           "token_endpoint_auth_method" => "client_secret_basic",
           "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
           "response_types" => ["code", "token", "id_token", "id_token token"],
@@ -85,6 +84,40 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         expect(doorkeeper_application.post_logout_redirect_uris).to eq(post_logout_redirect_uris)
 
         expect(body["post_logout_redirect_uris"]).to eq(post_logout_redirect_uris)
+      end
+    end
+
+    context "when post_logout_redirect_uris is omitted" do
+      it "omits post_logout_redirect_uris from the response (registration is optional)" do
+        post :register, params: {
+          client_name: "dummy_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+        }
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)).not_to have_key("post_logout_redirect_uris")
+      end
+    end
+
+    context "when the application model does not have the post_logout_redirect_uris column" do
+      before do
+        allow(Doorkeeper.config.application_model).to receive(:column_names)
+          .and_return(Doorkeeper::Application.column_names - ["post_logout_redirect_uris"])
+      end
+
+      it "ignores the parameter instead of failing the registration (RFC 7591 §2)" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            post_logout_redirect_uris: ["https://test.host/post_logout"],
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)).not_to have_key("post_logout_redirect_uris")
       end
     end
 

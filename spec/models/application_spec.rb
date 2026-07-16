@@ -27,6 +27,16 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
       subject.reload
       expect(subject.post_logout_redirect_uris).to eq(uris)
     end
+
+    it "returns an empty array when the column has not been added yet" do
+      # An existing installation that upgraded the gem without running the
+      # add_post_logout_redirect_uris migration.
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:post_logout_redirect_uris).and_return(false)
+
+      expect(subject.post_logout_redirect_uris).to eq([])
+      expect(subject.valid_post_logout_redirect_uri?("https://example.com/logout")).to be false
+    end
   end
 
   describe "post_logout_redirect_uris validation" do
