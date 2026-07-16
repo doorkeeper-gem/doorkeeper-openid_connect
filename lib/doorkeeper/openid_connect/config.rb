@@ -96,10 +96,9 @@ module Doorkeeper
       # hybrid flows (any `response_type` that includes `id_token`) are rejected
       # with `invalid_request` unless they carry a `nonce`, as REQUIRED by OpenID
       # Connect Core 1.0 §3.2.2.1 (implicit) and §3.3.2.1 (hybrid). When disabled
-      # (the current default) such
-      # requests are still accepted for backward compatibility, but emit a
-      # deprecation warning. The default will flip to `true` in a future major
-      # version.
+      # (the current default) such requests are still accepted for backward
+      # compatibility, but emit a one-time deprecation warning. The default will
+      # flip to `true` in a future major version.
       option :enforce_implicit_nonce, default: false
 
       option :authorize_dynamic_client_registration, default: nil

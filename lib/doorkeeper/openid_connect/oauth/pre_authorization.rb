@@ -36,9 +36,8 @@ module Doorkeeper
                "authorization request (a `response_type` including `id_token`) " \
                "was made without a `nonce`. `nonce` is REQUIRED for these flows " \
                "per OpenID Connect Core 1.0 §3.2.2.1 and §3.3.2.1. Such requests " \
-               "are currently " \
-               "accepted for backward compatibility, but this will change: set " \
-               "`enforce_implicit_nonce true` in " \
+               "are currently accepted for backward compatibility, but this " \
+               "will change: set `enforce_implicit_nonce true` in " \
                "config/initializers/doorkeeper_openid_connect.rb to reject them " \
                "now, as this will become the default in a future major version."
         end
