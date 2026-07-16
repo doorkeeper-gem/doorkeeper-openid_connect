@@ -123,6 +123,41 @@ module Doorkeeper
     end
     private_class_method :build_jwk
 
+    # Returns the issuer configured on Doorkeeper itself, or nil when it is
+    # not set, Doorkeeper has not been configured yet, or the installed
+    # Doorkeeper version does not expose the option.
+    #
+    # Doorkeeper added a top-level `issuer` option for RFC 8414 metadata
+    # (doorkeeper-gem/doorkeeper#1838) and emits it as the RFC 9207 `iss`
+    # authorization response parameter when configured
+    # (doorkeeper-gem/doorkeeper#1849). This gem mirrors that gating for the
+    # response types and error redirects it owns, so the extension only emits
+    # `iss` when Doorkeeper itself does. `resolve_issuer` also falls back to
+    # this value when the OpenID Connect `issuer` is not set. `try` returns
+    # nil instead of raising on Doorkeeper versions that predate the option.
+    #
+    # Reading Doorkeeper's config must not force it into existence: before the
+    # host application configures Doorkeeper (initializer ordering is its
+    # choice), access raises MissingConfiguration on Doorkeeper 5.5 and
+    # eagerly builds a default configuration on newer versions, so an
+    # unconfigured Doorkeeper reads as "no issuer" instead.
+    #
+    # TODO: replace `try` with a plain call and bump the gemspec Doorkeeper
+    # version constraint once a Doorkeeper release ships `config.issuer`.
+    def self.doorkeeper_issuer
+      Doorkeeper.config.try(:issuer) if doorkeeper_configured?
+    end
+
+    # Whether Doorkeeper has been configured by the host application. Used to
+    # decide if Doorkeeper's configuration can be read without side effects:
+    # accessing it earlier raises MissingConfiguration on Doorkeeper 5.5 and
+    # eagerly builds a default configuration on newer versions. `configured?`
+    # itself only exists since Doorkeeper 5.6; 5.5 reports false, which is
+    # also correct there — its config has no `issuer` to compare anyway.
+    def self.doorkeeper_configured?
+      Doorkeeper.respond_to?(:configured?) && Doorkeeper.configured?
+    end
+
     # Resolves the issuer value from the configuration, handling both
     # static values and callable blocks with backward-compatible arity checks.
     #
@@ -173,22 +208,6 @@ module Doorkeeper
       end
     end
     private_class_method :call_issuer
-
-    # Returns the issuer configured on Doorkeeper itself, or nil when the
-    # installed Doorkeeper version does not expose one.
-    #
-    # Doorkeeper added a top-level `issuer` option for RFC 8414 metadata
-    # (doorkeeper-gem/doorkeeper#1838). The `respond_to?` guard keeps this
-    # gem working on Doorkeeper versions that predate that option, where
-    # the OpenID Connect `issuer` remains the sole source.
-    #
-    # TODO: remove the `respond_to?` guard and bump the gemspec Doorkeeper
-    # version constraint once a Doorkeeper release ships `config.issuer`.
-    def self.doorkeeper_issuer
-      config = Doorkeeper.config
-      config.issuer if config.respond_to?(:issuer)
-    end
-    private_class_method :doorkeeper_issuer
 
     Doorkeeper::GrantFlow.register(
       :id_token,

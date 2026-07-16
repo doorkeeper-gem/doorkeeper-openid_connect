@@ -43,6 +43,17 @@ describe Doorkeeper::OAuth::IdTokenTokenResponse do
         expires_in: auth.token.expires_in_seconds,
       })
     end
+
+    context "when Doorkeeper is configured with an issuer (RFC 9207)" do
+      before do
+        allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
+          .and_return("https://issuer.example.com")
+      end
+
+      it "includes an iss parameter identical to the ID Token's iss claim" do
+        expect(subject.body[:iss]).to eq(id_token.issuer)
+      end
+    end
   end
 
   describe "#redirect_uri" do

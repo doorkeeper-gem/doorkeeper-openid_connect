@@ -12,12 +12,18 @@ module Doorkeeper
           def handle_oidc_error!(exception)
             clear_oidc_response
 
+            # `issuer` feeds the RFC 9207 `iss` parameter on errors redirected
+            # back to the client (doorkeeper-gem/doorkeeper#1849); Doorkeeper
+            # itself gates the emission on redirectability and on the issuer
+            # being configured. Versions predating #1849 simply ignore the
+            # attribute, so no version guard is needed.
             error_response = if exception.type == :invalid_request
                                ::Doorkeeper::OAuth::InvalidRequestResponse.new(
                                  name: exception.type,
                                  state: params[:state],
                                  redirect_uri: params[:redirect_uri],
                                  response_on_fragment: pre_auth.response_on_fragment?,
+                                 issuer: Doorkeeper::OpenidConnect.doorkeeper_issuer,
                                )
                              else
                                ::Doorkeeper::OAuth::ErrorResponse.new(
@@ -25,6 +31,7 @@ module Doorkeeper
                                  state: params[:state],
                                  redirect_uri: params[:redirect_uri],
                                  response_on_fragment: pre_auth.response_on_fragment?,
+                                 issuer: Doorkeeper::OpenidConnect.doorkeeper_issuer,
                                )
                              end
 
