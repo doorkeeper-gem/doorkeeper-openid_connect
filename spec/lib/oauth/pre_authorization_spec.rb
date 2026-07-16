@@ -87,6 +87,17 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     it_behaves_like "an implicit/hybrid flow requiring nonce", "id_token"
     it_behaves_like "an implicit/hybrid flow requiring nonce", "id_token token"
 
+    it "emits the deprecation warning at most once per process" do
+      allow(described_class).to receive(:warn)
+
+      first = Doorkeeper::OAuth::PreAuthorization.new(server, base_attrs.merge(response_type: "id_token"))
+      second = Doorkeeper::OAuth::PreAuthorization.new(server, base_attrs.merge(response_type: "id_token token"))
+      first.authorizable?
+      second.authorizable?
+
+      expect(described_class).to have_received(:warn).once
+    end
+
     context "with response_type = code (authorization code flow)" do
       subject { Doorkeeper::OAuth::PreAuthorization.new(server, base_attrs.merge(response_type: "code")) }
 
