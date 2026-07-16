@@ -45,6 +45,14 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
       expect(subject).to be_valid
       expect(subject.errors[:post_logout_redirect_uris]).to be_empty
     end
+
+    it "raises a descriptive error when writing without the column" do
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:post_logout_redirect_uris).and_return(false)
+
+      expect { subject.post_logout_redirect_uris = ["https://example.com/logout"] }
+        .to raise_error(ActiveModel::MissingAttributeError, /add_post_logout_redirect_uris/)
+    end
   end
 
   describe "post_logout_redirect_uris validation" do

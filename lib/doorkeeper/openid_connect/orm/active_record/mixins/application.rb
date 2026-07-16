@@ -8,6 +8,11 @@ module Doorkeeper
           module Application
             extend ::ActiveSupport::Concern
 
+            MISSING_COLUMN_MESSAGE =
+              "can't write post_logout_redirect_uris: the oauth_applications column is missing — " \
+              "run `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` " \
+              "and `rake db:migrate`"
+
             included do
               # Validate registered post-logout redirect URIs with exactly the
               # same rules Doorkeeper applies to `redirect_uri`, by delegating
@@ -38,7 +43,18 @@ module Doorkeeper
               # Normalizes the value stored in the database. An array is stored
               # as a newline-separated string, mirroring how Doorkeeper handles
               # `redirect_uri` (see Doorkeeper's ApplicationMixin#redirect_uri=).
+              #
+              # Unlike the read paths (getter, validation, DCR), writing without
+              # the column is not silently ignored: dropping a value the caller
+              # explicitly assigned would surface much later as a mysteriously
+              # rejected logout redirect. Raise a clear error pointing at the
+              # missing migration instead of the bare `super: no superclass
+              # method` NoMethodError.
               def post_logout_redirect_uris=(uris)
+                unless has_attribute?(:post_logout_redirect_uris)
+                  raise ActiveModel::MissingAttributeError, MISSING_COLUMN_MESSAGE
+                end
+
                 super(uris.is_a?(Array) ? uris.join("\n") : uris)
               end
 
