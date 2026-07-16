@@ -47,6 +47,37 @@ describe Doorkeeper::OAuth::IdTokenResponse do
     it "does not include expires_in" do
       expect(subject.body).not_to have_key(:expires_in)
     end
+
+    context "when Doorkeeper is configured with an issuer (RFC 9207)" do
+      before do
+        allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
+          .and_return("https://issuer.example.com")
+      end
+
+      # RFC 9207 §2: the iss parameter of a response carrying an ID Token MUST
+      # be identical to the ID Token's iss claim.
+      it "includes an iss parameter identical to the ID Token's iss claim" do
+        expect(subject.body[:iss]).to eq(id_token.issuer)
+      end
+
+      # The fragment is built with Rack::Utils.build_query, which
+      # percent-encodes values (a URL issuer becomes iss=https%3A%2F%2F...),
+      # so parse it back instead of matching the raw string.
+      it "appends the iss parameter to the fragment" do
+        fragment = URI.parse(subject.redirect_uri).fragment
+        expect(Rack::Utils.parse_query(fragment)["iss"]).to eq(id_token.issuer)
+      end
+    end
+
+    context "when Doorkeeper has no issuer configured" do
+      before do
+        allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer).and_return(nil)
+      end
+
+      it "omits the iss parameter" do
+        expect(subject.body).not_to have_key(:iss)
+      end
+    end
   end
 
   describe "#redirect_uri" do
