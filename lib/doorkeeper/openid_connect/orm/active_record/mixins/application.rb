@@ -20,7 +20,13 @@ module Doorkeeper
               # Per the RP-Initiated Logout spec the registration is optional,
               # so a blank value is allowed (no `post_logout_redirect_uri` may
               # then be used at logout time).
+              #
+              # Skipped entirely when the column has not been added yet (an
+              # existing installation that has not run the upgrade migration),
+              # so saving applications keeps working without it.
               validate do
+                next unless has_attribute?(:post_logout_redirect_uris)
+
                 raw_value = read_attribute(:post_logout_redirect_uris)
                 next if raw_value.blank?
 

@@ -37,6 +37,14 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
       expect(subject.post_logout_redirect_uris).to eq([])
       expect(subject.valid_post_logout_redirect_uri?("https://example.com/logout")).to be false
     end
+
+    it "still validates and saves when the column has not been added yet" do
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:post_logout_redirect_uris).and_return(false)
+
+      expect(subject).to be_valid
+      expect(subject.errors[:post_logout_redirect_uris]).to be_empty
+    end
   end
 
   describe "post_logout_redirect_uris validation" do
