@@ -301,6 +301,116 @@ describe Doorkeeper::OpenidConnect do
     end
   end
 
+  describe ".configure issuer consistency (RFC 9207)" do
+    # `Doorkeeper.config.issuer` only exists on Doorkeeper builds shipping
+    # doorkeeper-gem/doorkeeper#1838, so the seam `doorkeeper_issuer` is
+    # stubbed instead of the real config (mirroring the fallback specs'
+    # rationale: a partial double on the real config would be rejected on
+    # released Doorkeeper versions).
+    # Spy style (have_received asserted inside the example body) rather than
+    # message expectations: the rails_helper `config.after` hook reinitializes
+    # the configuration while the doorkeeper_issuer stub is still active, so a
+    # message expectation would also count that teardown-time configure call.
+    before do
+      allow(Rails.logger).to receive(:warn)
+    end
+
+    it "warns when the OpenID Connect and Doorkeeper issuers are both set and differ" do
+      allow(described_class).to receive(:doorkeeper_issuer)
+        .and_return("https://doorkeeper-issuer.example.com")
+
+      described_class.configure do
+        issuer "https://oidc-issuer.example.com"
+      end
+
+      expect(Rails.logger).to have_received(:warn).with(/differs from Doorkeeper's issuer/)
+    end
+
+    it "does not warn when both issuers match" do
+      allow(described_class).to receive(:doorkeeper_issuer)
+        .and_return("https://issuer.example.com")
+
+      described_class.configure do
+        issuer "https://issuer.example.com"
+      end
+
+      expect(Rails.logger).not_to have_received(:warn).with(/differs from Doorkeeper's issuer/)
+    end
+
+    it "does not warn when Doorkeeper has no issuer" do
+      allow(described_class).to receive(:doorkeeper_issuer).and_return(nil)
+
+      described_class.configure do
+        issuer "https://oidc-issuer.example.com"
+      end
+
+      expect(Rails.logger).not_to have_received(:warn).with(/differs from Doorkeeper's issuer/)
+    end
+
+    it "does not warn for a callable OpenID Connect issuer" do
+      allow(described_class).to receive(:doorkeeper_issuer)
+        .and_return("https://doorkeeper-issuer.example.com")
+
+      described_class.configure do
+        issuer { |_resource_owner, _application| "https://oidc-issuer.example.com" }
+      end
+
+      expect(Rails.logger).not_to have_received(:warn).with(/differs from Doorkeeper's issuer/)
+    end
+
+    it "does not warn when Doorkeeper is not yet configured" do
+      # No doorkeeper_issuer stub here: the real method must short-circuit on
+      # the doorkeeper_configured? guard and read as nil.
+      allow(described_class).to receive(:doorkeeper_configured?).and_return(false)
+
+      described_class.configure do
+        issuer "https://oidc-issuer.example.com"
+      end
+
+      expect(Rails.logger).not_to have_received(:warn).with(/differs from Doorkeeper's issuer/)
+    end
+  end
+
+  describe ".doorkeeper_issuer" do
+    # `Doorkeeper.configured?` does not exist on Doorkeeper 5.5 and
+    # `Doorkeeper.config.issuer` only exists on builds shipping
+    # doorkeeper-gem/doorkeeper#1838, so both sides are stubbed through the
+    # gem's own seams to stay version-portable.
+    context "when Doorkeeper is not yet configured" do
+      before do
+        allow(described_class).to receive(:doorkeeper_configured?).and_return(false)
+        allow(Doorkeeper).to receive(:config).and_call_original
+      end
+
+      it "returns nil without reading Doorkeeper's config" do
+        expect(described_class.doorkeeper_issuer).to be_nil
+        expect(Doorkeeper).not_to have_received(:config)
+      end
+    end
+
+    context "when Doorkeeper is configured" do
+      before do
+        allow(described_class).to receive(:doorkeeper_configured?).and_return(true)
+      end
+
+      it "returns Doorkeeper's issuer when the option exists" do
+        allow(Doorkeeper.config).to receive(:try).and_call_original
+        allow(Doorkeeper.config).to receive(:try)
+          .with(:issuer)
+          .and_return("https://doorkeeper-issuer.example.com")
+
+        expect(described_class.doorkeeper_issuer).to eq "https://doorkeeper-issuer.example.com"
+      end
+
+      it "returns nil when Doorkeeper exposes no issuer" do
+        # Released Doorkeeper versions predate `config.issuer` (`try` returns
+        # nil); on builds that ship it the dummy app leaves it unset — nil
+        # either way, keeping this example version-portable.
+        expect(described_class.doorkeeper_issuer).to be_nil
+      end
+    end
+  end
+
   describe ".resolve_issuer" do
     let(:resource_owner) { double("ResourceOwner") }
     let(:application) { double("Application") }
@@ -411,6 +521,78 @@ describe Doorkeeper::OpenidConnect do
       it "passes all three arguments when all are present" do
         result = subject.resolve_issuer(resource_owner: resource_owner, application: application, request: request)
         expect(result).to eq "https://example.com"
+      end
+    end
+
+    context "when the OpenID Connect issuer is unset and Doorkeeper has an issuer" do
+      # `Doorkeeper.config.issuer` only exists on Doorkeeper builds shipping
+      # doorkeeper-gem/doorkeeper#1838, so no released version implements it and
+      # a partial double on the real config would be rejected. Stub the gem's
+      # own `doorkeeper_issuer` seam instead — it isolates the fallback from the
+      # Doorkeeper version and avoids replacing `Doorkeeper.config` wholesale
+      # (which leaks into the per-example config reload and breaks on 5.5).
+      before do
+        described_class.configure {}
+        allow(described_class).to receive(:doorkeeper_issuer).and_return("https://doorkeeper-issuer.example.com")
+      end
+
+      it "falls back to the Doorkeeper issuer" do
+        expect(subject.resolve_issuer).to eq "https://doorkeeper-issuer.example.com"
+      end
+
+      it "falls back to the Doorkeeper issuer in the discovery context" do
+        expect(subject.resolve_issuer(request: request)).to eq "https://doorkeeper-issuer.example.com"
+      end
+    end
+
+    context "when the OpenID Connect issuer is set and Doorkeeper also has an issuer" do
+      before do
+        described_class.configure do
+          issuer "https://oidc-issuer.example.com"
+        end
+        allow(described_class).to receive(:doorkeeper_issuer).and_call_original
+      end
+
+      it "prefers the OpenID Connect issuer for backward compatibility" do
+        expect(subject.resolve_issuer).to eq "https://oidc-issuer.example.com"
+      end
+
+      it "never consults the Doorkeeper issuer" do
+        subject.resolve_issuer
+        expect(described_class).not_to have_received(:doorkeeper_issuer)
+      end
+    end
+
+    context "when neither the OpenID Connect nor the Doorkeeper issuer is set" do
+      before do
+        described_class.configure {}
+        allow(described_class).to receive(:doorkeeper_issuer).and_return(nil)
+      end
+
+      it "preserves the existing InvalidConfiguration behavior" do
+        expect { subject.resolve_issuer(request: request) }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+
+    context "when the installed Doorkeeper has no issuer option" do
+      # Emulate a Doorkeeper version that predates `config.issuer` (i.e. before
+      # the release shipping doorkeeper-gem/doorkeeper#1838): force the real
+      # config to report it does not respond to `issuer`, so the fallback's
+      # `respond_to?` guard must skip it rather than blow up. Stubbing only
+      # `respond_to?(:issuer)` (instead of replacing `Doorkeeper.config`) keeps
+      # this working across Doorkeeper versions, including 5.5 where the
+      # per-example config reload would otherwise hit a bare double.
+      before do
+        described_class.configure {}
+        allow(Doorkeeper.config).to receive(:respond_to?).and_call_original
+        allow(Doorkeeper.config).to receive(:respond_to?).with(:issuer).and_return(false)
+      end
+
+      it "does not call a missing issuer method and raises InvalidConfiguration" do
+        expect(Doorkeeper.config).not_to respond_to(:issuer)
+        expect { subject.resolve_issuer(request: request) }
+          .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
       end
     end
 

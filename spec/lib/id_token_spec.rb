@@ -19,6 +19,41 @@ describe Doorkeeper::OpenidConnect::IdToken do
     end
   end
 
+  describe "#issuer" do
+    context "when the issuer is a callable resolving to a new value per call" do
+      before do
+        calls = 0
+        Doorkeeper::OpenidConnect.configure do
+          issuer do |_resource_owner, _application|
+            calls += 1
+            "https://issuer.example.com/#{calls}"
+          end
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          auth_time_from_resource_owner do |resource_owner|
+            resource_owner.current_sign_in_at
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+        end
+      end
+
+      it "resolves the issuer exactly once per token" do
+        expect(subject.issuer).to eq "https://issuer.example.com/1"
+        expect(subject.issuer).to eq "https://issuer.example.com/1"
+      end
+
+      it "returns a value identical to the ID Token iss claim (RFC 9207 §2)" do
+        expect(subject.claims[:iss]).to eq subject.issuer
+      end
+    end
+  end
+
   describe "#claims" do
     it "returns all default claims" do
       expect(subject.claims).to eq(

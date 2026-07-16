@@ -123,6 +123,41 @@ module Doorkeeper
     end
     private_class_method :build_jwk
 
+    # Returns the issuer configured on Doorkeeper itself, or nil when it is
+    # not set, Doorkeeper has not been configured yet, or the installed
+    # Doorkeeper version does not expose the option.
+    #
+    # Doorkeeper added a top-level `issuer` option for RFC 8414 metadata
+    # (doorkeeper-gem/doorkeeper#1838) and emits it as the RFC 9207 `iss`
+    # authorization response parameter when configured
+    # (doorkeeper-gem/doorkeeper#1849). This gem mirrors that gating for the
+    # response types and error redirects it owns, so the extension only emits
+    # `iss` when Doorkeeper itself does. `resolve_issuer` also falls back to
+    # this value when the OpenID Connect `issuer` is not set. `try` returns
+    # nil instead of raising on Doorkeeper versions that predate the option.
+    #
+    # Reading Doorkeeper's config must not force it into existence: before the
+    # host application configures Doorkeeper (initializer ordering is its
+    # choice), access raises MissingConfiguration on Doorkeeper 5.5 and
+    # eagerly builds a default configuration on newer versions, so an
+    # unconfigured Doorkeeper reads as "no issuer" instead.
+    #
+    # TODO: replace `try` with a plain call and bump the gemspec Doorkeeper
+    # version constraint once a Doorkeeper release ships `config.issuer`.
+    def self.doorkeeper_issuer
+      Doorkeeper.config.try(:issuer) if doorkeeper_configured?
+    end
+
+    # Whether Doorkeeper has been configured by the host application. Used to
+    # decide if Doorkeeper's configuration can be read without side effects:
+    # accessing it earlier raises MissingConfiguration on Doorkeeper 5.5 and
+    # eagerly builds a default configuration on newer versions. `configured?`
+    # itself only exists since Doorkeeper 5.6; 5.5 reports false, which is
+    # also correct there — its config has no `issuer` to compare anyway.
+    def self.doorkeeper_configured?
+      Doorkeeper.respond_to?(:configured?) && Doorkeeper.configured?
+    end
+
     # Resolves the issuer value from the configuration, handling both
     # static values and callable blocks with backward-compatible arity checks.
     #
@@ -133,21 +168,20 @@ module Doorkeeper
     def self.resolve_issuer(resource_owner: nil, application: nil, request: nil)
       issuer = configuration.issuer
 
-      value =
-        if issuer.respond_to?(:call)
-          case issuer.arity
-          when 0
-            issuer.call
-          when 1
-            issuer.call(request || resource_owner)
-          when 2
-            issuer.call(resource_owner, application)
-          else
-            issuer.call(resource_owner, application, request)
-          end
-        else
-          issuer
-        end.to_s
+      # Fall back to Doorkeeper's own `issuer` configuration (RFC 8414
+      # Authorization Server Metadata) when the OpenID Connect issuer is not
+      # set. RFC 8414's `issuer` and the OIDC `iss` claim identify the same
+      # authorization server, so a single Doorkeeper-level setting can drive
+      # both without duplicate configuration. When neither is configured the
+      # existing "issuer not configured" behavior below is preserved.
+      issuer = doorkeeper_issuer if issuer.nil?
+
+      value = call_issuer(
+        issuer,
+        resource_owner: resource_owner,
+        application: application,
+        request: request,
+      ).to_s
 
       if value.blank?
         raise Errors::InvalidConfiguration,
@@ -156,6 +190,24 @@ module Doorkeeper
 
       value
     end
+
+    # Resolves the issuer value, dispatching callable issuers with
+    # backward-compatible arity checks and returning static values as-is.
+    def self.call_issuer(issuer, resource_owner:, application:, request:)
+      return issuer unless issuer.respond_to?(:call)
+
+      case issuer.arity
+      when 0
+        issuer.call
+      when 1
+        issuer.call(request || resource_owner)
+      when 2
+        issuer.call(resource_owner, application)
+      else
+        issuer.call(resource_owner, application, request)
+      end
+    end
+    private_class_method :call_issuer
 
     Doorkeeper::GrantFlow.register(
       :id_token,

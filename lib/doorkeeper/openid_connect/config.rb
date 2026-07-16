@@ -9,11 +9,45 @@ module Doorkeeper
       end
 
       @config = Config::Builder.new(&block).build
+      validate_issuer_consistency
+      @config
     end
 
     def self.configuration
       @config || (raise Errors::MissingConfiguration)
     end
+
+    # Warn when Doorkeeper's `issuer` and the OpenID Connect `issuer` are both
+    # statically configured with different values. Clients validate the
+    # RFC 9207 `iss` authorization response parameter (emitted by Doorkeeper
+    # from its own `issuer`) against the issuer they discovered — for OIDC
+    # clients that is this gem's discovery document, which serves the OpenID
+    # Connect `issuer`. Diverging values make conforming clients reject every
+    # authorization response, so surface the misconfiguration at boot. Callable
+    # OpenID Connect issuers cannot be compared statically and are skipped.
+    def self.validate_issuer_consistency
+      oidc_issuer = @config.issuer
+      return if oidc_issuer.respond_to?(:call)
+
+      # `doorkeeper_issuer` reads as nil while Doorkeeper is not yet
+      # configured (initializer ordering is the host app's choice), so the
+      # check silently passes in that case instead of forcing Doorkeeper's
+      # config into existence.
+      doorkeeper_issuer_value = doorkeeper_issuer
+      return if oidc_issuer.blank? || doorkeeper_issuer_value.blank?
+      return if oidc_issuer.to_s == doorkeeper_issuer_value.to_s
+
+      ::Rails.logger.warn(
+        "[DOORKEEPER-OPENID_CONNECT] The configured OpenID Connect issuer " \
+        "(#{oidc_issuer.to_s.inspect}) differs from Doorkeeper's issuer " \
+        "(#{doorkeeper_issuer_value.to_s.inspect}). The discovery document advertises " \
+        "the former while Doorkeeper's RFC 8414 metadata and RFC 9207 iss " \
+        "parameter use the latter; RFC 9207-conforming clients compare the " \
+        "two and will reject authorization responses. Configure a single " \
+        "issuer value.",
+      )
+    end
+    private_class_method :validate_issuer_consistency
 
     class Config
       class Builder

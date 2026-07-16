@@ -184,6 +184,33 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     context "with a prompt=none parameter" do
+      # RFC 9207 (doorkeeper#1849): OIDC errors redirected back to the client
+      # must carry Doorkeeper's issuer so Doorkeeper can emit the iss
+      # parameter. Doorkeeper versions predating #1849 ignore the attribute, so
+      # these examples pin the forwarding contract rather than the final URL.
+      context "when forwarding Doorkeeper's issuer to error responses (RFC 9207)" do
+        before do
+          allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
+            .and_return("https://issuer.example.com")
+        end
+
+        it "passes the issuer to OIDC error responses" do
+          expect(Doorkeeper::OAuth::ErrorResponse).to receive(:new)
+            .with(hash_including(issuer: "https://issuer.example.com"))
+            .and_call_original
+
+          authorize! prompt: "none", current_user: nil
+        end
+
+        it "passes the issuer to invalid_request error responses" do
+          expect(Doorkeeper::OAuth::InvalidRequestResponse).to receive(:new)
+            .with(hash_including(issuer: "https://issuer.example.com"))
+            .and_call_original
+
+          authorize! prompt: "none login"
+        end
+      end
+
       context "and a matching token" do
         before do
           create :access_token, token_attributes
