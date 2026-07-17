@@ -502,5 +502,36 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         })
       end
     end
+
+    context "when a custom application class is configured" do
+      before do
+        stub_const(
+          "MyOauthApp",
+          Class.new(Doorkeeper::Application) do
+            before_create { self.name = name.upcase }
+          end,
+        )
+        Doorkeeper.configure do
+          default_scopes :public
+          application_class "MyOauthApp"
+        end
+      end
+
+      it "creates a client with configured custom class" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            scope: "public",
+          }
+        end.to change(MyOauthApp, :count).by(1)
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        my_oauth_app = MyOauthApp.find_by(uid: body["client_id"])
+        expect(my_oauth_app).to be_present
+        expect(my_oauth_app.name).to eq "DUMMY_CLIENT"
+      end
+    end
   end
 end
