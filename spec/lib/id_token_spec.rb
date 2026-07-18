@@ -251,9 +251,9 @@ describe Doorkeeper::OpenidConnect::IdToken do
         expect(instance.claims[:act]).to eq(sub: "impersonator")
         expect(instance.as_json[:act]).to eq(sub: "impersonator")
 
-        algorithms = [ Doorkeeper::OpenidConnect.signing_algorithm.to_s ]
-        decoded, _ = ::JWT.decode(instance.as_jws_token, Doorkeeper::OpenidConnect.signing_key.keypair, true,
-                                  { algorithms: algorithms })
+        algorithms = [Doorkeeper::OpenidConnect.signing_algorithm.to_s]
+        decoded, = ::JWT.decode(instance.as_jws_token, Doorkeeper::OpenidConnect.signing_key.keypair, true,
+                                { algorithms: algorithms })
         expect(decoded["act"]).to eq("sub" => "impersonator")
       end
     end
