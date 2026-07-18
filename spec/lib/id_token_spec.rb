@@ -225,6 +225,40 @@ describe Doorkeeper::OpenidConnect::IdToken do
     end
   end
 
+  describe "a custom id_token_class subclass" do
+    # mini implementation to make sure we can exercise subclass behavior.
+
+    let(:custom_class) do
+      Class.new(described_class) do
+        def claims
+          if @access_token.scopes.exists?("actor")
+            super.merge(act: { sub: "impersonator" })
+          else
+            super
+          end
+        end
+      end
+    end
+
+    before { stub_const("CustomIdToken", custom_class) }
+
+    context "when scopes contains business-logic triggering behavior" do
+      let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: "openid actor" }
+
+      it "reaches the override through claims, as_json, and as_jws_token" do
+        instance = CustomIdToken.new(access_token, nonce)
+
+        expect(instance.claims[:act]).to eq(sub: "impersonator")
+        expect(instance.as_json[:act]).to eq(sub: "impersonator")
+
+        algorithms = [ Doorkeeper::OpenidConnect.signing_algorithm.to_s ]
+        decoded, _ = ::JWT.decode(instance.as_jws_token, Doorkeeper::OpenidConnect.signing_key.keypair, true,
+                                  { algorithms: algorithms })
+        expect(decoded["act"]).to eq("sub" => "impersonator")
+      end
+    end
+  end
+
   describe "#as_json" do
     let(:valid_claims) do
       {

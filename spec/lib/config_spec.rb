@@ -192,6 +192,74 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
   end
 
+  describe "id_token_class" do
+    it "defaults to Doorkeeper::OpenidConnect::IdToken" do
+      described_class.configure {}
+
+      expect(subject.id_token_class).to eq("Doorkeeper::OpenidConnect::IdToken")
+    end
+
+    it "sets the value that is accessible via id_token_class" do
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      expect(subject.id_token_class).to eq("CustomIdToken")
+    end
+  end
+
+  describe "#id_token_model" do
+    it "constantizes the default id_token_class" do
+      described_class.configure {}
+
+      expect(subject.id_token_model).to eq(Doorkeeper::OpenidConnect::IdToken)
+    end
+
+    it "constantizes a custom id_token_class" do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      expect(subject.id_token_model).to eq(CustomIdToken)
+    end
+  end
+
+  describe "user_info_class" do
+    it "defaults to Doorkeeper::OpenidConnect::UserInfo" do
+      described_class.configure {}
+
+      expect(subject.user_info_class).to eq("Doorkeeper::OpenidConnect::UserInfo")
+    end
+
+    it "sets the value that is accessible via user_info_class" do
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
+      expect(subject.user_info_class).to eq("CustomUserInfo")
+    end
+  end
+
+  describe "#user_info_model" do
+    it "constantizes the default user_info_class" do
+      described_class.configure {}
+
+      expect(subject.user_info_model).to eq(Doorkeeper::OpenidConnect::UserInfo)
+    end
+
+    it "constantizes a custom user_info_class" do
+      stub_const("CustomUserInfo", Class.new(Doorkeeper::OpenidConnect::UserInfo))
+
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
+      expect(subject.user_info_model).to eq(CustomUserInfo)
+    end
+  end
+
   describe "claims" do
     it "sets the claims configuration that is accessible via claims" do
       described_class.configure do

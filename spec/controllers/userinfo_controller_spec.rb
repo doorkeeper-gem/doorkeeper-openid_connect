@@ -46,6 +46,21 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
       end
     end
 
+    context "when user_info_class is configured" do
+      let(:token) { create :access_token, application: client, resource_owner_id: user.id, scopes: "openid" }
+
+      before do
+        stub_const("CustomUserInfo", Class.new(Doorkeeper::OpenidConnect::UserInfo))
+        allow(Doorkeeper::OpenidConnect.configuration).to receive(:user_info_model).and_return(CustomUserInfo)
+      end
+
+      it "builds the response using the configured class" do
+        expect(CustomUserInfo).to receive(:new).and_call_original
+
+        get :show, params: { access_token: token.token }
+      end
+    end
+
     context "with a valid access token not authorized for the openid scope" do
       it "returns an error" do
         get :show, params: { access_token: token.token }
