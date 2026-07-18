@@ -130,12 +130,30 @@ module Doorkeeper
 
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"
 
+      # A class that provides custom behavior for generating ID tokens.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
+      # so long as it responds to `#as_json`, `#as_jws_token`, and has the same initializer.
+      option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
+
+      # A class that provides custom behavior for generating ID tokens.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::UserInfo`, but may also be completely custom
+      # so long as it responds to `#as_json` and has the same initializer.
+      option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
+
       # Doorkeeper OpenID Request model class.
       #
       # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
       #
       def open_id_request_model
         @open_id_request_model ||= open_id_request_class.to_s.constantize
+      end
+
+      def id_token_model
+        @id_token_model ||= id_token_class.to_s.constantize
+      end
+
+      def user_info_model
+        @user_info_model ||= user_info_class.to_s.constantize
       end
     end
   end

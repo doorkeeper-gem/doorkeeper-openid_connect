@@ -28,7 +28,7 @@ module Doorkeeper
       private
 
       def response
-        id_token = Doorkeeper::OpenidConnect::IdToken.new(auth.token, pre_auth.nonce)
+        id_token = Doorkeeper::OpenidConnect.configuration.id_token_model.new(auth.token, pre_auth.nonce)
 
         IdTokenResponse.new(pre_auth, auth, id_token)
       end
