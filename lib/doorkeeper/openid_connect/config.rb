@@ -135,7 +135,7 @@ module Doorkeeper
       # so long as it responds to `#as_json`, `#as_jws_token`, and has the same initializer.
       option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
 
-      # A class that provides custom behavior for generating ID tokens.
+      # A class that provides custom behavior for generating the UserInfo response.
       # Should probably inherit from `Doorkeeper::OpenidConnect::UserInfo`, but may also be completely custom
       # so long as it responds to `#as_json` and has the same initializer.
       option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
