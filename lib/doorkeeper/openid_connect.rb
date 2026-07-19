@@ -20,9 +20,6 @@ require "doorkeeper/openid_connect/engine"
 require "doorkeeper/openid_connect/errors"
 require "doorkeeper/openid_connect/id_token"
 require "doorkeeper/openid_connect/hybrid_id_token_concern"
-# Autoloaded so the deprecation warning in the class body only fires for code
-# that actually references the deprecated constant, not on every boot.
-Doorkeeper::OpenidConnect.autoload :IdTokenToken, "doorkeeper/openid_connect/id_token_token"
 require "doorkeeper/openid_connect/user_info"
 require "doorkeeper/openid_connect/version"
 
