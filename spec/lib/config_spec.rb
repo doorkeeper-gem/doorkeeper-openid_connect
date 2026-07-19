@@ -20,6 +20,29 @@ describe Doorkeeper::OpenidConnect, "configuration" do
         described_class.configure {}
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
+
+    it "fails validation if id_token doesn't implement required methods" do
+      stub_const("CustomIdToken", Class.new)
+
+      expect do
+        described_class.configure do
+          id_token_class "CustomIdToken"
+        end
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured id_token_class (CustomIdToken) is missing the following " \
+                         "required methods: as_jws_token, issuer"
+    end
+
+    it "fails validation if user_info doesn't implement required methods" do
+      # NOTE: Since ActiveSupport already puts `#as_json` on `Object`, this test really doesn't do
+      # much. It's still good for semantic correctness, I guess?
+
+      expect do
+        described_class.configure do
+          user_info_class "Object"
+        end
+      end.not_to raise_error
+    end
   end
 
   describe "jws_private_key" do
@@ -189,6 +212,82 @@ describe Doorkeeper::OpenidConnect, "configuration" do
         expiration value
       end
       expect(subject.expiration).to eq(value)
+    end
+  end
+
+  describe "id_token_class" do
+    before do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+    end
+
+    it "defaults to Doorkeeper::OpenidConnect::IdToken" do
+      described_class.configure {}
+
+      expect(subject.id_token_class).to eq("Doorkeeper::OpenidConnect::IdToken")
+    end
+
+    it "sets the value that is accessible via id_token_class" do
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      expect(subject.id_token_class).to eq("CustomIdToken")
+    end
+  end
+
+  describe "#id_token_model" do
+    it "constantizes the default id_token_class" do
+      described_class.configure {}
+
+      expect(subject.id_token_model).to eq(Doorkeeper::OpenidConnect::IdToken)
+    end
+
+    it "constantizes a custom id_token_class" do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      expect(subject.id_token_model).to eq(CustomIdToken)
+    end
+  end
+
+  describe "user_info_class" do
+    before do
+      stub_const("CustomUserInfo", Class.new(Doorkeeper::OpenidConnect::UserInfo))
+    end
+
+    it "defaults to Doorkeeper::OpenidConnect::UserInfo" do
+      described_class.configure {}
+
+      expect(subject.user_info_class).to eq("Doorkeeper::OpenidConnect::UserInfo")
+    end
+
+    it "sets the value that is accessible via user_info_class" do
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
+      expect(subject.user_info_class).to eq("CustomUserInfo")
+    end
+  end
+
+  describe "#user_info_model" do
+    it "constantizes the default user_info_class" do
+      described_class.configure {}
+
+      expect(subject.user_info_model).to eq(Doorkeeper::OpenidConnect::UserInfo)
+    end
+
+    it "constantizes a custom user_info_class" do
+      stub_const("CustomUserInfo", Class.new(Doorkeeper::OpenidConnect::UserInfo))
+
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
+      expect(subject.user_info_model).to eq(CustomUserInfo)
     end
   end
 

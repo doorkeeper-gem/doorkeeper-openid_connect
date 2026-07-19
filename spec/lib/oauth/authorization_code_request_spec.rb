@@ -54,6 +54,19 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
       end
     end
 
+    context "when id_token_class is configured" do
+      before do
+        stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+        allow(Doorkeeper::OpenidConnect.configuration).to receive(:id_token_model).and_return(CustomIdToken)
+      end
+
+      it "builds the id_token using the configured class" do
+        subject.send :after_successful_response
+
+        expect(response.id_token).to be_a CustomIdToken
+      end
+    end
+
     context "when the grant has an OpenID request but the token lacks the openid scope" do
       let(:token) { create :access_token, scopes: "public" }
 

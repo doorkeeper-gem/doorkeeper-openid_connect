@@ -12,7 +12,7 @@ module Doorkeeper
             # authorization code and password grants). Grants without one —
             # e.g. refresh_token — reach here with it unset, so build a
             # nonce-less ID Token on the fly.
-            id_token = self.id_token || Doorkeeper::OpenidConnect::IdToken.new(token)
+            id_token = self.id_token || Doorkeeper::OpenidConnect.configuration.id_token_model.new(token)
 
             super
               .merge(id_token: id_token.as_jws_token)

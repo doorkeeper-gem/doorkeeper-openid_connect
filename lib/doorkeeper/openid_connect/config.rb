@@ -10,6 +10,7 @@ module Doorkeeper
 
       @config = Config::Builder.new(&block).build
       validate_issuer_consistency
+      validate_class_overrides
       @config
     end
 
@@ -39,15 +40,34 @@ module Doorkeeper
 
       ::Rails.logger.warn(
         "[DOORKEEPER-OPENID_CONNECT] The configured OpenID Connect issuer " \
-        "(#{oidc_issuer.to_s.inspect}) differs from Doorkeeper's issuer " \
-        "(#{doorkeeper_issuer_value.to_s.inspect}). The discovery document advertises " \
-        "the former while Doorkeeper's RFC 8414 metadata and RFC 9207 iss " \
-        "parameter use the latter; RFC 9207-conforming clients compare the " \
-        "two and will reject authorization responses. Configure a single " \
-        "issuer value.",
+          "(#{oidc_issuer.to_s.inspect}) differs from Doorkeeper's issuer " \
+          "(#{doorkeeper_issuer_value.to_s.inspect}). The discovery document advertises " \
+          "the former while Doorkeeper's RFC 8414 metadata and RFC 9207 iss " \
+          "parameter use the latter; RFC 9207-conforming clients compare the " \
+          "two and will reject authorization responses. Configure a single " \
+          "issuer value.",
       )
     end
+
     private_class_method :validate_issuer_consistency
+
+    # Validate that overrides for `id_token_class` and `user_info_class` both implement the required methods. Note
+    # that this does not check for correctness, just that things do exist.
+    def self.validate_class_overrides
+      missing_token_methods = %i[as_json as_jws_token issuer].difference(configuration.id_token_model.instance_methods)
+
+      unless missing_token_methods.empty?
+        raise Errors::InvalidConfiguration, "The configured id_token_class (#{configuration.id_token_class}) is missing the following required methods: #{missing_token_methods.join(", ")}"
+      end
+
+      missing_userinfo_methods = %i[as_json].difference(configuration.user_info_model.instance_methods)
+
+      return if missing_userinfo_methods.empty?
+
+      raise Errors::InvalidConfiguration, "The configured user_info_class (#{configuration.user_info_class}) is missing the following required methods: #{missing_userinfo_methods.join(", ")}"
+    end
+
+    private_class_method :validate_class_overrides
 
     class Config
       class Builder
@@ -130,12 +150,30 @@ module Doorkeeper
 
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"
 
+      # A class that provides custom behavior for generating ID tokens.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
+      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, and has the same initializer.
+      option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
+
+      # A class that provides custom behavior for generating the UserInfo response.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::UserInfo`, but may also be completely custom
+      # so long as it responds to `#as_json` and has the same initializer.
+      option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
+
       # Doorkeeper OpenID Request model class.
       #
       # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
       #
       def open_id_request_model
         @open_id_request_model ||= open_id_request_class.to_s.constantize
+      end
+
+      def id_token_model
+        @id_token_model ||= id_token_class.to_s.constantize
+      end
+
+      def user_info_model
+        @user_info_model ||= user_info_class.to_s.constantize
       end
     end
   end

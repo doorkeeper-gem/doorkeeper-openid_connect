@@ -5,6 +5,7 @@
 - [#323] Resolve `token_endpoint_auth_methods_supported` from Doorkeeper's new client authentication methods registry when available, falling back to translating legacy `client_credentials_methods` on older Doorkeeper versions. The advertised methods remain unchanged: the `none` public-client pseudo-method is filtered out of discovery/registration responses and is only considered during dynamic client registration validation.
 - [#332] Fix `grant_types_supported` in the discovery document (and the grant types accepted by Dynamic Client Registration validation) listing `refresh_token` twice when it is both included in `grant_flows` explicitly and enabled via `use_refresh_token` — the same duplication doorkeeper fixed for its RFC 8414 metadata in [doorkeeper#1847](https://github.com/doorkeeper-gem/doorkeeper/pull/1847)
 - [#333] RFC 9207 companion for [doorkeeper#1849](https://github.com/doorkeeper-gem/doorkeeper/pull/1849): emit the `iss` parameter (identical to the ID Token `iss` claim) on `id_token` / `id_token token` authorization responses and on OIDC error redirects, advertise `authorization_response_iss_parameter_supported` in the discovery document, and warn at boot when the OpenID Connect and Doorkeeper `issuer` settings diverge. No behavior change until Doorkeeper is configured with an `issuer`
+- [#310] Add escape hatches via `id_token_class` and `user_info_class` for advanced customization of the ID Token and UserInfo response objects.
 - Add entry here
 
 ## v1.10.5 (2026-07-09)

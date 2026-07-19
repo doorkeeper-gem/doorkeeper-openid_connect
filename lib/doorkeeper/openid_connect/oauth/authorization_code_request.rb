@@ -20,7 +20,8 @@ module Doorkeeper
 
           return unless access_token.includes_scope?("openid")
 
-          id_token = Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce)
+          id_token = Doorkeeper::OpenidConnect.configuration.id_token_model
+                                              .new(access_token, nonce)
           @response.id_token = id_token
         end
       end
