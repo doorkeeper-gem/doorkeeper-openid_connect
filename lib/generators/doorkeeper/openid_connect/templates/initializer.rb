@@ -209,7 +209,7 @@ Doorkeeper::OpenidConnect.configure do
   # it to external clients.
   #
   # It is generally recommended to subclass the default models, but you can implement your own so
-  # long as they respond to `#as_json`, `#as_jws_token` (for ID Token), and have the same
+  # long as they respond to `#as_json`, `#as_jws_token`/`#issuer` (for ID Token), and have the same
   # initializer. Depending on the implementation, this may or may not override the provided
   # behavior of the `claims` block.
   #
