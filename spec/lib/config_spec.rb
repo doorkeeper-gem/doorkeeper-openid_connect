@@ -59,18 +59,39 @@ describe Doorkeeper::OpenidConnect, "configuration" do
                          "required methods: as_json"
     end
 
-    it "fails validation if user_info is missing as_json" do
+    it "fails validation at first use if user_info is missing as_json" do
       # ActiveSupport defines `#as_json` on Object, so the method has to be
       # undefined explicitly to model a class that does not fulfill the contract.
       stub_const("CustomUserInfo", Class.new { undef_method :as_json })
 
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
       expect do
-        described_class.configure do
-          user_info_class "CustomUserInfo"
-        end
+        subject.user_info_model
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
                          "The configured user_info_class (CustomUserInfo) is missing the following " \
                          "required methods: as_json"
+    end
+
+    it "accepts required methods implemented as private" do
+      private_id_token = Class.new do
+        private
+
+        def as_json(*); end
+
+        def as_jws_token; end
+
+        def issuer; end
+      end
+      stub_const("PrivateIdToken", private_id_token)
+
+      described_class.configure do
+        id_token_class "PrivateIdToken"
+      end
+
+      expect { subject.id_token_model }.not_to raise_error
     end
   end
 

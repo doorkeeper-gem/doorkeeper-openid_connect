@@ -174,7 +174,9 @@ module Doorkeeper
         @validated_models ||= {}
         return model if @validated_models[kind] == model
 
-        missing_methods = required_methods.difference(model.instance_methods)
+        missing_methods = required_methods.reject do |method|
+          model.method_defined?(method) || model.private_method_defined?(method)
+        end
 
         unless missing_methods.empty?
           raise Errors::InvalidConfiguration,
