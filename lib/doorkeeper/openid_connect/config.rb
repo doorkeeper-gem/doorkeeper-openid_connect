@@ -172,7 +172,15 @@ module Doorkeeper
       # hands back a stale class; only the validation result is cached, keyed
       # on the resolved class so a reloaded class is re-validated.
       def resolve_validated_model(kind, class_name, required_methods)
-        model = class_name.to_s.constantize
+        # `safe_constantize` (unlike a bare `constantize` rescue) only reports
+        # nil when the configured constant itself is missing; a NameError
+        # raised while loading the class body still surfaces as-is.
+        model = class_name.to_s.safe_constantize
+        if model.nil?
+          raise Errors::InvalidConfiguration,
+                "The configured #{kind}_class (#{class_name}) does not resolve to a defined class"
+        end
+
         @validated_models ||= {}
         return model if @validated_models[kind] == model
 
