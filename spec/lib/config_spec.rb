@@ -32,6 +32,30 @@ describe Doorkeeper::OpenidConnect, "configuration" do
       end.not_to raise_error
     end
 
+    it "fails at first use if id_token_class does not resolve to a defined class" do
+      described_class.configure do
+        id_token_class "ClassThatIsNotDefinedYet"
+      end
+
+      expect do
+        subject.id_token_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured id_token_class (ClassThatIsNotDefinedYet) does not " \
+                         "resolve to a defined class"
+    end
+
+    it "fails at first use if user_info_class does not resolve to a defined class" do
+      described_class.configure do
+        user_info_class "AnotherClassThatIsNotDefinedYet"
+      end
+
+      expect do
+        subject.user_info_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured user_info_class (AnotherClassThatIsNotDefinedYet) does " \
+                         "not resolve to a defined class"
+    end
+
     it "fails validation at first use if id_token doesn't implement required methods" do
       stub_const("CustomIdToken", Class.new)
 
