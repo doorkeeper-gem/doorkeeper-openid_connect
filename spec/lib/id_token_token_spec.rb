@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "stringio"
 
 # The first reference to the autoloaded constant fires the deprecation warning
 # in the class body; swallow it here to keep the suite output clean. The
