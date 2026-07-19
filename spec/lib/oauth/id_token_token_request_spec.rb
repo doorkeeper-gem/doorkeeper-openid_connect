@@ -46,4 +46,24 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
   it "returns id_token token response" do
     expect(subject.authorize).to be_a(Doorkeeper::OAuth::IdTokenTokenResponse)
   end
+
+  it "returns an id_token of type IdTokenToken" do
+    expect(subject.authorize.id_token).to be_a(Doorkeeper::OpenidConnect::IdTokenToken)
+  end
+
+  context "when id_token_model is configured" do
+    before do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+      allow(Doorkeeper::OpenidConnect.configuration).to receive(:id_token_model).and_return(CustomIdToken)
+    end
+
+    it "uses custom id_token_model" do
+      expect(subject.authorize.id_token).to be_a(CustomIdToken)
+    end
+
+    it "implements AtHashConcern" do
+      # Duplicate of above, but we want to ensure that this continues being attached.
+      expect(subject.authorize.id_token).to be_a(Doorkeeper::OpenidConnect::HybridIdTokenConcern)
+    end
+  end
 end
