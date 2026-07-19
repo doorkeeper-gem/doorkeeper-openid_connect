@@ -210,8 +210,10 @@ Doorkeeper::OpenidConnect.configure do
   #
   # It is generally recommended to subclass the default models, but you can implement your own so
   # long as they respond to `#as_json`, `#as_jws_token`/`#issuer` (for ID Token), and have the same
-  # initializer. Depending on the implementation, this may or may not override the provided
-  # behavior of the `claims` block.
+  # initializer. An ID Token class used with the hybrid `id_token token` response type must also
+  # expose the access token via an `#access_token` reader, which is used to compute the `at_hash`
+  # claim. Depending on the implementation, this may or may not override the provided behavior of
+  # the `claims` block.
   #
   # Refer to Doorkeeper::OpenidConnect::IdToken and Doorkeeper::OpenidConnect::UserInfo for more
   # information and implementation details.

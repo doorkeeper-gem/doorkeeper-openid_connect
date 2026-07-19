@@ -2,6 +2,10 @@
 
 module Doorkeeper
   module OpenidConnect
+    # Adds the `at_hash` claim required by the hybrid `id_token token` flow.
+    # The host object must implement `#claims` and expose the access token
+    # via an `#access_token` reader (public or private), as
+    # `Doorkeeper::OpenidConnect::IdToken` does.
     module HybridIdTokenConcern
       def claims
         super.merge(at_hash: at_hash)
@@ -24,7 +28,7 @@ module Doorkeeper
       #   access_token value with SHA-256, then take the left-most 128 bits and
       #   base64url-encode them. The at_hash value is a case-sensitive string.
       def at_hash
-        hashed_token = at_hash_digest.digest(@access_token.token)
+        hashed_token = at_hash_digest.digest(access_token.token)
         first_half = hashed_token[0...hashed_token.length / 2]
         Base64.urlsafe_encode64(first_half).tr("=", "")
       end
