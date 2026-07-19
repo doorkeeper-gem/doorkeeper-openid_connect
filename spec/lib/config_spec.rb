@@ -67,7 +67,7 @@ describe Doorkeeper::OpenidConnect, "configuration" do
         subject.id_token_model
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
                          "The configured id_token_class (CustomIdToken) is missing the following " \
-                         "required methods: as_jws_token, issuer"
+                         "required methods: as_jws_token, issuer, access_token"
     end
 
     it "fails validation at first use if user_info doesn't implement required methods" do
@@ -102,6 +102,8 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     it "accepts required methods implemented as private" do
       private_id_token = Class.new do
         private
+
+        attr_reader :access_token
 
         def as_json(*); end
 
