@@ -58,6 +58,25 @@ describe Doorkeeper::OpenidConnect, "configuration" do
                          "The configured user_info_class (BasicObject) is missing the following " \
                          "required methods: as_json"
     end
+
+    it "accepts required methods implemented as private" do
+      private_id_token = Class.new do
+        private
+
+        def as_json(*); end
+
+        def as_jws_token; end
+
+        def issuer; end
+      end
+      stub_const("PrivateIdToken", private_id_token)
+
+      described_class.configure do
+        id_token_class "PrivateIdToken"
+      end
+
+      expect { subject.id_token_model }.not_to raise_error
+    end
   end
 
   describe "jws_private_key" do
