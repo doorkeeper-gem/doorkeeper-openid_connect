@@ -133,9 +133,9 @@ module Doorkeeper
 
       # A class that provides custom behavior for generating ID tokens.
       # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
-      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, and has the same initializer.
-      # For the hybrid `id_token token` response type it must also expose the access token via an
-      # `#access_token` reader, which `HybridIdTokenConcern` uses to compute the `at_hash` claim.
+      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, exposes the access token via
+      # an `#access_token` reader (public or private), and has the same initializer. The reader is what
+      # `HybridIdTokenConcern` uses to compute the `at_hash` claim in the hybrid `id_token token` flow.
       option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
 
       # A class that provides custom behavior for generating the UserInfo response.
@@ -152,7 +152,7 @@ module Doorkeeper
       end
 
       def id_token_model
-        resolve_validated_model(:id_token, id_token_class, %i[as_json as_jws_token issuer])
+        resolve_validated_model(:id_token, id_token_class, %i[as_json as_jws_token issuer access_token])
       end
 
       def user_info_model
