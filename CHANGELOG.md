@@ -7,6 +7,7 @@
 - [#333] RFC 9207 companion for [doorkeeper#1849](https://github.com/doorkeeper-gem/doorkeeper/pull/1849): emit the `iss` parameter (identical to the ID Token `iss` claim) on `id_token` / `id_token token` authorization responses and on OIDC error redirects, advertise `authorization_response_iss_parameter_supported` in the discovery document, and warn at boot when the OpenID Connect and Doorkeeper `issuer` settings diverge. No behavior change until Doorkeeper is configured with an `issuer`
 - [#310] Add escape hatches via `id_token_class` and `user_info_class` for advanced customization of the ID Token and UserInfo response objects.
 - [#341] Fix dynamic client registration to use `Doorkeeper.configuration.application_model` instead of `Doorkeeper::Application` directly, so that the `application_class` configuration is respected when registering clients.
+- [#342] CI: pin `dangoslen/changelog-enforcer` to `v3.7.0` so the changelog job runs on the Node 24 build of the action. The floating `v3` tag still points at a `node20` build, which triggers GitHub's [Node 20 deprecation warning](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) on every run. Dependabot now also watches GitHub Actions versions, and PRs labeled `dependencies` or `Skip-Changelog` are exempt from changelog enforcement
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
