@@ -80,6 +80,27 @@ See the [wiki](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/
 - [Internationalization (I18n)](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/I18n)
 - [Dynamic Client Registration](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Dynamic-Client-Registration)
 
+### Nonces
+
+Nonce support is built in: the gem ships a `doorkeeper/authorizations/new`
+view that carries the `nonce` (along with the other authorization parameters)
+through the consent screen, so the nonce ends up in the issued ID token
+without any manual setup. If your application overrides Doorkeeper's
+authorization view, make sure both the authorize and deny forms include:
+
+```erb
+<%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
+```
+
+`nonce` is REQUIRED for OpenID Connect implicit and hybrid flow requests —
+any `response_type` that includes `id_token` (OpenID Connect Core 1.0
+[§3.2.2.1](https://openid.net/specs/openid-connect-core-1_0.html#ImplicitAuthRequest)).
+Set `enforce_implicit_nonce true` in your initializer to reject such requests
+when the nonce is missing; while the option is disabled (the current default)
+they are still accepted for backward compatibility, with a one-time
+deprecation warning. The default will flip to `true` in a future major
+version.
+
 ## Development
 
 Run `bundle install` to setup all development dependencies.
