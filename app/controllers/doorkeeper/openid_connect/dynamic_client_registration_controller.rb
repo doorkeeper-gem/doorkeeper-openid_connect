@@ -13,7 +13,7 @@ module Doorkeeper
           return
         end
 
-        client = Doorkeeper::Application.create!(application_params(registration))
+        client = Doorkeeper.configuration.application_model.create!(application_params(registration))
         render json: registration_response(client, registration), status: :created
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: "invalid_client_params", error_description: e.record.errors.full_messages.join(", ") },
