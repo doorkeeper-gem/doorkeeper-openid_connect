@@ -60,6 +60,86 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    context "when post_logout_redirect_uris is provided" do
+      it "registers and echoes back the post_logout_redirect_uris" do
+        post_logout_redirect_uris = [
+          "https://test.host/post_logout",
+          "https://test.host/post_logout_alt",
+        ]
+
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            post_logout_redirect_uris: post_logout_redirect_uris,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application).to be_present
+        expect(doorkeeper_application.post_logout_redirect_uris).to eq(post_logout_redirect_uris)
+
+        expect(body["post_logout_redirect_uris"]).to eq(post_logout_redirect_uris)
+      end
+    end
+
+    context "when post_logout_redirect_uris is omitted" do
+      it "omits post_logout_redirect_uris from the response (registration is optional)" do
+        post :register, params: {
+          client_name: "dummy_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+        }
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)).not_to have_key("post_logout_redirect_uris")
+      end
+    end
+
+    context "when the application model does not have the post_logout_redirect_uris column" do
+      before do
+        allow(Doorkeeper.config.application_model).to receive(:column_names)
+          .and_return(Doorkeeper::Application.column_names - ["post_logout_redirect_uris"])
+      end
+
+      it "ignores the parameter instead of failing the registration (RFC 7591 §2)" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            post_logout_redirect_uris: ["https://test.host/post_logout"],
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)).not_to have_key("post_logout_redirect_uris")
+      end
+    end
+
+    context "when post_logout_redirect_uris contains an invalid URI" do
+      it "rejects the request with invalid_client_params and does not create a client" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            post_logout_redirect_uris: ["javascript:alert(1)"],
+            scope: "public",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
+
+        expect(response.status).to eq 400
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_params")
+        expect(body["error_description"]).to be_present
+      end
+    end
+
     context "when token_endpoint_auth_method is client_secret_basic" do
       it "creates a confidential client with a secret" do
         expect do

@@ -48,12 +48,26 @@ module Doorkeeper
       end
 
       def application_params(registration)
-        {
+        application_params = {
           name: params[:client_name],
           redirect_uri: params[:redirect_uris] || [],
           scopes: registration.permitted_scopes,
           confidential: registration.confidential_client?,
         }
+
+        # Existing installations may not have run the migration that adds the
+        # `post_logout_redirect_uris` column yet. RFC 7591 §2 allows the server
+        # to ignore client metadata it does not understand, so the parameter is
+        # simply dropped in that case instead of failing the registration.
+        if post_logout_redirect_uris_supported?
+          application_params[:post_logout_redirect_uris] = params[:post_logout_redirect_uris] || []
+        end
+
+        application_params
+      end
+
+      def post_logout_redirect_uris_supported?
+        Doorkeeper.config.application_model.column_names.include?("post_logout_redirect_uris")
       end
 
       def registration_response(doorkeeper_application, registration)
@@ -68,6 +82,11 @@ module Doorkeeper
           scope: doorkeeper_application.scopes.to_s,
           application_type: registration.requested_application_type,
         }
+
+        # Registration is optional (RP-Initiated Logout §2), so the metadata
+        # field is only echoed when post-logout redirect URIs were registered.
+        post_logout_uris = doorkeeper_application.post_logout_redirect_uris
+        response[:post_logout_redirect_uris] = post_logout_uris if post_logout_uris.present?
 
         if registration.confidential_client?
           response[:client_secret] =
