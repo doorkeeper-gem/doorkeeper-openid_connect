@@ -50,7 +50,7 @@ jobs:
             gemfile: gemfiles/doorkeeper_5.7.gemfile
     steps:
       - name: Repo checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -71,7 +71,7 @@ jobs:
         || contains(github.event.pull_request.title,  '[skip ci]'))
     steps:
       - name: Repo checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
