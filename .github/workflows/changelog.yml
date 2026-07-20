@@ -13,3 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: dangoslen/changelog-enforcer@v3.7.0
+      with:
+        # Dependabot PRs are labeled "dependencies" automatically and don't
+        # need a changelog entry; "Skip-Changelog" keeps a manual escape hatch.
+        skipLabels: "Skip-Changelog,dependencies"
