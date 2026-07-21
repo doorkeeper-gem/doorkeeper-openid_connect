@@ -845,4 +845,71 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(assigns(:pre_auth).nonce).to eq "123456"
     end
   end
+
+  context "with the implicit OIDC flows enabled" do
+    before do
+      allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+    end
+
+    def implicit_params(params = {})
+      {
+        response_type: "id_token",
+        current_user: user.id,
+        client_id: application.uid,
+        scope: default_scopes,
+        redirect_uri: application.redirect_uri,
+        nonce: "123456",
+        state: "somestate",
+      }.merge(params)
+    end
+
+    def redirected_fragment
+      expect(response).to be_redirect
+      expect(response.location).to start_with "#{application.redirect_uri}#"
+      Rack::Utils.parse_query(URI.parse(response.location).fragment)
+    end
+
+    describe "#create" do
+      it "issues an ID token via the fragment for response_type=id_token" do
+        post :create, params: implicit_params
+
+        fragment = redirected_fragment
+        expect(fragment["state"]).to eq "somestate"
+
+        payload, header = JWT.decode(fragment["id_token"], nil, false)
+        expect(header["alg"]).to eq "RS256"
+        expect(payload["iss"]).to eq "dummy"
+        expect(payload["nonce"]).to eq "123456"
+        expect(payload["aud"]).to eq application.uid
+      end
+
+      it "issues an access token alongside the ID token for response_type=id_token token" do
+        post :create, params: implicit_params(response_type: "id_token token")
+
+        fragment = redirected_fragment
+        expect(fragment["access_token"]).to be_present
+        expect(fragment["token_type"]).to eq "Bearer"
+        expect(fragment["state"]).to eq "somestate"
+
+        # OIDC Core 1.0 §3.2.2.9: when an access token is issued with the ID
+        # Token from the authorization endpoint, at_hash is REQUIRED.
+        payload, = JWT.decode(fragment["id_token"], nil, false)
+        expect(payload["nonce"]).to eq "123456"
+        expect(payload["at_hash"]).to be_present
+      end
+    end
+
+    describe "#destroy" do
+      it "denies response_type=id_token with access_denied in the fragment" do
+        expect do
+          delete :destroy, params: implicit_params
+        end.not_to change(Doorkeeper::AccessToken, :count)
+
+        fragment = redirected_fragment
+        expect(fragment["error"]).to eq "access_denied"
+        expect(fragment["state"]).to eq "somestate"
+        expect(fragment).not_to have_key "id_token"
+      end
+    end
+  end
 end

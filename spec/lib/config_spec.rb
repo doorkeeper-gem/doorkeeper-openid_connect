@@ -43,6 +43,44 @@ describe Doorkeeper::OpenidConnect, "configuration" do
         end
       end.not_to raise_error
     end
+
+    it "fails validation if user_info is missing as_json" do
+      # ActiveSupport defines `#as_json` on Object, so the method has to be
+      # undefined explicitly to model a class that does not fulfill the contract.
+      stub_const("CustomUserInfo", Class.new { undef_method :as_json })
+
+      expect do
+        described_class.configure do
+          user_info_class "CustomUserInfo"
+        end
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured user_info_class (CustomUserInfo) is missing the following " \
+                         "required methods: as_json"
+    end
+  end
+
+  describe ".configuration" do
+    it "raises MissingConfiguration when the gem has not been configured" do
+      saved = described_class.instance_variable_get(:@config)
+      described_class.instance_variable_set(:@config, nil)
+
+      expect do
+        described_class.configuration
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::MissingConfiguration,
+                         /doorkeeper_openid_connect initializer/
+    ensure
+      described_class.instance_variable_set(:@config, saved)
+    end
+  end
+
+  describe "jws_public_key" do
+    it "warns that the setting is no longer needed" do
+      expect do
+        described_class.configure do
+          jws_public_key "public_key"
+        end
+      end.to output(/DEPRECATION WARNING: `jws_public_key` is not needed anymore/).to_stderr
+    end
   end
 
   describe "jws_private_key" do

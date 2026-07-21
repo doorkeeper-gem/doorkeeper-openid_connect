@@ -65,5 +65,21 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
         expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA512))
       end
     end
+
+    context "when signing_algorithm is HS384" do
+      before { configure_doorkeeper("the_greatest_secret_key", :HS384) }
+
+      it "uses SHA-384" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA384))
+      end
+    end
+
+    context "when the signing algorithm name carries no digest length (e.g. EdDSA)" do
+      before { configure_doorkeeper("the_greatest_secret_key", :EdDSA) }
+
+      it "falls back to SHA-256" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
+      end
+    end
   end
 end
