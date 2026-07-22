@@ -54,6 +54,21 @@ describe Doorkeeper::OpenidConnect::Claims::Claim do
     it "falls back to the profile scope for non-standard claims" do
       expect(described_class.new(name: "unknown").scope).to eq :profile
     end
+
+    it "symbolizes string response entries" do
+      claim = described_class.new(name: "given_name", response: ["id_token", "user_info"])
+      expect(claim.response).to eq %i[id_token user_info]
+    end
+
+    it "symbolizes a single string response value" do
+      claim = described_class.new(name: "given_name", response: "id_token")
+      expect(claim.response).to eq [:id_token]
+    end
+
+    it "drops nil response entries" do
+      claim = described_class.new(name: "given_name", response: [:id_token, nil])
+      expect(claim.response).to eq [:id_token]
+    end
   end
 
   describe "immutability" do
