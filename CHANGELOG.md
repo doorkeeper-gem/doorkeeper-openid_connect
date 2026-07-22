@@ -8,6 +8,12 @@
 - [#310] Add escape hatches via `id_token_class` and `user_info_class` for advanced customization of the ID Token and UserInfo response objects.
 - [#341] Fix dynamic client registration to use `Doorkeeper.configuration.application_model` instead of `Doorkeeper::Application` directly, so that the `application_class` configuration is respected when registering clients.
 - [#342] CI: pin `dangoslen/changelog-enforcer` to `v3.7.0` so the changelog job runs on the Node 24 build of the action. The floating `v3` tag still points at a `node20` build, which triggers GitHub's [Node 20 deprecation warning](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) on every run. Dependabot now also watches GitHub Actions versions, and PRs labeled `dependencies` or `Skip-Changelog` are exempt from changelog enforcement
+- [#350] Discovery / Dynamic Client Registration spec compliance fixes:
+  - Advertise and accept the standard `implicit` grant type instead of doorkeeper's internal `implicit_oidc` name (RFC 7591 §2)
+  - **Breaking:** omitted `response_types` / `grant_types` in a registration request now default to `["code"]` / `["authorization_code"]` per RFC 7591 §2, instead of echoing every type the server supports
+  - Replace the invented `invalid_client_params` DCR error code with RFC 7591 §3.2.2's `invalid_redirect_uri` / `invalid_client_metadata`
+  - Serve WebFinger responses as `application/jrd+json` with `Access-Control-Allow-Origin: *` (RFC 7033)
+  - Create dynamically registered clients through `Doorkeeper.configuration.application_model` so custom application models work with DCR
 - Add entry here
 
 ## v1.10.5 (2026-07-09)

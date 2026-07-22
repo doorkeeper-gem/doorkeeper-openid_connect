@@ -52,8 +52,8 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           "redirect_uris" => redirect_uris,
           "token_endpoint_auth_method" => "client_secret_basic",
           "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
-          "response_types" => ["code", "token", "id_token", "id_token token"],
-          "grant_types" => %w[authorization_code client_credentials implicit_oidc],
+          "response_types" => ["code"],
+          "grant_types" => %w[authorization_code],
           "scope" => "public",
           "application_type" => "web",
         })
@@ -297,6 +297,36 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    context "when grant_types is the standard implicit grant type" do
+      it "accepts it although doorkeeper's internal flow name is implicit_oidc" do
+        post :register, params: {
+          client_name: "implicit_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+          grant_types: ["implicit"],
+        }
+
+        expect(response.status).to eq 201
+        body = JSON.parse(response.body)
+        expect(body["grant_types"]).to eq(["implicit"])
+      end
+    end
+
+    context "when grant_types is doorkeeper's internal implicit_oidc flow name" do
+      it "rejects the request with invalid_client_metadata" do
+        post :register, params: {
+          client_name: "internal_name_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+          grant_types: ["implicit_oidc"],
+        }
+
+        expect(response.status).to eq 400
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+      end
+    end
+
     context "when grant_types is a subset of the server's supported types" do
       it "echoes the requested grant_types back in the response" do
         post :register, params: {
@@ -497,7 +527,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
         expect(response.status).to eq 400
         expect(JSON.parse(response.body)).to eq({
-          "error" => "invalid_client_params",
+          "error" => "invalid_redirect_uri",
           "error_description" => "Redirect URI must be an HTTPS/SSL URI.",
         })
       end

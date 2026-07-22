@@ -14,7 +14,11 @@ module Doorkeeper
       end
 
       def webfinger
-        render json: webfinger_response
+        # RFC 7033 §5: the WebFinger resource must be queryable from browser
+        # scripts on other origins, §10.2: JRD responses use the dedicated
+        # `application/jrd+json` media type.
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        render json: webfinger_response, content_type: "application/jrd+json"
       end
 
       def keys
