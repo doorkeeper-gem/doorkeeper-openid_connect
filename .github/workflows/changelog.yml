@@ -7,6 +7,10 @@ on:
     # as defined in the (optional) "skipLabels" property.
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   # Enforces the update of a changelog file on every pull request
   changelog:
