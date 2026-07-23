@@ -11,6 +11,7 @@
 - [#342] CI: pin `dangoslen/changelog-enforcer` to `v3.7.0` so the changelog job runs on the Node 24 build of the action. The floating `v3` tag still points at a `node20` build, which triggers GitHub's [Node 20 deprecation warning](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) on every run. Dependabot now also watches GitHub Actions versions, and PRs labeled `dependencies` or `Skip-Changelog` are exempt from changelog enforcement
 - [#346] Add specs for previously uncovered branches that are reachable on current Doorkeeper
 - [#347] Omit symmetric (`oct`) keys from the JWKS endpoint when signing with an HMAC algorithm — an HMAC JWK is the shared secret, not a verification key (RFC 7517)
+- [#353] Enrich Doorkeeper 6.0's RFC 8414 metadata document with the OpenID Connect metadata. Doorkeeper 6.0's own `/.well-known/oauth-authorization-server` route ([doorkeeper#1838](https://github.com/doorkeeper-gem/doorkeeper/pull/1838)) shadows the one this gem has served at the same path since v1.8.9, silently changing the `issuer` and dropping the OIDC fields (`jwks_uri`, `userinfo_endpoint`, signing algs, claims). The gem now injects those fields through Doorkeeper's `custom_metadata` seam, so the document agrees with `/.well-known/openid-configuration` again; app-configured `custom_metadata` keeps precedence. No behavior change on Doorkeeper < 6.0
 - Add entry here
 
 ## v1.10.5 (2026-07-09)

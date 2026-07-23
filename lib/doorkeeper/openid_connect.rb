@@ -26,6 +26,7 @@ require "doorkeeper/openid_connect/version"
 
 require "doorkeeper/openid_connect/helpers/controller"
 
+require "doorkeeper/openid_connect/discovery_helpers_mixin"
 require "doorkeeper/openid_connect/grant_types_supported_mixin"
 require "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
 
@@ -35,6 +36,12 @@ require "doorkeeper/openid_connect/oauth/dynamic_registration_request"
 require "doorkeeper/openid_connect/oauth/password_access_token_request"
 require "doorkeeper/openid_connect/oauth/pre_authorization"
 require "doorkeeper/openid_connect/oauth/token_response"
+
+# Doorkeeper >= 6.0 ships an RFC 8414 metadata endpoint; the response subclass
+# that enriches it with OIDC metadata only exists when its parent class does.
+if Doorkeeper::OAuth.const_defined?(:MetadataResponse)
+  require "doorkeeper/openid_connect/oauth/metadata_response"
+end
 
 require "doorkeeper/openid_connect/orm/active_record"
 
