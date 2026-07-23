@@ -491,7 +491,14 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context "when using an HMAC key" do
       before { configure_hmac }
 
-      it_behaves_like "a key response", expected_parameters: %i[kty kid use alg]
+      it "returns an empty JWKS" do
+        subject
+        data = JSON.parse(response.body)
+
+        # An HMAC JWK is the shared secret itself, not a public verification
+        # key, so it is omitted from the published JWKS (RFC 7517).
+        expect(data["keys"]).to eq []
+      end
     end
 
     context "when multiple signing keys are configured" do

@@ -261,6 +261,16 @@ describe Doorkeeper::OpenidConnect do
         expect(normalized).to all(include(use: "sig", alg: :RS256))
       end
     end
+
+    context "when signing with an HMAC algorithm" do
+      before { configure_hmac }
+
+      it "omits symmetric (oct) keys" do
+        # An HMAC JWK is the shared secret itself, not a public verification
+        # key, so it has no place in a public JWKS (RFC 7517).
+        expect(subject.signing_keys_normalized).to eq []
+      end
+    end
   end
 
   describe ".signing_key_normalized" do

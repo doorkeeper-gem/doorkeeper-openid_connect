@@ -43,12 +43,7 @@ require "doorkeeper/openid_connect/rails/routes"
 module Doorkeeper
   module OpenidConnect
     def self.signing_algorithm
-      algo = if configuration.signing_algorithm.respond_to?(:call)
-               configuration.signing_algorithm.call
-             else
-               configuration.signing_algorithm
-             end
-      algo.to_s.upcase.to_sym
+      unwrap_callable(configuration.signing_algorithm).to_s.upcase.to_sym
     end
 
     # Returns the active signing key used when issuing new ID tokens.
@@ -74,9 +69,16 @@ module Doorkeeper
     # Returns every configured key formatted for inclusion in the JWKS
     # response, with `use` and `alg` already merged. The discovery
     # controller renders this verbatim inside `keys: [...]`.
+    #
+    # Symmetric (`kty: "oct"`) keys are dropped: a JWKS is meant to publish
+    # verification keys, but an HMAC JWK *is* the shared secret and cannot
+    # serve as a public verification key, so it does not belong in a public
+    # discovery document (RFC 7517). HMAC (HS256/HS384/HS512) configurations
+    # therefore yield an empty `keys` array here.
     def self.signing_keys_normalized
       alg = signing_algorithm
-      signing_keys.map { |jwk| jwk.export.merge(use: "sig", alg: alg) }
+      exported = signing_keys.map(&:export).reject { |jwk| jwk[:kty] == "oct" }
+      exported.map { |jwk| jwk.merge(use: "sig", alg: alg) }
     end
 
     def self.unwrap_callable(value)
