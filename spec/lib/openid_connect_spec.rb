@@ -7,6 +7,18 @@ describe Doorkeeper::OpenidConnect do
     it "returns the signing_algorithm as an uppercase symbol" do
       expect(subject.signing_algorithm).to eq :RS256
     end
+
+    context "when the configured signing_algorithm is callable" do
+      before do
+        described_class.configure do
+          signing_algorithm -> { "rs384" }
+        end
+      end
+
+      it "calls it and returns the result as an uppercase symbol" do
+        expect(subject.signing_algorithm).to eq :RS384
+      end
+    end
   end
 
   describe ".signing_key" do
