@@ -18,6 +18,14 @@ module Doorkeeper
       @config || (raise Errors::MissingConfiguration)
     end
 
+    # Whether `Doorkeeper::OpenidConnect.configure` has been run. Guards
+    # integrations that must fall back to plain Doorkeeper behaviour (e.g. the
+    # RFC 8414 metadata enrichment) when the app loads this gem without
+    # configuring it.
+    def self.configured?
+      !@config.nil?
+    end
+
     # Warn when Doorkeeper's `issuer` and the OpenID Connect `issuer` are both
     # statically configured with different values. Clients validate the
     # RFC 9207 `iss` authorization response parameter (emitted by Doorkeeper
