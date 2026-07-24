@@ -10,7 +10,6 @@ module Doorkeeper
 
       @config = Config::Builder.new(&block).build
       validate_issuer_consistency
-      validate_class_overrides
       @config
     end
 
@@ -50,24 +49,6 @@ module Doorkeeper
     end
 
     private_class_method :validate_issuer_consistency
-
-    # Validate that overrides for `id_token_class` and `user_info_class` both implement the required methods. Note
-    # that this does not check for correctness, just that things do exist.
-    def self.validate_class_overrides
-      missing_token_methods = %i[as_json as_jws_token issuer].difference(configuration.id_token_model.instance_methods)
-
-      unless missing_token_methods.empty?
-        raise Errors::InvalidConfiguration, "The configured id_token_class (#{configuration.id_token_class}) is missing the following required methods: #{missing_token_methods.join(", ")}"
-      end
-
-      missing_userinfo_methods = %i[as_json].difference(configuration.user_info_model.instance_methods)
-
-      return if missing_userinfo_methods.empty?
-
-      raise Errors::InvalidConfiguration, "The configured user_info_class (#{configuration.user_info_class}) is missing the following required methods: #{missing_userinfo_methods.join(", ")}"
-    end
-
-    private_class_method :validate_class_overrides
 
     class Config
       class Builder
@@ -152,7 +133,9 @@ module Doorkeeper
 
       # A class that provides custom behavior for generating ID tokens.
       # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
-      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, and has the same initializer.
+      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, exposes the access token via
+      # an `#access_token` reader (public or private), and has the same initializer. The reader is what
+      # `HybridIdTokenConcern` uses to compute the `at_hash` claim in the hybrid `id_token token` flow.
       option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
 
       # A class that provides custom behavior for generating the UserInfo response.
@@ -169,11 +152,50 @@ module Doorkeeper
       end
 
       def id_token_model
-        @id_token_model ||= id_token_class.to_s.constantize
+        resolve_validated_model(:id_token, id_token_class, %i[as_json as_jws_token issuer access_token])
       end
 
       def user_info_model
-        @user_info_model ||= user_info_class.to_s.constantize
+        resolve_validated_model(:user_info, user_info_class, %i[as_json])
+      end
+
+      private
+
+      # Resolves an `id_token_class` / `user_info_class` override to its class
+      # and validates that the required methods exist (presence only, not
+      # correctness). Both happen lazily at first use rather than inside
+      # `Doorkeeper::OpenidConnect.configure`: constantizing an app-defined
+      # class while initializers run breaks zeitwerk on Rails 7+, because
+      # reloadable constants must not be referenced during boot — the same
+      # reason `open_id_request_model` constantizes lazily. The class is also
+      # deliberately not memoized, so code reloading in development never
+      # hands back a stale class; only the validation result is cached, keyed
+      # on the resolved class so a reloaded class is re-validated.
+      def resolve_validated_model(kind, class_name, required_methods)
+        # `safe_constantize` (unlike a bare `constantize` rescue) only reports
+        # nil when the configured constant itself is missing; a NameError
+        # raised while loading the class body still surfaces as-is.
+        model = class_name.to_s.safe_constantize
+        if model.nil?
+          raise Errors::InvalidConfiguration,
+                "The configured #{kind}_class (#{class_name}) does not resolve to a defined class"
+        end
+
+        @validated_models ||= {}
+        return model if @validated_models[kind] == model
+
+        missing_methods = required_methods.reject do |method|
+          model.method_defined?(method) || model.private_method_defined?(method)
+        end
+
+        unless missing_methods.empty?
+          raise Errors::InvalidConfiguration,
+                "The configured #{kind}_class (#{class_name}) is missing the following " \
+                "required methods: #{missing_methods.join(", ")}"
+        end
+
+        @validated_models[kind] = model
+        model
       end
     end
   end

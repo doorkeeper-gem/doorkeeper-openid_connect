@@ -9,7 +9,7 @@ module Doorkeeper
       # must never be silently dropped when blank.
       REQUIRED_CLAIMS = %i[iss sub aud exp iat].freeze
 
-      attr_reader :nonce
+      attr_reader :access_token, :nonce
 
       def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
         @access_token = access_token
