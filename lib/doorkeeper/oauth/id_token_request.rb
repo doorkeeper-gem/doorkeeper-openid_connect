@@ -12,11 +12,7 @@ module Doorkeeper
 
       def authorize
         @auth = Authorization::Token.new(pre_auth, resource_owner)
-        if @auth.respond_to?(:issue_token!)
-          @auth.issue_token!
-        else
-          @auth.issue_token
-        end
+        @auth.issue_token!
         response
       end
 

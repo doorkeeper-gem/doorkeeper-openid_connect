@@ -5,22 +5,13 @@ module Doorkeeper
     module OAuth
       module Authorization
         module Code
-          if Doorkeeper::OAuth::Authorization::Code.method_defined?(:issue_token!)
-            def issue_token!
-              super.tap do |access_grant|
-                create_openid_request(access_grant) if pre_auth.nonce.present?
-              end
-            end
-
-            alias issue_token issue_token!
-          else
-            # FIXME: drop this after dropping support of Doorkeeper < 5.4
-            def issue_token
-              super.tap do |access_grant|
-                create_openid_request(access_grant) if pre_auth.nonce.present?
-              end
+          def issue_token!
+            super.tap do |access_grant|
+              create_openid_request(access_grant) if pre_auth.nonce.present?
             end
           end
+
+          alias issue_token issue_token!
 
           private
 
