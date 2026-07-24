@@ -11,6 +11,10 @@
 - [#342] CI: pin `dangoslen/changelog-enforcer` to `v3.7.0` so the changelog job runs on the Node 24 build of the action. The floating `v3` tag still points at a `node20` build, which triggers GitHub's [Node 20 deprecation warning](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) on every run. Dependabot now also watches GitHub Actions versions, and PRs labeled `dependencies` or `Skip-Changelog` are exempt from changelog enforcement
 - [#346] Add specs for previously uncovered branches that are reachable on current Doorkeeper
 - [#347] Omit symmetric (`oct`) keys from the JWKS endpoint when signing with an HMAC algorithm — an HMAC JWK is the shared secret, not a verification key (RFC 7517)
+- [#348] Authorization endpoint hardening:
+  - Treat a malformed, non-scalar `max_age` parameter (e.g. `max_age[]=1`) as absent instead of returning a 500 (OIDC Core §3.1.2.1)
+  - Build the `prompt=login` / `prompt=select_account` return URL from a copy of `request.query_parameters` instead of mutating the shared, memoized hash
+  - Redirect only OAuth/OIDC protocol errors (grouped under the new `Errors::AuthorizationError`) to the client; internal errors like `Errors::InvalidConfiguration` now propagate as a 500 instead of leaking as a spurious authorization error
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
