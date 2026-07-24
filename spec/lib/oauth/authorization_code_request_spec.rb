@@ -41,6 +41,17 @@ describe Doorkeeper::OpenidConnect::OAuth::AuthorizationCodeRequest do
       expect(response.id_token.nonce).to be_nil
     end
 
+    it "attaches the ID token before the after_successful_strategy_response hook fires" do
+      id_token_at_hook_time = :hook_not_called
+      allow(Doorkeeper.config).to receive(:after_successful_strategy_response).and_return(
+        ->(_request, resp) { id_token_at_hook_time = resp.id_token },
+      )
+
+      subject.send :after_successful_response
+
+      expect(id_token_at_hook_time).to be_a Doorkeeper::OpenidConnect::IdToken
+    end
+
     context "when the access token does not include the openid scope" do
       let(:token) { create :access_token, scopes: "public" }
       let(:grant) { create :access_grant, openid_request: nil }

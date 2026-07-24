@@ -80,6 +80,12 @@ describe Doorkeeper::OAuth::IdTokenResponse do
     end
   end
 
+  describe "#issued_token" do
+    it "returns the access token issued by the authorization, for hook contexts" do
+      expect(subject.issued_token).to eq(auth.token)
+    end
+  end
+
   describe "#redirect_uri" do
     it "includes id_token and state" do
       expect(subject.redirect_uri).to include("#{pre_auth.redirect_uri}#state=#{pre_auth.state}&" \

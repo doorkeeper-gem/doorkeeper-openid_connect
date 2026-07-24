@@ -7,8 +7,6 @@ module Doorkeeper
         private
 
         def after_successful_response
-          super
-
           # The nonce was stashed on a one-time OpenidRequest row when the
           # authorization code was issued (see OAuth::Authorization::Code).
           # Read it before destroying the row so it can be bound to the ID
@@ -18,11 +16,17 @@ module Doorkeeper
           nonce = openid_request&.nonce
           openid_request&.destroy!
 
-          return unless access_token.includes_scope?("openid")
+          if access_token.includes_scope?("openid")
+            id_token = Doorkeeper::OpenidConnect.configuration.id_token_model
+                                                .new(access_token, nonce)
+            @response.id_token = id_token
+          end
 
-          id_token = Doorkeeper::OpenidConnect.configuration.id_token_model
-                                              .new(access_token, nonce)
-          @response.id_token = id_token
+          # Attach the ID token to the response *before* calling super, which
+          # fires `after_successful_strategy_response`. This matches
+          # PasswordAccessTokenRequest so a consumer's hook sees the complete
+          # token response (including `id_token`) in both flows.
+          super
         end
       end
     end
