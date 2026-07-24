@@ -43,13 +43,6 @@ module Doorkeeper
 
         private
 
-        # FIXME: remove after Doorkeeper will merge it
-        def current_resource_owner
-          return @current_resource_owner if defined?(@current_resource_owner)
-
-          super
-        end
-
         def authenticate_resource_owner!
           super.tap do |owner|
             next unless oidc_authorization_request? ||
