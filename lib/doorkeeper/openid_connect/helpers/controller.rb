@@ -91,7 +91,9 @@ module Doorkeeper
         def clear_oidc_response
           self.response_body = nil
 
-          # FIXME: workaround for Rails 5, see https://github.com/rails/rails/issues/25106
+          # Setting `response_body` to nil only resets the response object's
+          # body and leaves `@_response_body` assigned, so `performed?` would
+          # still return true (rails/rails#25106, still present in Rails 8).
           @_response_body = nil
         end
       end
