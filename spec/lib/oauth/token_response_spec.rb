@@ -75,5 +75,16 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
         expect(subject.body).not_to include :id_token
       end
     end
+
+    context "with the openid scope present but no application" do
+      let(:token) { create :access_token, application: nil, scopes: "openid email" }
+      # See above: keep the outer `before` from eagerly building an IdToken.
+      let(:id_token) { nil }
+
+      it "does not build an ID token (whose required aud claim would be missing) and does not raise" do
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+        expect(subject.body).not_to include :id_token
+      end
+    end
   end
 end

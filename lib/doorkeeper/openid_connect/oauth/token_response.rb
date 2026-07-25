@@ -20,6 +20,11 @@ module Doorkeeper
           # here would dereference a nil owner in `sub` / the claim generators
           # and raise (500). The request-built flows (auth code / password /
           # implicit) always set `id_token` and always have an owner.
+          #
+          # Likewise for a token with no application (e.g. a password grant
+          # with client authentication skipped): `aud` is a REQUIRED claim
+          # sourced from the application's uid, so building an ID Token would
+          # raise MissingRequiredClaim (500) instead of serializing.
           id_token = self.id_token
           id_token ||= build_id_token_for(token)
           return super if id_token.nil?
@@ -32,7 +37,7 @@ module Doorkeeper
         private
 
         def build_id_token_for(token)
-          return if token.resource_owner_id.blank?
+          return if token.resource_owner_id.blank? || token.application.blank?
 
           Doorkeeper::OpenidConnect.configuration.id_token_model.new(token)
         end

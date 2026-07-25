@@ -18,6 +18,8 @@
 - [#349] Claims pipeline fixes:
   - Dispatch claims whose `response:` option is configured with strings (e.g. `response: ["id_token"]`) instead of silently dropping them
   - Omit `id_token` from the token response when the access token has no resource owner (e.g. a `client_credentials` grant with the `openid` scope) instead of returning a 500
+  - Likewise omit `id_token` when the access token has no application, since the REQUIRED `aud` claim cannot be sourced (previously a 500 via `MissingRequiredClaim`)
+  - Answer userinfo requests whose token no longer resolves to a resource owner (`client_credentials` tokens with the `openid` scope, owners deleted after issuance) with RFC 6750's `401 invalid_token` instead of a 500
   - Resolve the access token's resource owner once per UserInfo / ID Token response instead of twice
 - [#350] Discovery / Dynamic Client Registration spec compliance fixes:
   - Advertise and accept the standard `implicit` grant type instead of doorkeeper's internal `implicit_oidc` name (RFC 7591 §2)

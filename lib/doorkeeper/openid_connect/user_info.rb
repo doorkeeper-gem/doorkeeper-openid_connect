@@ -24,14 +24,17 @@ module Doorkeeper
         claims.reject { |_, value| value.nil? || value == "" }
       end
 
+      # Public so callers (e.g. the userinfo endpoint) can check whether the
+      # token still resolves to an end user before generating claims; the
+      # memoization keeps that check and the claim generation to one lookup.
+      def resource_owner
+        @resource_owner ||= Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(@access_token)
+      end
+
       private
 
       def subject
         Doorkeeper::OpenidConnect.configuration.subject.call(resource_owner, application).to_s
-      end
-
-      def resource_owner
-        @resource_owner ||= Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(@access_token)
       end
 
       def application
