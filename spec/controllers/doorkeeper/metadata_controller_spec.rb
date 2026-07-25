@@ -79,6 +79,15 @@ if Doorkeeper::OAuth.const_defined?(:MetadataResponse)
         # the route (and its URL helper) absent.
         Rails.application.reload_routes!
 
+        # `reload_routes!` can defer the actual redraw until the first routing
+        # access (Rails' lazy route loading), which would otherwise happen
+        # inside `get :show` — after the configure block below has enabled
+        # dynamic_client_registration, drawing the very route this example
+        # needs absent. Recognizing a path forces the redraw now and asserts
+        # the premise, making the example deterministic across run orders.
+        expect { Rails.application.routes.recognize_path("/oauth/registration", method: :post) }
+          .to raise_error(ActionController::RoutingError)
+
         Doorkeeper::OpenidConnect.configure do
           issuer "dummy"
           dynamic_client_registration true
