@@ -9,7 +9,10 @@ module Doorkeeper
       # must never be silently dropped when blank.
       REQUIRED_CLAIMS = %i[iss sub aud exp iat].freeze
 
-      attr_reader :nonce
+      # `resource_owner` is exposed so callers can detect a token whose owner no
+      # longer resolves (e.g. deleted after issuance) before serializing — the
+      # `sub` claim would otherwise dereference a nil owner and raise.
+      attr_reader :nonce, :resource_owner
 
       def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
         @access_token = access_token

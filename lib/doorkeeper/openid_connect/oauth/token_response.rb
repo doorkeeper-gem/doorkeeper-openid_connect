@@ -39,7 +39,15 @@ module Doorkeeper
         def build_id_token_for(token)
           return if token.resource_owner_id.blank? || token.application.blank?
 
-          Doorkeeper::OpenidConnect.configuration.id_token_model.new(token)
+          id_token = Doorkeeper::OpenidConnect.configuration.id_token_model.new(token)
+
+          # `resource_owner_id` can be present while `resource_owner_from_access_token`
+          # still resolves to nil — e.g. the end user was deleted after the token
+          # was issued. Serializing the ID Token would then dereference a nil owner
+          # in `sub` and raise (500), so skip issuance, matching the owner-less case.
+          return if id_token.respond_to?(:resource_owner) && id_token.resource_owner.nil?
+
+          id_token
         end
       end
     end

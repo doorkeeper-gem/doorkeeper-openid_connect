@@ -86,5 +86,20 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
         expect(subject.body).not_to include :id_token
       end
     end
+
+    context "with the openid scope present but the resource owner deleted after issuance" do
+      let(:user) { create :user }
+      let(:token) { create :access_token, resource_owner_id: user.id, scopes: "openid email" }
+      # The token still carries resource_owner_id, so the ID Token is built and
+      # then discarded once its owner fails to resolve — hence no `not_to
+      # receive(:new)` expectation here.
+      let(:id_token) { nil }
+
+      it "does not emit an ID token and does not raise when the owner no longer resolves" do
+        user.destroy!
+
+        expect(subject.body).not_to include :id_token
+      end
+    end
   end
 end
