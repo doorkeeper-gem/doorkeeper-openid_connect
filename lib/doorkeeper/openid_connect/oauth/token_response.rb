@@ -18,13 +18,19 @@ module Doorkeeper
           # happens to carry the openid scope — has no end user, so no ID Token
           # is issued. An ID Token's `sub` identifies the end user; building one
           # here would dereference a nil owner in `sub` / the claim generators
-          # and raise (500). The request-built flows (auth code / password /
-          # implicit) always set `id_token` and always have an owner.
+          # and raise (500). The preset flows (auth code / password) are left
+          # unguarded on purpose: their success responses REQUIRE `id_token`
+          # (OIDC Core §3.1.3.3), so omitting it would be non-conformant, and
+          # they only lack an owner or application in degenerate cases (owner
+          # deleted between authorization and exchange, or a password grant
+          # with client authentication skipped) — those keep surfacing as
+          # errors rather than a silently missing REQUIRED claim.
           #
-          # Likewise for a token with no application (e.g. a password grant
-          # with client authentication skipped): `aud` is a REQUIRED claim
-          # sourced from the application's uid, so building an ID Token would
-          # raise MissingRequiredClaim (500) instead of serializing.
+          # Likewise for a token with no application (e.g. refreshing a token
+          # issued by a password grant with client authentication skipped):
+          # `aud` is a REQUIRED claim sourced from the application's uid, so
+          # building an ID Token would raise MissingRequiredClaim (500)
+          # instead of serializing.
           id_token = self.id_token
           id_token ||= build_id_token_for(token)
           return super if id_token.nil?
