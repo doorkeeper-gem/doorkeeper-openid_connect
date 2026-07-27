@@ -26,6 +26,7 @@
   - Define `#issued_token` on `IdTokenResponse` / `IdTokenTokenResponse`, so `after_successful_authorization` hooks can read `context.issued_token` without raising
   - Attach the ID token before the `after_successful_strategy_response` hook fires in the authorization-code flow, matching the password flow
 - [#354] Remove stale TODO/FIXME markers and the Doorkeeper < 5.5 bridging code behind them, made obsolete by the `doorkeeper >= 5.5` requirement. No behavior change; see the individual commits for details
+- [#355] Compute the hybrid `id_token token` flow's `at_hash` claim from the plaintext access token instead of the stored value, so ID Token validation by conforming clients succeeds when `hash_token_secrets` is enabled — completing the response-side alignment from [#351]
 - Add entry here
 
 ## v1.10.5 (2026-07-09)

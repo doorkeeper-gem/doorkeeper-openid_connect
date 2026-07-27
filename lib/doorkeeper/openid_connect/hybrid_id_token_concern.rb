@@ -24,7 +24,11 @@ module Doorkeeper
       #   access_token value with SHA-256, then take the left-most 128 bits and
       #   base64url-encode them. The at_hash value is a case-sensitive string.
       def at_hash
-        hashed_token = at_hash_digest.digest(@access_token.token)
+        # `plaintext_token`, not `token`: with a hashing token-secret
+        # strategy (`hash_token_secrets`) the stored `token` is a digest,
+        # while the client receives the plaintext value, so at_hash must
+        # be computed over the same octets the client will hash.
+        hashed_token = at_hash_digest.digest(@access_token.plaintext_token)
         first_half = hashed_token[0...hashed_token.length / 2]
         Base64.urlsafe_encode64(first_half).tr("=", "")
       end

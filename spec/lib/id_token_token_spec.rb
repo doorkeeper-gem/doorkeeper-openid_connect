@@ -81,5 +81,15 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
         expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
       end
     end
+
+    context "when token secrets are stored hashed (hash_token_secrets)" do
+      before do
+        allow(access_token).to receive_messages(plaintext_token: token_value, token: "hashed-#{token_value}")
+      end
+
+      it "computes at_hash over the plaintext token the client receives, not the stored digest" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
+      end
+    end
   end
 end
