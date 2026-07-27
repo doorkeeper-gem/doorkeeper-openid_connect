@@ -40,7 +40,6 @@ module Doorkeeper
 
           scopes_supported: doorkeeper.scopes,
 
-          # TODO: support id_token response type
           response_types_supported: doorkeeper.authorization_response_types,
           response_modes_supported: response_modes_supported(doorkeeper),
           grant_types_supported: grant_types_supported(doorkeeper),
