@@ -15,6 +15,12 @@
   - Treat a malformed, non-scalar `max_age` parameter (e.g. `max_age[]=1`) as absent instead of returning a 500 (OIDC Core §3.1.2.1)
   - Build the `prompt=login` / `prompt=select_account` return URL from a copy of `request.query_parameters` instead of mutating the shared, memoized hash
   - Redirect only OAuth/OIDC protocol errors (grouped under the new `Errors::AuthorizationError`) to the client; internal errors like `Errors::InvalidConfiguration` now propagate as a 500 instead of leaking as a spurious authorization error
+- [#350] Discovery / Dynamic Client Registration spec compliance fixes:
+  - Advertise and accept the standard `implicit` grant type instead of doorkeeper's internal `implicit_oidc` name (RFC 7591 §2)
+  - **Breaking:** omitted `response_types` / `grant_types` in a registration request now default to `["code"]` / `["authorization_code"]` per RFC 7591 §2, instead of echoing every type the server supports
+  - Replace the invented `invalid_client_params` DCR error code with RFC 7591 §3.2.2's `invalid_redirect_uri` / `invalid_client_metadata`
+  - Serve WebFinger responses as `application/jrd+json` with `Access-Control-Allow-Origin: *` (RFC 7033)
+  - Create dynamically registered clients through `Doorkeeper.configuration.application_model` so custom application models work with DCR
 - [#351] Align the OpenID Connect token/authorization responses with doorkeeper's core response contract:
   - Return the plaintext access token from the `id_token token` implicit response, so it stays usable when `hash_token_secrets` is enabled
   - Define `#issued_token` on `IdTokenResponse` / `IdTokenTokenResponse`, so `after_successful_authorization` hooks can read `context.issued_token` without raising
