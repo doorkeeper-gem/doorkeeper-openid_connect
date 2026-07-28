@@ -37,6 +37,7 @@
 - [#354] Remove stale TODO/FIXME markers and the Doorkeeper < 5.5 bridging code behind them, made obsolete by the `doorkeeper >= 5.5` requirement. No behavior change; see the individual commits for details
 - [#355] Compute the hybrid `id_token token` flow's `at_hash` claim from the plaintext access token instead of the stored value, so ID Token validation by conforming clients succeeds when `hash_token_secrets` is enabled — completing the response-side alignment from [#351]
 - [#356] Fix a boot failure on Doorkeeper < 6.0 in applications that define a top-level `MetadataResponse` constant. The Doorkeeper 6.0 capability probe introduced in [#353] used `const_defined?` with its default `inherit: true`, which continues the lookup into `Object` — and reports true for a constant Zeitwerk has merely registered for autoloading — so a host application's own unrelated class made the gem take the 6.0 branch and raise `NameError: uninitialized constant Doorkeeper::MetadataController` from the engine's `to_prepare`. The probe now lives in one place as `Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?` and is asked with `inherit: false`, instead of being repeated at each branch. [#353] has not shipped in a release, so no released version is affected
+- [#358] Internal: merge `CHANGELOG.md` with git's `union` driver, so two pull requests that each add an entry no longer conflict on the line above "Add entry here"
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
