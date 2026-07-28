@@ -61,6 +61,31 @@ describe Doorkeeper::OpenidConnect::UserinfoController, type: :controller do
       end
     end
 
+    context "with a valid openid token that has no resource owner (e.g. client_credentials)" do
+      let(:token) { create :access_token, application: client, resource_owner_id: nil, scopes: "openid" }
+
+      it "returns 401 invalid_token instead of a 500" do
+        get :show, params: { access_token: token.token }
+
+        expect(response.status).to eq 401
+        expect(JSON.parse(response.body)["error"]).to eq "invalid_token"
+        expect(response.headers["WWW-Authenticate"]).to include "Bearer"
+      end
+    end
+
+    context "with a valid openid token whose resource owner was deleted after issuance" do
+      let(:token) { create :access_token, application: client, resource_owner_id: user.id, scopes: "openid" }
+
+      it "returns 401 invalid_token instead of a 500" do
+        user.destroy!
+
+        get :show, params: { access_token: token.token }
+
+        expect(response.status).to eq 401
+        expect(JSON.parse(response.body)["error"]).to eq "invalid_token"
+      end
+    end
+
     context "with a valid access token not authorized for the openid scope" do
       it "returns an error" do
         get :show, params: { access_token: token.token }

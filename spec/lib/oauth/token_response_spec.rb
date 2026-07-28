@@ -62,5 +62,44 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
         expect(subject.body).not_to include :id_token
       end
     end
+
+    context "with the openid scope present but no resource owner (e.g. client_credentials)" do
+      let(:token) { create :access_token, resource_owner_id: nil, scopes: "openid email" }
+      # Override so the outer `before { subject.id_token = id_token }` assigns
+      # nil instead of eagerly instantiating an IdToken, which would defeat the
+      # `not_to receive(:new)` expectation below.
+      let(:id_token) { nil }
+
+      it "does not build an ID token and does not raise" do
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+        expect(subject.body).not_to include :id_token
+      end
+    end
+
+    context "with the openid scope present but no application" do
+      let(:token) { create :access_token, application: nil, scopes: "openid email" }
+      # See above: keep the outer `before` from eagerly building an IdToken.
+      let(:id_token) { nil }
+
+      it "does not build an ID token (whose required aud claim would be missing) and does not raise" do
+        expect(Doorkeeper::OpenidConnect::IdToken).not_to receive(:new)
+        expect(subject.body).not_to include :id_token
+      end
+    end
+
+    context "with the openid scope present but the resource owner deleted after issuance" do
+      let(:user) { create :user }
+      let(:token) { create :access_token, resource_owner_id: user.id, scopes: "openid email" }
+      # The token still carries resource_owner_id, so the ID Token is built and
+      # then discarded once its owner fails to resolve — hence no `not_to
+      # receive(:new)` expectation here.
+      let(:id_token) { nil }
+
+      it "does not emit an ID token and does not raise when the owner no longer resolves" do
+        user.destroy!
+
+        expect(subject.body).not_to include :id_token
+      end
+    end
   end
 end
