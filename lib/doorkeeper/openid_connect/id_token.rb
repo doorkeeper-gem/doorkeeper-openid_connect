@@ -12,7 +12,9 @@ module Doorkeeper
       # `resource_owner` is exposed so callers can detect a token whose owner no
       # longer resolves (e.g. deleted after issuance) before serializing — the
       # `sub` claim would otherwise dereference a nil owner and raise.
-      attr_reader :nonce, :resource_owner
+      # `access_token` is the reader HybridIdTokenConcern relies on to compute
+      # `at_hash`; a custom id_token_class must expose one as well.
+      attr_reader :access_token, :nonce, :resource_owner
 
       def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
         @access_token = access_token

@@ -21,41 +21,103 @@ describe Doorkeeper::OpenidConnect, "configuration" do
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
     end
 
-    it "fails validation if id_token doesn't implement required methods" do
-      stub_const("CustomIdToken", Class.new)
-
+    it "does not constantize id_token_class or user_info_class during configure" do
+      # Constantizing app classes while initializers run breaks zeitwerk, so
+      # resolution and validation must wait until first use.
       expect do
         described_class.configure do
-          id_token_class "CustomIdToken"
-        end
-      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                         "The configured id_token_class (CustomIdToken) is missing the following " \
-                         "required methods: as_jws_token, issuer"
-    end
-
-    it "fails validation if user_info doesn't implement required methods" do
-      # NOTE: Since ActiveSupport already puts `#as_json` on `Object`, this test really doesn't do
-      # much. It's still good for semantic correctness, I guess?
-
-      expect do
-        described_class.configure do
-          user_info_class "Object"
+          id_token_class "ClassThatIsNotDefinedYet"
+          user_info_class "AnotherClassThatIsNotDefinedYet"
         end
       end.not_to raise_error
     end
 
-    it "fails validation if user_info is missing as_json" do
+    it "fails at first use if id_token_class does not resolve to a defined class" do
+      described_class.configure do
+        id_token_class "ClassThatIsNotDefinedYet"
+      end
+
+      expect do
+        subject.id_token_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured id_token_class (ClassThatIsNotDefinedYet) does not " \
+                         "resolve to a defined class"
+    end
+
+    it "fails at first use if user_info_class does not resolve to a defined class" do
+      described_class.configure do
+        user_info_class "AnotherClassThatIsNotDefinedYet"
+      end
+
+      expect do
+        subject.user_info_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured user_info_class (AnotherClassThatIsNotDefinedYet) does " \
+                         "not resolve to a defined class"
+    end
+
+    it "fails validation at first use if id_token doesn't implement required methods" do
+      stub_const("CustomIdToken", Class.new)
+
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      expect do
+        subject.id_token_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured id_token_class (CustomIdToken) is missing the following " \
+                         "required methods: as_jws_token, issuer, access_token"
+    end
+
+    it "fails validation at first use if user_info doesn't implement required methods" do
+      # BasicObject is the only class that escapes ActiveSupport's Object#as_json.
+      described_class.configure do
+        user_info_class "BasicObject"
+      end
+
+      expect do
+        subject.user_info_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured user_info_class (BasicObject) is missing the following " \
+                         "required methods: as_json"
+    end
+
+    it "fails validation at first use if user_info is missing as_json" do
       # ActiveSupport defines `#as_json` on Object, so the method has to be
       # undefined explicitly to model a class that does not fulfill the contract.
       stub_const("CustomUserInfo", Class.new { undef_method :as_json })
 
+      described_class.configure do
+        user_info_class "CustomUserInfo"
+      end
+
       expect do
-        described_class.configure do
-          user_info_class "CustomUserInfo"
-        end
+        subject.user_info_model
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
                          "The configured user_info_class (CustomUserInfo) is missing the following " \
                          "required methods: as_json"
+    end
+
+    it "accepts required methods implemented as private" do
+      private_id_token = Class.new do
+        private
+
+        attr_reader :access_token
+
+        def as_json(*); end
+
+        def as_jws_token; end
+
+        def issuer; end
+      end
+      stub_const("PrivateIdToken", private_id_token)
+
+      described_class.configure do
+        id_token_class "PrivateIdToken"
+      end
+
+      expect { subject.id_token_model }.not_to raise_error
     end
   end
 
@@ -288,6 +350,20 @@ describe Doorkeeper::OpenidConnect, "configuration" do
       end
 
       expect(subject.id_token_model).to eq(CustomIdToken)
+    end
+
+    it "does not memoize the resolved class, so code reloading picks up the new class" do
+      described_class.configure do
+        id_token_class "CustomIdToken"
+      end
+
+      original = Class.new(Doorkeeper::OpenidConnect::IdToken)
+      stub_const("CustomIdToken", original)
+      expect(subject.id_token_model).to eq(original)
+
+      reloaded = Class.new(Doorkeeper::OpenidConnect::IdToken)
+      stub_const("CustomIdToken", reloaded)
+      expect(subject.id_token_model).to eq(reloaded)
     end
   end
 

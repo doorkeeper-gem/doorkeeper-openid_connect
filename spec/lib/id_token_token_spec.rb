@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "stringio"
+
+# The first reference to the autoloaded constant fires the deprecation warning
+# in the class body; swallow it here to keep the suite output clean. The
+# warning itself is asserted below by re-loading the file.
+begin
+  original_stderr = $stderr
+  $stderr = StringIO.new
+  Doorkeeper::OpenidConnect::IdTokenToken
+ensure
+  $stderr = original_stderr
+end
 
 describe Doorkeeper::OpenidConnect::IdTokenToken do
   subject { described_class.new(access_token, nonce) }
@@ -11,6 +23,14 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
 
   before do
     allow(Time).to receive(:now) { Time.zone.at 60 }
+  end
+
+  it "warns about its deprecation when the class body is executed" do
+    # `load` re-executes the class body, which re-fires the warning emitted on
+    # the first (autoloaded) reference regardless of spec load order.
+    expect do
+      load "doorkeeper/openid_connect/id_token_token.rb"
+    end.to output(/DEPRECATION WARNING: Doorkeeper::OpenidConnect::IdTokenToken is deprecated/).to_stderr
   end
 
   describe "#claims" do
