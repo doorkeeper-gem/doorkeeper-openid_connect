@@ -13,7 +13,7 @@ module Doorkeeper
         # Doorkeeper >= 6.0 serves its own RFC 8414 metadata document at
         # /.well-known/oauth-authorization-server; enrich it with the OpenID
         # Connect metadata (see MetadataExtension).
-        if Doorkeeper::OAuth.const_defined?(:MetadataResponse)
+        if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
           Doorkeeper::MetadataController.prepend Doorkeeper::OpenidConnect::MetadataExtension
         end
       end

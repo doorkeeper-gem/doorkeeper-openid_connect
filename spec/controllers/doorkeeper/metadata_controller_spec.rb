@@ -4,8 +4,10 @@ require "rails_helper"
 
 # Doorkeeper's RFC 8414 metadata endpoint only exists on Doorkeeper >= 6.0;
 # MetadataExtension (prepended by the engine) enriches it with the OpenID
-# Connect metadata so it agrees with the gem's own discovery document.
-if Doorkeeper::OAuth.const_defined?(:MetadataResponse)
+# Connect metadata so it agrees with the gem's own discovery document. Guarded
+# through the same predicate the engine uses, so this file cannot start
+# referencing Doorkeeper::MetadataController on a version that lacks it.
+if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
   describe Doorkeeper::MetadataController, type: :controller do
     describe "#show" do
       it "enriches the document with the OpenID Connect metadata" do

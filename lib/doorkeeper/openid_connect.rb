@@ -39,9 +39,33 @@ require "doorkeeper/openid_connect/oauth/password_access_token_request"
 require "doorkeeper/openid_connect/oauth/pre_authorization"
 require "doorkeeper/openid_connect/oauth/token_response"
 
+# Defined here rather than in the module body below because the conditional
+# require that follows already branches on it.
+module Doorkeeper
+  module OpenidConnect
+    # Whether the host Doorkeeper serves its own RFC 8414 Authorization Server
+    # Metadata document (Doorkeeper >= 6.0), which this gem enriches with the
+    # OpenID Connect metadata instead of serving that path itself.
+    #
+    # `inherit: false` is load-bearing, not cosmetic. With `const_defined?`'s
+    # default the lookup continues into Object, so any top-level
+    # `MetadataResponse` in the host application answers for Doorkeeper's —
+    # including one that is merely registered as a Zeitwerk autoload, since
+    # `const_defined?` is true for a pending autoload. The `::` operator that
+    # the callers then use to reach `Doorkeeper::OAuth::MetadataResponse` and
+    # `Doorkeeper::MetadataController` does not fall back to Object, so a false
+    # positive surfaces as a NameError while this file loads and again in the
+    # engine's `to_prepare` block — leaving a Doorkeeper 5.x application unable
+    # to boot.
+    def self.doorkeeper_metadata_endpoint?
+      ::Doorkeeper::OAuth.const_defined?(:MetadataResponse, false)
+    end
+  end
+end
+
 # Doorkeeper >= 6.0 ships an RFC 8414 metadata endpoint; the response subclass
 # that enriches it with OIDC metadata only exists when its parent class does.
-if Doorkeeper::OAuth.const_defined?(:MetadataResponse)
+if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
   require "doorkeeper/openid_connect/oauth/metadata_response"
 end
 
