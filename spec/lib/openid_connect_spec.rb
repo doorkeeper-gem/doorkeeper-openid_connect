@@ -643,4 +643,33 @@ describe Doorkeeper::OpenidConnect do
       end
     end
   end
+
+  describe ".doorkeeper_metadata_endpoint?" do
+    # The predicate decides whether the gem loads its RFC 8414 response subclass
+    # and prepends MetadataExtension onto Doorkeeper::MetadataController, both of
+    # which reach their constants with `::` — which does not fall back to Object.
+    # So the predicate must not answer for a constant that only exists at the top
+    # level of the host application.
+
+    # `defined?` resolves the scoped path exactly as the callers' `::` does —
+    # neither falls back to Object — so this is an independent statement of what
+    # the predicate has to agree with.
+    def metadata_response_reachable?
+      !defined?(Doorkeeper::OAuth::MetadataResponse).nil?
+    end
+
+    it "reports whether Doorkeeper's own MetadataResponse is reachable" do
+      expect(subject.doorkeeper_metadata_endpoint?).to eq(metadata_response_reachable?)
+    end
+
+    it "ignores a host application's own top-level MetadataResponse" do
+      # A plausible name in any app that serves metadata of its own, and Zeitwerk
+      # only has to *register* it: `const_defined?` is true for a pending
+      # autoload. With the default `inherit: true` this made Doorkeeper 5.x take
+      # the 6.0 branch and fail to boot on `Doorkeeper::MetadataController`.
+      stub_const("MetadataResponse", Class.new)
+
+      expect(subject.doorkeeper_metadata_endpoint?).to eq(metadata_response_reachable?)
+    end
+  end
 end
