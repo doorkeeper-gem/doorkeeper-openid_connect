@@ -4,6 +4,42 @@ require "doorkeeper"
 require "active_model"
 require "jwt"
 
+# Constants this gem owns that nothing needs while the gem itself loads, wired
+# the way `lib/doorkeeper.rb` wires Doorkeeper's own.
+#
+# The rule for what belongs here: the file defines the constant it is named
+# after, and does nothing else. An autoload only ever fires on a reference to
+# that one constant, so a file that also defines methods on an already-loaded
+# module, or reopens one of Doorkeeper's classes, would have its side effects
+# silently skipped — those are required below instead.
+#
+# This block has to come before the requires: `config.rb` reaches for
+# `ClaimsBuilder` while its class body runs.
+module Doorkeeper
+  module OpenidConnect
+    autoload :ClaimsBuilder, "doorkeeper/openid_connect/claims_builder"
+    autoload :DiscoveryHelpersMixin, "doorkeeper/openid_connect/discovery_helpers_mixin"
+    autoload :Errors, "doorkeeper/openid_connect/errors"
+    autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
+    autoload :HybridIdTokenConcern, "doorkeeper/openid_connect/hybrid_id_token_concern"
+    autoload :IdToken, "doorkeeper/openid_connect/id_token"
+    autoload :TokenEndpointAuthMethodsSupportedMixin,
+             "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
+    autoload :UserInfo, "doorkeeper/openid_connect/user_info"
+    autoload :VERSION, "doorkeeper/openid_connect/version"
+
+    module Claims
+      autoload :Claim, "doorkeeper/openid_connect/claims/claim"
+      autoload :NormalClaim, "doorkeeper/openid_connect/claims/normal_claim"
+    end
+
+    module OAuth
+      autoload :DynamicRegistrationRequest,
+               "doorkeeper/openid_connect/oauth/dynamic_registration_request"
+    end
+  end
+end
+
 require "doorkeeper/request"
 require "doorkeeper/request/id_token"
 require "doorkeeper/request/id_token_token"
@@ -12,26 +48,29 @@ require "doorkeeper/oauth/id_token_token_request"
 require "doorkeeper/oauth/id_token_response"
 require "doorkeeper/oauth/id_token_token_response"
 
-require "doorkeeper/openid_connect/claims_builder"
-require "doorkeeper/openid_connect/claims/claim"
-require "doorkeeper/openid_connect/claims/normal_claim"
+# Not autoloadable: besides the `Config` class, `config.rb` defines
+# `Doorkeeper::OpenidConnect.configure`, `.configuration` and `.configured?` on
+# the module itself. An autoload for `Config` would not fire for any of those,
+# leaving `.configure` undefined until something happened to touch `Config`
+# first — and calling `.configure` from an initializer is the very first thing
+# a host application does.
 require "doorkeeper/openid_connect/config"
-require "doorkeeper/openid_connect/engine"
-require "doorkeeper/openid_connect/errors"
-require "doorkeeper/openid_connect/id_token"
-require "doorkeeper/openid_connect/hybrid_id_token_concern"
-require "doorkeeper/openid_connect/user_info"
-require "doorkeeper/openid_connect/version"
 
+# Not autoloadable: Rails collects `Rails::Engine` subclasses as they are
+# defined, so the engine has to exist by the time the gem finishes loading.
+require "doorkeeper/openid_connect/engine"
+
+# Not autoloadable: the file ends by prepending its module onto Doorkeeper's
+# own `Helpers::Controller`, and nothing in the gem ever names
+# `OpenidConnect::Helpers::Controller` — the controllers reach the behavior
+# through Doorkeeper's constant. There would be no reference left to trigger
+# the autoload, so the prepend would simply never happen.
 require "doorkeeper/openid_connect/helpers/controller"
 
-require "doorkeeper/openid_connect/discovery_helpers_mixin"
-require "doorkeeper/openid_connect/grant_types_supported_mixin"
-require "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
-
+# Not autoloadable, for the same reason: each of these ends by prepending its
+# module onto the Doorkeeper class it extends, and nothing names the module.
 require "doorkeeper/openid_connect/oauth/authorization/code"
 require "doorkeeper/openid_connect/oauth/authorization_code_request"
-require "doorkeeper/openid_connect/oauth/dynamic_registration_request"
 require "doorkeeper/openid_connect/oauth/password_access_token_request"
 require "doorkeeper/openid_connect/oauth/pre_authorization"
 require "doorkeeper/openid_connect/oauth/token_response"
