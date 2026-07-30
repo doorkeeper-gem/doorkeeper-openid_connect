@@ -1,0 +1,81 @@
+name: Eager load
+
+# `labeled` is not one of the default pull_request event types, so it has to
+# be spelled out for the `eager-load-check` label to start a run.
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect autoload-affecting changes
+    runs-on: ubuntu-latest
+    if: |
+      !(   contains(github.event.pull_request.title,  '[ci skip]')
+        || contains(github.event.pull_request.title,  '[skip ci]'))
+    outputs:
+      run: ${{ steps.detect.outputs.run }}
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v7
+        with:
+          # The detection below diffs against the pull request's base commit,
+          # which the default shallow clone does not contain.
+          fetch-depth: 0
+
+      - name: Decide whether the eager-load check has to run
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          LABELLED: ${{ contains(github.event.pull_request.labels.*.name, 'eager-load-check') }}
+        run: .github/scripts/eager-load-needed.sh
+
+  eager-load:
+    name: >-
+      Ruby ${{ matrix.ruby }} (${{ matrix.gemfile }})
+    needs: detect
+    if: needs.detect.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Every combination here is one the main CI matrix already runs, so a
+        # failure is never an artefact of an untested pairing.
+        #
+        # What decides whether a file gets loaded is the Doorkeeper version —
+        # the conditional `metadata_response` require and the classes this gem
+        # reopens both move across the 5.5 → 6.0 range — so all five supported
+        # series are covered. Rails only contributes the Zeitwerk generation,
+        # so its oldest and newest supported releases are enough, and a single
+        # Ruby keeps the cost at seven boots.
+        ruby: ["3.4"]
+        gemfile:
+          - gemfiles/rails_7.0.gemfile
+          - gemfiles/rails_8.0.gemfile
+          - gemfiles/doorkeeper_5.5.gemfile
+          - gemfiles/doorkeeper_5.6.gemfile
+          - gemfiles/doorkeeper_5.7.gemfile
+          - gemfiles/doorkeeper_6.0.gemfile
+          - gemfiles/doorkeeper_master.gemfile
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Force every autoload
+        timeout-minutes: 5
+        run: bundle exec rake eager_load
