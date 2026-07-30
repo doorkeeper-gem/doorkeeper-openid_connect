@@ -9,6 +9,16 @@ require "rails_helper"
 # referencing Doorkeeper::MetadataController on a version that lacks it.
 if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
   describe Doorkeeper::MetadataController, type: :controller do
+    # Restore the routes mutated by the registration_endpoint examples so no
+    # drawn route leaks into the rest of the suite. The configuration has to
+    # be restored first: this hook runs before the config-level reset in
+    # rails_helper, and reloading the routes while dynamic_client_registration
+    # is still enabled would redraw the very route being cleaned up.
+    after do
+      load Rails.root.join("config/initializers/doorkeeper_openid_connect.rb")
+      Rails.application.reload_routes!
+    end
+
     describe "#show" do
       it "enriches the document with the OpenID Connect metadata" do
         get :show
@@ -73,6 +83,47 @@ if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
         expect(data["issuer"]).to eq "http://test.host"
         expect(data["userinfo_endpoint"]).to be_nil
         expect(data).not_to have_key("jwks_uri")
+      end
+
+      it "advertises the registration_endpoint when dynamic client registration is enabled and its route is drawn" do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          dynamic_client_registration true
+        end
+
+        Rails.application.reload_routes!
+
+        # Force Rails' lazy route loading to redraw now, so the route the
+        # option enables is present before the request. Doubles as the
+        # premise assertion, mirroring the example below where the same
+        # helper is required to be absent.
+        expect(Rails.application.routes.recognize_path("/oauth/registration", method: :post))
+          .to include(controller: "doorkeeper/openid_connect/dynamic_client_registration")
+
+        get :show
+
+        expect(response).to have_http_status(:ok)
+
+        data = JSON.parse(response.body)
+
+        expect(data["registration_endpoint"]).to eq "http://test.host/oauth/registration"
+      end
+
+      it "advertises the configured end_session_endpoint, evaluated in the controller's context" do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          end_session_endpoint -> { logout_url }
+        end
+
+        def controller.logout_url
+          "http://test.host/logout"
+        end
+
+        get :show
+
+        data = JSON.parse(response.body)
+
+        expect(data["end_session_endpoint"]).to eq "http://test.host/logout"
       end
 
       it "omits the registration_endpoint when dynamic client registration is enabled but its route is not drawn" do
