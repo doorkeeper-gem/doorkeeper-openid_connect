@@ -12,7 +12,12 @@ Rails.application.configure do
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
   # preloads Rails for running tests, you may have to set it to true.
-  config.eager_load = false
+  #
+  # `bin/eager-load-check` (see `rake eager_load`) opts in, because eager
+  # loading is the only thing that turns a broken `autoload` declaration in
+  # the gem into a boot failure rather than a NameError in some host
+  # application's first request.
+  config.eager_load = ENV["EAGER_LOAD"] == "true"
 
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
