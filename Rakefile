@@ -8,6 +8,11 @@ RSpec::Core::RakeTask.new
 task default: :spec
 task test: :spec
 
+desc "Boot the test application with eager loading and force every autoload"
+task :eager_load do
+  ruby "bin/eager-load-check"
+end
+
 desc "Generate and run migrations in the test application"
 task :migrate do
   ENV["RAILS_ENV"] ||= "test"

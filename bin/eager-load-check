@@ -1,0 +1,150 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Eager-load check for the gem's own constants.
+#
+# `require` fails at boot, where CI sees it. `autoload` fails at the first
+# reference to the constant, which in a host application means a NameError on
+# some request long after the release went out. This script closes that gap so
+# that `lib/doorkeeper/openid_connect.rb` can move from `require` to `autoload`
+# without giving up the boot-time safety net.
+#
+# It boots the dummy application with `config.eager_load = true`, forces every
+# autoload this gem registers, and then asserts that every file under `lib/`
+# really was loaded. That covers the three ways an autoload declaration goes
+# wrong:
+#
+#   1. wrong target path      -> LoadError while forcing the constant
+#   2. wrong constant name    -> NameError while forcing the constant
+#   3. a dropped `require`    -> the file is reported as never loaded
+#      with no autoload to replace it
+#
+# Case 3 is the one that matters most for the files that reopen Doorkeeper's
+# own classes: they are loaded for their side effects, so nothing would ever
+# reference a constant that could trigger an autoload, and the extension would
+# silently stop being applied.
+#
+# Usage: bundle exec rake eager_load
+
+class EagerLoadCheck
+  GEM_ROOT = File.expand_path("..", __dir__)
+  LIB_DIR = File.join(GEM_ROOT, "lib")
+
+  # Files under `lib/` that legitimately stay unloaded after eager loading.
+  # Anything not listed here must be reachable, or the check fails.
+  #
+  # `lib/generators` is only ever loaded through Rails' generator lookup, and
+  # `metadata_response.rb` subclasses a Doorkeeper class that only exists on
+  # Doorkeeper >= 6.0, so it is required conditionally.
+  def self.excluded?(path)
+    return true if path.start_with?(File.join(LIB_DIR, "generators"))
+
+    path == File.join(LIB_DIR, "doorkeeper/openid_connect/oauth/metadata_response.rb") &&
+      !Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
+  end
+
+  def initialize
+    @forced = Set.new
+    @errors = []
+  end
+
+  def run
+    boot
+    force_autoloads
+    report
+    @errors.empty? && unloaded_files.empty?
+  end
+
+  private
+
+  def boot
+    ENV["RAILS_ENV"] ||= "test"
+    ENV["EAGER_LOAD"] = "true"
+    $LOAD_PATH.unshift(File.join(GEM_ROOT, "spec"))
+    require "dummy/config/environment"
+  end
+
+  # Loading a file can register further autoloads (`orm/active_record.rb` does),
+  # so keep sweeping the namespace until a pass finds nothing left to force.
+  def force_autoloads
+    loop do
+      before = @forced.size
+      sweep(Doorkeeper, Set.new)
+      break if @forced.size == before
+    end
+  end
+
+  def sweep(mod, seen)
+    return unless seen.add?(mod)
+
+    mod.constants(false).each do |name|
+      value = resolve(mod, name)
+      sweep(value, seen) if value.is_a?(Module) && value.name.to_s.start_with?("Doorkeeper")
+    end
+  end
+
+  # Returns the constant's value, forcing it first when it is a pending
+  # autoload that this gem owns. Errors are collected rather than raised so
+  # that one broken declaration does not hide the rest.
+  def resolve(mod, name)
+    target = mod.autoload?(name, false)
+    return mod.const_get(name, false) if target.nil?
+    return nil unless ours?(target)
+    # A force that raises leaves the autoload registered and still pending, so
+    # remember every constant already tried — otherwise the sweep below keeps
+    # finding it and never converges.
+    return nil unless @forced.add?("#{mod}::#{name}")
+
+    mod.const_get(name, false)
+  rescue StandardError, ScriptError => e
+    @errors << "#{mod}::#{name} (autoload #{target.inspect}): #{e.class}: #{e.message}"
+    nil
+  end
+
+  # Whether a pending autoload is this gem's to force. Doorkeeper's own
+  # autoloads are left alone — forcing them would turn an unrelated upstream
+  # problem into a failure of this check. A target that resolves to no file at
+  # all is claimed anyway: it is broken whoever registered it, and forcing it
+  # is what turns it into a reportable LoadError.
+  def ours?(target)
+    resolved = resolve_feature(target)
+    resolved.nil? || resolved.start_with?("#{LIB_DIR}/")
+  end
+
+  def resolve_feature(target)
+    path = target.to_s
+    path += ".rb" unless path.end_with?(".rb")
+    return File.file?(path) ? path : nil if path.start_with?("/")
+
+    candidates = $LOAD_PATH.lazy.map { |dir| File.join(File.expand_path(dir), path) }
+    candidates.find { |candidate| File.file?(candidate) }
+  end
+
+  def unloaded_files
+    @unloaded_files ||=
+      begin
+        loaded = $LOADED_FEATURES.select { |f| f.start_with?("#{LIB_DIR}/") }.to_set
+        Dir[File.join(LIB_DIR, "**", "*.rb")]
+          .reject { |path| self.class.excluded?(path) || loaded.include?(path) }
+          .sort
+      end
+  end
+
+  def report
+    puts "Doorkeeper #{Doorkeeper::VERSION::STRING} / Rails #{Rails.version} / Ruby #{RUBY_VERSION}"
+    puts "Forced #{@forced.size} pending autoload(s): #{@forced.sort.join(", ")}"
+
+    if @errors.empty? && unloaded_files.empty?
+      puts "OK: every file under lib/ is reachable."
+      return
+    end
+
+    @errors.each { |error| puts "FAIL: #{error}" }
+    unloaded_files.each do |path|
+      puts "FAIL: #{path.delete_prefix("#{GEM_ROOT}/")} was never loaded " \
+           "(no require, and no autoload reaches it)"
+    end
+  end
+end
+
+exit(EagerLoadCheck.new.run ? 0 : 1)
