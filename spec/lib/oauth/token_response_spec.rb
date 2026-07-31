@@ -87,6 +87,20 @@ describe Doorkeeper::OpenidConnect::OAuth::TokenResponse do
       end
     end
 
+    context "with the openid scope present, no application, and an ID token already preset" do
+      let(:token) { create :access_token, application: nil, scopes: "openid email" }
+      # Unlike the context above, the outer `before` keeps its preset here —
+      # that is what the password grant does before the response is rendered
+      # when `skip_client_authentication_for_password_grant` let it issue a
+      # token with no application. `aud` is just as unsourceable as it is
+      # without a preset, so the preset has to be discarded as well.
+
+      it "discards the preset ID token instead of raising MissingRequiredClaim" do
+        expect { subject.body }.not_to raise_error
+        expect(subject.body).not_to include :id_token
+      end
+    end
+
     context "with the openid scope present but the resource owner deleted after issuance" do
       let(:user) { create :user }
       let(:token) { create :access_token, resource_owner_id: user.id, scopes: "openid email" }
