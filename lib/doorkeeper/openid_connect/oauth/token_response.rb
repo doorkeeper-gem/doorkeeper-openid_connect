@@ -18,20 +18,26 @@ module Doorkeeper
           # happens to carry the openid scope — has no end user, so no ID Token
           # is issued. An ID Token's `sub` identifies the end user; building one
           # here would dereference a nil owner in `sub` / the claim generators
-          # and raise (500). The preset flows (auth code / password) are left
-          # unguarded on purpose: their success responses REQUIRE `id_token`
-          # (OIDC Core §3.1.3.3), so omitting it would be non-conformant, and
-          # they only lack an owner or application in degenerate cases (owner
-          # deleted between authorization and exchange, or a password grant
-          # with client authentication skipped) — those keep surfacing as
-          # errors rather than a silently missing REQUIRED claim.
+          # and raise (500).
           #
-          # Likewise for a token with no application (e.g. refreshing a token
-          # issued by a password grant with client authentication skipped):
-          # `aud` is a REQUIRED claim sourced from the application's uid, so
-          # building an ID Token would raise MissingRequiredClaim (500)
-          # instead of serializing.
+          # Likewise for a token with no application: `aud` is a REQUIRED claim
+          # sourced from the application's uid, so an ID Token for such a token
+          # raises MissingRequiredClaim (500) instead of serializing. Two flows
+          # reach here with one, and both answer without `id_token` instead:
+          # refreshing a token that a password grant issued with client
+          # authentication skipped, which arrives with nothing preset, and that
+          # password grant itself, which presets an ID Token before the response
+          # is rendered — `skip_client_authentication_for_password_grant` lets
+          # it succeed with no client at all, and the raise would land after its
+          # access token row was already committed. The preset is therefore
+          # dropped below when the precondition does not hold.
+          #
+          # Omitting `id_token` is conformant for those responses: OIDC Core 1.0
+          # defines the authorization code, implicit and hybrid flows, none of
+          # which can produce an application-less token, and does not define the
+          # resource owner password credentials grant, which can.
           id_token = self.id_token
+          id_token = nil if token.application.blank?
           id_token ||= build_id_token_for(token)
           return super if id_token.nil?
 
