@@ -907,6 +907,44 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(response.body).to include('name="nonce"')
       expect(response.body).to include('value="view-nonce-123"')
     end
+
+    # The bundled view replaces Doorkeeper's own template rather than extending
+    # it, so any hidden field Doorkeeper renders and this one does not is
+    # silently dropped from the authorization request. That is invisible at
+    # boot and invisible in every spec that does not render views, so compare
+    # the two templates directly: when Doorkeeper adds a field, this fails
+    # instead of the field quietly disappearing from the consent screen.
+    it "carries every hidden field the installed Doorkeeper's own view renders" do
+      targets = lambda do |source|
+        source.scan(/hidden_field_tag\s+(:?"?[\w\[\]]+"?)/).flatten.map { |t| t.delete(%(:")) }.uniq
+      end
+
+      upstream = File.read(
+        File.join(Gem.loaded_specs["doorkeeper"].gem_dir, "app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+      bundled = File.read(
+        Doorkeeper::OpenidConnect::Engine.root.join("app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+
+      expect(targets.call(bundled)).to include(*targets.call(upstream))
+    end
+
+    # Guarded with `respond_to?` in the view: `custom_access_token_attributes`
+    # only exists on newer Doorkeeper versions, and dropping it would stop
+    # custom attributes from surviving the consent screen.
+    it "carries Doorkeeper's custom access token attributes through the form" do
+      skip "Doorkeeper #{Gem.loaded_specs["doorkeeper"].version} has no custom_access_token_attributes" unless
+        Doorkeeper.configuration.respond_to?(:custom_access_token_attributes)
+
+      allow(Doorkeeper.configuration).to receive(:custom_access_token_attributes).and_return([:tenant_id])
+      authorize! tenant_id: "acme"
+
+      # Doorkeeper 5.6 hands these back as ActionController::Parameters; later
+      # versions convert them to a plain Hash.
+      expect(assigns(:pre_auth).custom_access_token_attributes.to_h).to eq("tenant_id" => "acme")
+      expect(response.body).to include('name="tenant_id"')
+      expect(response.body).to include('value="acme"')
+    end
   end
 
   describe "implicit flow nonce enforcement" do
