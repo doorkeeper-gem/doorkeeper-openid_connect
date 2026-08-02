@@ -122,7 +122,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
     end
 
     context "when post_logout_redirect_uris contains an invalid URI" do
-      it "rejects the request with invalid_client_params and does not create a client" do
+      it "rejects the request with invalid_client_metadata and does not create a client" do
         expect do
           post :register, params: {
             client_name: "dummy_client",
@@ -135,7 +135,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         expect(response.status).to eq 400
 
         body = JSON.parse(response.body)
-        expect(body["error"]).to eq("invalid_client_params")
+        expect(body["error"]).to eq("invalid_client_metadata")
         expect(body["error_description"]).to be_present
       end
     end
