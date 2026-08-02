@@ -47,6 +47,19 @@ describe Doorkeeper::OAuth::IdTokenRequest do
     expect(subject.authorize).to be_a(Doorkeeper::OAuth::IdTokenResponse)
   end
 
+  context "when id_token_class is configured" do
+    before do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+      allow(Doorkeeper::OpenidConnect.configuration).to receive(:id_token_model).and_return(CustomIdToken)
+    end
+
+    it "builds the id_token using the configured class" do
+      expect(CustomIdToken).to receive(:new).and_call_original
+
+      subject.authorize
+    end
+  end
+
   context "token reuse" do
     it "creates a new token if there are no matching tokens" do
       allow(Doorkeeper.configuration).to receive(:reuse_access_token).and_return(true)

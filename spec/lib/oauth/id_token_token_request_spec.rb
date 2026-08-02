@@ -46,4 +46,35 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
   it "returns id_token token response" do
     expect(subject.authorize).to be_a(Doorkeeper::OAuth::IdTokenTokenResponse)
   end
+
+  it "returns an id_token extended with HybridIdTokenConcern" do
+    id_token = subject.authorize.id_token
+
+    expect(id_token).to be_a(Doorkeeper::OpenidConnect::IdToken)
+    expect(id_token).to be_a(Doorkeeper::OpenidConnect::HybridIdTokenConcern)
+  end
+
+  context "with a persisted resource owner" do
+    let(:owner) { create(:user) }
+
+    it "includes the at_hash claim contributed by the concern" do
+      expect(subject.authorize.id_token.claims).to include(:at_hash)
+    end
+  end
+
+  context "when id_token_model is configured" do
+    before do
+      stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+      allow(Doorkeeper::OpenidConnect.configuration).to receive(:id_token_model).and_return(CustomIdToken)
+    end
+
+    it "uses custom id_token_model" do
+      expect(subject.authorize.id_token).to be_a(CustomIdToken)
+    end
+
+    it "implements HybridIdTokenConcern" do
+      # Duplicate of above, but we want to ensure that this continues being attached.
+      expect(subject.authorize.id_token).to be_a(Doorkeeper::OpenidConnect::HybridIdTokenConcern)
+    end
+  end
 end

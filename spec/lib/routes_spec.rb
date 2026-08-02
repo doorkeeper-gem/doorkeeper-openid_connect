@@ -42,6 +42,54 @@ describe Doorkeeper::OpenidConnect::Rails::Routes, type: :routing do
     end
   end
 
+  describe "customizing the routes with a block" do
+    after { Rails.application.reload_routes! }
+
+    it "maps custom controllers via the controllers option" do
+      stub_const("CustomUserinfoController", Class.new(ApplicationController))
+
+      Rails.application.routes.draw do
+        use_doorkeeper_openid_connect do
+          controllers userinfo: "custom_userinfo"
+        end
+      end
+
+      expect(get: "oauth/userinfo").to route_to(
+        controller: "custom_userinfo",
+        action: "show",
+      )
+    end
+
+    it "does not map controllers listed in skip_controllers" do
+      # Keep the discovery routes: a draw ending up with an empty route set
+      # never calls Journey's add_route, which is the only place the memoized
+      # recognition cache is invalidated (actionpack 8.0.5), so recognition
+      # would still see the previously drawn routes.
+      Rails.application.routes.draw do
+        use_doorkeeper_openid_connect do
+          skip_controllers :userinfo
+        end
+      end
+
+      expect(get: "oauth/userinfo").not_to be_routable
+      expect(get: ".well-known/openid-configuration").to route_to(
+        controller: "doorkeeper/openid_connect/discovery",
+        action: "provider",
+      )
+    end
+
+    it "renames route helpers via the as option" do
+      Rails.application.routes.draw do
+        use_doorkeeper_openid_connect do
+          as userinfo: :custom_userinfo
+        end
+      end
+
+      expect(Rails.application.routes.url_helpers.oauth_custom_userinfo_url(host: "example.com"))
+        .to eq "http://example.com/oauth/userinfo"
+    end
+  end
+
   describe "dynamic_client_registration" do
     it "doesn't map by default" do
       Rails.application.reload_routes!

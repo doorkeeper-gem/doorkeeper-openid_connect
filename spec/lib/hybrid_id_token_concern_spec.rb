@@ -2,8 +2,8 @@
 
 require "rails_helper"
 
-describe Doorkeeper::OpenidConnect::IdTokenToken do
-  subject { described_class.new(access_token, nonce) }
+describe Doorkeeper::OpenidConnect::HybridIdTokenConcern do
+  subject { Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce).extend(described_class) }
 
   let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: "openid" }
   let(:user) { create :user }
@@ -63,6 +63,32 @@ describe Doorkeeper::OpenidConnect::IdTokenToken do
 
       it "uses SHA-512" do
         expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA512))
+      end
+    end
+
+    context "when signing_algorithm is HS384" do
+      before { configure_doorkeeper("the_greatest_secret_key", :HS384) }
+
+      it "uses SHA-384" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA384))
+      end
+    end
+
+    context "when the signing algorithm name carries no digest length (e.g. EdDSA)" do
+      before { configure_doorkeeper("the_greatest_secret_key", :EdDSA) }
+
+      it "falls back to SHA-256" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
+      end
+    end
+
+    context "when token secrets are stored hashed (hash_token_secrets)" do
+      before do
+        allow(access_token).to receive_messages(plaintext_token: token_value, token: "hashed-#{token_value}")
+      end
+
+      it "computes at_hash over the plaintext token the client receives, not the stored digest" do
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
       end
     end
   end

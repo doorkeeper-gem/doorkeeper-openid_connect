@@ -9,7 +9,12 @@ module Doorkeeper
       # must never be silently dropped when blank.
       REQUIRED_CLAIMS = %i[iss sub aud exp iat].freeze
 
-      attr_reader :nonce
+      # `resource_owner` is exposed so callers can detect a token whose owner no
+      # longer resolves (e.g. deleted after issuance) before serializing — the
+      # `sub` claim would otherwise dereference a nil owner and raise.
+      # `access_token` is the reader HybridIdTokenConcern relies on to compute
+      # `at_hash`; a custom id_token_class must expose one as well.
+      attr_reader :access_token, :nonce, :resource_owner
 
       def initialize(access_token, nonce = nil, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
         @access_token = access_token
@@ -23,7 +28,9 @@ module Doorkeeper
         # NOTE: framework-controlled claims are merged last so a custom claim
         # block cannot override security-critical registered claims such as
         # `sub`, `aud`, `exp`, `iss` or `iat` in the signed ID token.
-        ClaimsBuilder.generate(@access_token, :id_token).merge(
+        # `@resource_owner` (resolved once in the constructor) is passed through
+        # so the claims builder does not look the owner up a second time.
+        ClaimsBuilder.generate(@access_token, :id_token, @resource_owner).merge(
           iss: issuer,
           sub: subject,
           aud: audience,

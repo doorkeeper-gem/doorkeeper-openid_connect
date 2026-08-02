@@ -40,5 +40,26 @@ describe "Doorkeeper::OpenidConnect ActiveRecord ORM integration" do
       expect(association.options[:class_name])
         .to eq(Doorkeeper::OpenidConnect.configuration.open_id_request_class)
     end
+
+    it "defers wiring when the mixin is included via an intermediate concern" do
+      # `AccessGrantExtension#included` first fires with the intermediate
+      # module itself (not a class); the concern machinery re-fires it with
+      # the model class once that includes the concern, and only then must
+      # the association be wired.
+      intermediate = Module.new do
+        extend ActiveSupport::Concern
+        include Doorkeeper::Orm::ActiveRecord::Mixins::AccessGrant
+      end
+
+      expect(intermediate.ancestors).not_to include(Doorkeeper::OpenidConnect::AccessGrant)
+
+      custom_model = Class.new(ApplicationRecord) do
+        self.table_name = "oauth_access_grants"
+        include intermediate
+      end
+
+      expect(custom_model.ancestors).to include(Doorkeeper::OpenidConnect::AccessGrant)
+      expect(custom_model.reflect_on_association(:openid_request)).not_to be_nil
+    end
   end
 end
