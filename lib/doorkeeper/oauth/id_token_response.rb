@@ -18,6 +18,15 @@ module Doorkeeper
         true
       end
 
+      # Expose the issued access token, mirroring core `CodeResponse` /
+      # `TokenResponse`. `after_successful_authorization` hooks read
+      # `context.issued_token` (via `Hooks::Context#issued_token`), which
+      # would otherwise raise `NoMethodError` for the `id_token` and
+      # `id_token token` response types.
+      def issued_token
+        auth.token
+      end
+
       def body
         {
           state: pre_auth.state,

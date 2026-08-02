@@ -12,8 +12,10 @@ module Doorkeeper
       def claims
         # NOTE: `sub` is merged last so a custom claim block cannot override
         # the canonical subject identifier (which would defeat pairwise /
-        # subject-type guarantees).
-        ClaimsBuilder.generate(@access_token, :user_info).merge(
+        # subject-type guarantees). `resource_owner` is passed through so the
+        # access token's owner is resolved once for both the custom claims and
+        # `sub`, instead of twice.
+        ClaimsBuilder.generate(@access_token, :user_info, resource_owner).merge(
           sub: subject,
         )
       end
@@ -22,14 +24,17 @@ module Doorkeeper
         claims.reject { |_, value| value.nil? || value == "" }
       end
 
+      # Public so callers (e.g. the userinfo endpoint) can check whether the
+      # token still resolves to an end user before generating claims; the
+      # memoization keeps that check and the claim generation to one lookup.
+      def resource_owner
+        @resource_owner ||= Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(@access_token)
+      end
+
       private
 
       def subject
         Doorkeeper::OpenidConnect.configuration.subject.call(resource_owner, application).to_s
-      end
-
-      def resource_owner
-        @resource_owner ||= Doorkeeper::OpenidConnect.configuration.resource_owner_from_access_token.call(@access_token)
       end
 
       def application

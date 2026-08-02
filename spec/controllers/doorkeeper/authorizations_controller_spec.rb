@@ -128,6 +128,22 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  describe "error handling in #authenticate_resource_owner!" do
+    context "when OIDC param handling raises a server-side configuration error" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:select_account_for_resource_owner)
+          .and_return(->(*) { raise Doorkeeper::OpenidConnect::Errors::InvalidConfiguration })
+      end
+
+      it "propagates the error instead of redirecting it to the client" do
+        expect do
+          authorize! prompt: "select_account"
+        end.to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
+      end
+    end
+  end
+
   describe "#handle_oidc_prompt_param!" do
     it "is ignored when the openid scope is not present" do
       authorize! scope: "profile", prompt: "invalid"
@@ -430,6 +446,12 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         expect(response).to redirect_to("/reauthenticate")
       end
+
+      it "does not mutate the request's query parameters when building the return URL" do
+        authorize! prompt: "login"
+
+        expect(request.query_parameters["prompt"]).to eq "login"
+      end
     end
 
     context "with a prompt=consent parameter" do
@@ -518,6 +540,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
           expect_authorization_form!
         end
+      end
+    end
+
+    context "with a non-scalar max_age parameter" do
+      it "ignores an array value instead of raising" do
+        authorize! max_age: %w[10 20]
+
+        expect_authorization_form!
+      end
+
+      it "ignores a hash value instead of raising" do
+        authorize! max_age: { nested: "10" }
+
+        expect_authorization_form!
       end
     end
 
@@ -761,6 +797,21 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect(return_params["prompt"]).to eq "consent select_account"
     end
 
+    context "when the query string contains duplicate prompt values" do
+      before do
+        allow(subject.request).to receive(:query_parameters) {
+          { client_id: "foo", prompt: "login consent login" }.with_indifferent_access
+        }
+      end
+
+      it "removes every occurrence of the value from the return path" do
+        _, return_to = reauthenticate!
+        return_params = Rack::Utils.parse_query(URI.parse(return_to).query)
+
+        expect(return_params["prompt"]).to eq "consent"
+      end
+    end
+
     context "with a reauthenticator that does not generate a response" do
       let(:performed) { false }
 
@@ -843,6 +894,73 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     it "permits nonce parameter" do
       authorize! nonce: "123456"
       expect(assigns(:pre_auth).nonce).to eq "123456"
+    end
+  end
+
+  context "with the implicit OIDC flows enabled" do
+    before do
+      allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+    end
+
+    def implicit_params(params = {})
+      {
+        response_type: "id_token",
+        current_user: user.id,
+        client_id: application.uid,
+        scope: default_scopes,
+        redirect_uri: application.redirect_uri,
+        nonce: "123456",
+        state: "somestate",
+      }.merge(params)
+    end
+
+    def redirected_fragment
+      expect(response).to be_redirect
+      expect(response.location).to start_with "#{application.redirect_uri}#"
+      Rack::Utils.parse_query(URI.parse(response.location).fragment)
+    end
+
+    describe "#create" do
+      it "issues an ID token via the fragment for response_type=id_token" do
+        post :create, params: implicit_params
+
+        fragment = redirected_fragment
+        expect(fragment["state"]).to eq "somestate"
+
+        payload, header = JWT.decode(fragment["id_token"], nil, false)
+        expect(header["alg"]).to eq "RS256"
+        expect(payload["iss"]).to eq "dummy"
+        expect(payload["nonce"]).to eq "123456"
+        expect(payload["aud"]).to eq application.uid
+      end
+
+      it "issues an access token alongside the ID token for response_type=id_token token" do
+        post :create, params: implicit_params(response_type: "id_token token")
+
+        fragment = redirected_fragment
+        expect(fragment["access_token"]).to be_present
+        expect(fragment["token_type"]).to eq "Bearer"
+        expect(fragment["state"]).to eq "somestate"
+
+        # OIDC Core 1.0 §3.2.2.9: when an access token is issued with the ID
+        # Token from the authorization endpoint, at_hash is REQUIRED.
+        payload, = JWT.decode(fragment["id_token"], nil, false)
+        expect(payload["nonce"]).to eq "123456"
+        expect(payload["at_hash"]).to be_present
+      end
+    end
+
+    describe "#destroy" do
+      it "denies response_type=id_token with access_denied in the fragment" do
+        expect do
+          delete :destroy, params: implicit_params
+        end.not_to change(Doorkeeper::AccessToken, :count)
+
+        fragment = redirected_fragment
+        expect(fragment["error"]).to eq "access_denied"
+        expect(fragment["state"]).to eq "somestate"
+        expect(fragment).not_to have_key "id_token"
+      end
     end
   end
 end

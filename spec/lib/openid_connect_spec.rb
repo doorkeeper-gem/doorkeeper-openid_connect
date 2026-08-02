@@ -7,6 +7,18 @@ describe Doorkeeper::OpenidConnect do
     it "returns the signing_algorithm as an uppercase symbol" do
       expect(subject.signing_algorithm).to eq :RS256
     end
+
+    context "when the configured signing_algorithm is callable" do
+      before do
+        described_class.configure do
+          signing_algorithm -> { "rs384" }
+        end
+      end
+
+      it "calls it and returns the result as an uppercase symbol" do
+        expect(subject.signing_algorithm).to eq :RS384
+      end
+    end
   end
 
   describe ".signing_key" do
@@ -247,6 +259,16 @@ describe Doorkeeper::OpenidConnect do
         normalized = subject.signing_keys_normalized
         expect(normalized.size).to eq 2
         expect(normalized).to all(include(use: "sig", alg: :RS256))
+      end
+    end
+
+    context "when signing with an HMAC algorithm" do
+      before { configure_hmac }
+
+      it "omits symmetric (oct) keys" do
+        # An HMAC JWK is the shared secret itself, not a public verification
+        # key, so it has no place in a public JWKS (RFC 7517).
+        expect(subject.signing_keys_normalized).to eq []
       end
     end
   end
@@ -619,6 +641,35 @@ describe Doorkeeper::OpenidConnect do
         expect { subject.resolve_issuer }
           .to raise_error(Doorkeeper::OpenidConnect::Errors::InvalidConfiguration)
       end
+    end
+  end
+
+  describe ".doorkeeper_metadata_endpoint?" do
+    # The predicate decides whether the gem loads its RFC 8414 response subclass
+    # and prepends MetadataExtension onto Doorkeeper::MetadataController, both of
+    # which reach their constants with `::` — which does not fall back to Object.
+    # So the predicate must not answer for a constant that only exists at the top
+    # level of the host application.
+
+    # `defined?` resolves the scoped path exactly as the callers' `::` does —
+    # neither falls back to Object — so this is an independent statement of what
+    # the predicate has to agree with.
+    def metadata_response_reachable?
+      !defined?(Doorkeeper::OAuth::MetadataResponse).nil?
+    end
+
+    it "reports whether Doorkeeper's own MetadataResponse is reachable" do
+      expect(subject.doorkeeper_metadata_endpoint?).to eq(metadata_response_reachable?)
+    end
+
+    it "ignores a host application's own top-level MetadataResponse" do
+      # A plausible name in any app that serves metadata of its own, and Zeitwerk
+      # only has to *register* it: `const_defined?` is true for a pending
+      # autoload. With the default `inherit: true` this made Doorkeeper 5.x take
+      # the 6.0 branch and fail to boot on `Doorkeeper::MetadataController`.
+      stub_const("MetadataResponse", Class.new)
+
+      expect(subject.doorkeeper_metadata_endpoint?).to eq(metadata_response_reachable?)
     end
   end
 end

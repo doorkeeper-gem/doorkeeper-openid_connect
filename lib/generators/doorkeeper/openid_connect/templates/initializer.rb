@@ -202,4 +202,22 @@ Doorkeeper::OpenidConnect.configure do
   #     resource_owner.baz
   #   end
   # end
+
+  # If you need more control than what `claims` provides, you can implement your own models for ID
+  # Token and User Info. This is useful if you need to respond to business requirements (e.g.,
+  # different apps may need different claim sets) or if you need to transform data before returning
+  # it to external clients.
+  #
+  # It is generally recommended to subclass the default models, but you can implement your own so
+  # long as they respond to `#as_json` (and, for the ID Token, also to `#as_jws_token`, `#issuer`,
+  # and an `#access_token` reader — the latter is used to compute the `at_hash` claim in the hybrid
+  # `id_token token` response type), and have the same initializer. These methods may be private;
+  # their presence is validated when the class is first used. Depending on the implementation, this
+  # may or may not override the provided behavior of the `claims` block.
+  #
+  # Refer to Doorkeeper::OpenidConnect::IdToken and Doorkeeper::OpenidConnect::UserInfo for more
+  # information and implementation details.
+  #
+  # id_token_class "MyIdToken"
+  # user_info_class "MyUserInfo"
 end

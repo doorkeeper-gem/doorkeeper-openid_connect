@@ -17,6 +17,14 @@ module Doorkeeper
       @config || (raise Errors::MissingConfiguration)
     end
 
+    # Whether `Doorkeeper::OpenidConnect.configure` has been run. Guards
+    # integrations that must fall back to plain Doorkeeper behaviour (e.g. the
+    # RFC 8414 metadata enrichment) when the app loads this gem without
+    # configuring it.
+    def self.configured?
+      !@config.nil?
+    end
+
     # Warn when Doorkeeper's `issuer` and the OpenID Connect `issuer` are both
     # statically configured with different values. Clients validate the
     # RFC 9207 `iss` authorization response parameter (emitted by Doorkeeper
@@ -39,14 +47,15 @@ module Doorkeeper
 
       ::Rails.logger.warn(
         "[DOORKEEPER-OPENID_CONNECT] The configured OpenID Connect issuer " \
-        "(#{oidc_issuer.to_s.inspect}) differs from Doorkeeper's issuer " \
-        "(#{doorkeeper_issuer_value.to_s.inspect}). The discovery document advertises " \
-        "the former while Doorkeeper's RFC 8414 metadata and RFC 9207 iss " \
-        "parameter use the latter; RFC 9207-conforming clients compare the " \
-        "two and will reject authorization responses. Configure a single " \
-        "issuer value.",
+          "(#{oidc_issuer.to_s.inspect}) differs from Doorkeeper's issuer " \
+          "(#{doorkeeper_issuer_value.to_s.inspect}). The discovery document advertises " \
+          "the former while Doorkeeper's RFC 8414 metadata and RFC 9207 iss " \
+          "parameter use the latter; RFC 9207-conforming clients compare the " \
+          "two and will reject authorization responses. Configure a single " \
+          "issuer value.",
       )
     end
+
     private_class_method :validate_issuer_consistency
 
     class Config
@@ -130,12 +139,71 @@ module Doorkeeper
 
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"
 
+      # A class that provides custom behavior for generating ID tokens.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
+      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, exposes the access token via
+      # an `#access_token` reader (public or private), and has the same initializer. The reader is what
+      # `HybridIdTokenConcern` uses to compute the `at_hash` claim in the hybrid `id_token token` flow.
+      option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
+
+      # A class that provides custom behavior for generating the UserInfo response.
+      # Should probably inherit from `Doorkeeper::OpenidConnect::UserInfo`, but may also be completely custom
+      # so long as it responds to `#as_json` and has the same initializer.
+      option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
+
       # Doorkeeper OpenID Request model class.
       #
       # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
       #
       def open_id_request_model
         @open_id_request_model ||= open_id_request_class.to_s.constantize
+      end
+
+      def id_token_model
+        resolve_validated_model(:id_token, id_token_class, %i[as_json as_jws_token issuer access_token])
+      end
+
+      def user_info_model
+        resolve_validated_model(:user_info, user_info_class, %i[as_json])
+      end
+
+      private
+
+      # Resolves an `id_token_class` / `user_info_class` override to its class
+      # and validates that the required methods exist (presence only, not
+      # correctness). Both happen lazily at first use rather than inside
+      # `Doorkeeper::OpenidConnect.configure`: constantizing an app-defined
+      # class while initializers run breaks zeitwerk on Rails 7+, because
+      # reloadable constants must not be referenced during boot — the same
+      # reason `open_id_request_model` constantizes lazily. The class is also
+      # deliberately not memoized, so code reloading in development never
+      # hands back a stale class; only the validation result is cached, keyed
+      # on the resolved class so a reloaded class is re-validated.
+      def resolve_validated_model(kind, class_name, required_methods)
+        # `safe_constantize` (unlike a bare `constantize` rescue) only reports
+        # nil when the configured constant itself is missing; a NameError
+        # raised while loading the class body still surfaces as-is.
+        model = class_name.to_s.safe_constantize
+        if model.nil?
+          raise Errors::InvalidConfiguration,
+                "The configured #{kind}_class (#{class_name}) does not resolve to a defined class"
+        end
+
+        @validated_models ||= {}
+        return model if @validated_models[kind] == model
+
+        missing_methods = required_methods.reject do |method|
+          model.method_defined?(method) || model.private_method_defined?(method)
+        end
+
+        unless missing_methods.empty?
+          raise Errors::InvalidConfiguration,
+                "The configured #{kind}_class (#{class_name}) is missing the following " \
+                "required methods: #{missing_methods.join(", ")}"
+        end
+
+        @validated_models[kind] = model
+        model
       end
     end
   end

@@ -12,11 +12,7 @@ module Doorkeeper
 
       def authorize
         @auth = Authorization::Token.new(pre_auth, resource_owner)
-        if @auth.respond_to?(:issue_token!)
-          @auth.issue_token!
-        else
-          @auth.issue_token
-        end
+        @auth.issue_token!
         response
       end
 
@@ -28,7 +24,8 @@ module Doorkeeper
       private
 
       def response
-        id_token = Doorkeeper::OpenidConnect::IdToken.new(auth.token, pre_auth.nonce)
+        id_token = Doorkeeper::OpenidConnect.configuration.id_token_model
+                                            .new(auth.token, pre_auth.nonce)
 
         IdTokenResponse.new(pre_auth, auth, id_token)
       end

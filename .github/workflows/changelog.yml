@@ -7,9 +7,17 @@ on:
     # as defined in the (optional) "skipLabels" property.
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   # Enforces the update of a changelog file on every pull request
   changelog:
     runs-on: ubuntu-latest
     steps:
-    - uses: dangoslen/changelog-enforcer@v3
+      - uses: dangoslen/changelog-enforcer@v3.7.0
+        with:
+          # Dependabot PRs are labeled "dependencies" automatically and don't
+          # need a changelog entry; "Skip-Changelog" keeps a manual escape hatch.
+          skipLabels: "Skip-Changelog,dependencies"

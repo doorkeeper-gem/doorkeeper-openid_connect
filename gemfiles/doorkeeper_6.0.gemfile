@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# 6.0.0.beta1 is the only 6.0 release so far; the prerelease constraint
+# still allows the final 6.0.x once it ships (>= 6.0.0.beta1, < 6.1).
+gem "doorkeeper", "~> 6.0.0.beta1"
+gem "rails", "~> 8.0.0"
+gem "rails-controller-testing"
+gem "sqlite3", "~> 2.3", platform: %i[ruby mswin mingw x64_mingw]
+
+gemspec path: "../"

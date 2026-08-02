@@ -26,13 +26,7 @@ describe Doorkeeper::OAuth::IdTokenResponse do
   let(:owner) { build_stubbed(:user) }
 
   let(:auth) do
-    Doorkeeper::OAuth::Authorization::Token.new(pre_auth, owner).tap do |c|
-      if c.respond_to?(:issue_token!)
-        c.issue_token!
-      else
-        c.issue_token
-      end
-    end
+    Doorkeeper::OAuth::Authorization::Token.new(pre_auth, owner).tap(&:issue_token!)
   end
   let(:id_token) { Doorkeeper::OpenidConnect::IdToken.new(token, pre_auth) }
 
@@ -77,6 +71,12 @@ describe Doorkeeper::OAuth::IdTokenResponse do
       it "omits the iss parameter" do
         expect(subject.body).not_to have_key(:iss)
       end
+    end
+  end
+
+  describe "#issued_token" do
+    it "returns the access token issued by the authorization, for hook contexts" do
+      expect(subject.issued_token).to eq(auth.token)
     end
   end
 
