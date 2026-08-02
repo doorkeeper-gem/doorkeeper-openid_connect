@@ -1,4 +1,22 @@
 en:
+  activerecord:
+    attributes:
+      doorkeeper/application:
+        post_logout_redirect_uris: 'Post Logout Redirect URIs'
+    errors:
+      models:
+        doorkeeper/application:
+          attributes:
+            # Mirror Doorkeeper's own redirect_uri error messages so that an
+            # invalid post_logout_redirect_uris value (validated through
+            # Doorkeeper::RedirectUriValidator) produces a readable message.
+            post_logout_redirect_uris:
+              fragment_present: 'cannot contain a fragment.'
+              invalid_uri: 'must be a valid URI.'
+              unspecified_scheme: 'must specify a scheme.'
+              relative_uri: 'must be an absolute URI.'
+              secured_uri: 'must be an HTTPS/SSL URI.'
+              forbidden_uri: 'is forbidden by the server.'
   doorkeeper:
     scopes:
       openid: 'Authenticate your account'
