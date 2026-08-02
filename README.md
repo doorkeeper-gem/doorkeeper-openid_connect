@@ -98,8 +98,9 @@ any `response_type` that includes `id_token` (OpenID Connect Core 1.0
 Set `enforce_implicit_nonce true` in your initializer to reject such requests
 when the nonce is missing; while the option is disabled (the current default)
 they are still accepted for backward compatibility, with a one-time
-deprecation warning. The default will flip to `true` in a future major
-version.
+deprecation warning. The default will flip to `true` in the major version
+after the one that introduces the option, so upgrading only starts the
+deprecation period.
 
 ## Development
 

@@ -39,7 +39,8 @@ module Doorkeeper
                "are currently accepted for backward compatibility, but this " \
                "will change: set `enforce_implicit_nonce true` in " \
                "config/initializers/doorkeeper_openid_connect.rb to reject them " \
-               "now, as this will become the default in a future major version."
+               "now, as this will become the default in the major version after "\
+               "the one that introduces this option."
         end
 
         # Reset the deprecation flag (test helper).
