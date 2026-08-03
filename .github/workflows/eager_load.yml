@@ -1,9 +1,14 @@
 name: Eager load
 
 # `labeled` is not one of the default pull_request event types, so it has to
-# be spelled out for the `eager-load-check` label to start a run.
+# be spelled out for the `eager-load-check` label to start a run. Pushes are
+# only interesting on master — the safety net for anything that lands without
+# a pull request; a push to any other branch would be turned down by the
+# detection script anyway, leaving nothing but a skipped placeholder check on
+# the pull request.
 on:
   push:
+    branches: [master]
   pull_request:
     types: [opened, synchronize, reopened, labeled]
 
@@ -14,9 +19,13 @@ jobs:
   detect:
     name: Detect autoload-affecting changes
     runs-on: ubuntu-latest
+    # The `labeled` guard keeps runs for unrelated labels from re-running the
+    # whole check: only the `eager-load-check` label is a request for one.
     if: |
-      !(   contains(github.event.pull_request.title,  '[ci skip]')
-        || contains(github.event.pull_request.title,  '[skip ci]'))
+      (   github.event.action != 'labeled'
+       || github.event.label.name == 'eager-load-check')
+      && !(   contains(github.event.pull_request.title,  '[ci skip]')
+           || contains(github.event.pull_request.title,  '[skip ci]'))
     outputs:
       run: ${{ steps.detect.outputs.run }}
     steps:
@@ -37,8 +46,10 @@ jobs:
         run: .github/scripts/eager-load-needed.sh
 
   eager-load:
-    name: >-
-      Ruby ${{ matrix.ruby }} (${{ matrix.gemfile }})
+    # No custom `name:` on purpose. GitHub appends the matrix values to the
+    # job id by itself, and when the job is skipped before the matrix is
+    # expanded — every pull request the detection turns down — a custom name
+    # would surface as the raw, unrendered template in the checks list.
     needs: detect
     if: needs.detect.outputs.run == 'true'
     runs-on: ubuntu-latest

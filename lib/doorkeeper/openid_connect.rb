@@ -38,15 +38,30 @@ module Doorkeeper
                "doorkeeper/openid_connect/oauth/dynamic_registration_request"
     end
   end
+
+  # Requests and responses this gem contributes to Doorkeeper's own namespace.
+  # They only add constants — none of them reopens a class Doorkeeper defines —
+  # so nothing observes their absence until someone names them, which is what
+  # makes them safe to autoload from a namespace this gem does not own.
+  #
+  # `Request::IdToken` and `Request::IdTokenToken` reach these at request time;
+  # for an application that never enables the OpenID Connect implicit or hybrid
+  # flows, none of the four is ever loaded.
+  module OAuth
+    autoload :IdTokenRequest, "doorkeeper/oauth/id_token_request"
+    autoload :IdTokenResponse, "doorkeeper/oauth/id_token_response"
+    autoload :IdTokenTokenRequest, "doorkeeper/oauth/id_token_token_request"
+    autoload :IdTokenTokenResponse, "doorkeeper/oauth/id_token_token_response"
+  end
 end
 
 require "doorkeeper/request"
+
+# Not autoloadable: the `GrantFlow.register` calls at the bottom of this file
+# name both strategy classes while this file loads, so an autoload would fire
+# immediately and defer nothing. The requires say that outright.
 require "doorkeeper/request/id_token"
 require "doorkeeper/request/id_token_token"
-require "doorkeeper/oauth/id_token_request"
-require "doorkeeper/oauth/id_token_token_request"
-require "doorkeeper/oauth/id_token_response"
-require "doorkeeper/oauth/id_token_token_response"
 
 # Not autoloadable: besides the `Config` class, `config.rb` defines
 # `Doorkeeper::OpenidConnect.configure`, `.configuration` and `.configured?` on
@@ -76,7 +91,7 @@ require "doorkeeper/openid_connect/oauth/pre_authorization"
 require "doorkeeper/openid_connect/oauth/token_response"
 
 # Defined here rather than in the module body below because the conditional
-# require that follows already branches on it.
+# declaration that follows already branches on it.
 module Doorkeeper
   module OpenidConnect
     # Whether the host Doorkeeper serves its own RFC 8414 Authorization Server
@@ -101,12 +116,26 @@ end
 
 # Doorkeeper >= 6.0 ships an RFC 8414 metadata endpoint; the response subclass
 # that enriches it with OIDC metadata only exists when its parent class does.
+# The declaration stays behind the version check even though it is now lazy: an
+# autoload registered on Doorkeeper 5.x would resolve the moment anything named
+# the constant, and fail on the missing superclass instead of never being
+# reachable at all.
 if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
-  require "doorkeeper/openid_connect/oauth/metadata_response"
+  Doorkeeper::OpenidConnect::OAuth.autoload(
+    :MetadataResponse,
+    "doorkeeper/openid_connect/oauth/metadata_response",
+  )
 end
 
+# Not autoloadable: the file prepends onto Doorkeeper's access grant mixin as it
+# loads, and picks the Doorkeeper 5.5 fallback for that mixin by looking at what
+# is already defined — both of which have to happen before the host application
+# defines its models. Its own three model constants are autoloaded from there.
 require "doorkeeper/openid_connect/orm/active_record"
 
+# Not autoloadable in any useful sense: the engine initializer calls
+# `Rails::Routes.install!` on every boot, so the file loads either way, and a
+# require is the honest way to write a boot-time dependency.
 require "doorkeeper/openid_connect/rails/routes"
 
 module Doorkeeper

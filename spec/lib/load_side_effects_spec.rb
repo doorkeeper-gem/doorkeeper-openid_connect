@@ -38,6 +38,22 @@ RSpec.describe "Doorkeeper extensions applied while the gem loads" do
     end
   end
 
+  # The grant flow registry stores the strategy class itself, not a name to
+  # resolve later, so both strategies have to exist by the time this file
+  # finishes loading. That is why they are the two requires left in Doorkeeper's
+  # `Request` namespace.
+  {
+    id_token: "Doorkeeper::Request::IdToken",
+    "id_token token": "Doorkeeper::Request::IdTokenToken",
+  }.each do |flow, strategy|
+    it "registers the #{flow} flow with #{strategy}" do
+      registered = Doorkeeper::GrantFlow.get(flow)
+
+      expect(registered).not_to be_nil
+      expect(registered.response_type_strategy.to_s).to eq(strategy)
+    end
+  end
+
   it "prepends the openid_request association hook onto Doorkeeper's access grant mixin" do
     extension = "Doorkeeper::OpenidConnect::Orm::ActiveRecord::AccessGrantExtension"
     singleton = Doorkeeper::Orm::ActiveRecord::Mixins::AccessGrant.singleton_class
