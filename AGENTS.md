@@ -39,9 +39,12 @@ Run from the repository root:
 ```bash
 bundle exec rake spec
 bundle exec rubocop
+bundle exec rake eager_load
 ```
 
 Notes:
+
+- `rake eager_load` boots `spec/dummy` with `config.eager_load = true` and forces every `autoload` the gem registers. Run it after touching `require` / `autoload` lines in `lib/doorkeeper/openid_connect.rb`, or after adding, removing or renaming a file under `lib/`: a file that nothing loads any more is invisible to the specs but breaks host applications.
 
 - The default `Gemfile` uses `ENV["rails"]` and defaults to Rails `8.0.0`.
 - CI runs `bundle exec rake spec` across the matrix in `.github/workflows/ci.yml`.
