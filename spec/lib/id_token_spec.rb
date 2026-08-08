@@ -338,6 +338,14 @@ describe Doorkeeper::OpenidConnect::IdToken do
       expect(key.algorithm).to eq Doorkeeper::OpenidConnect.signing_algorithm.to_s
     end
 
+    it "resolves the global signing key once, so keypair and kid come from the same JWK" do
+      # A callable `signing_key` is re-evaluated per call, so reading keypair
+      # and kid from separate calls could pair values from different keys.
+      expect(Doorkeeper::OpenidConnect).to receive(:signing_key).once.and_call_original
+
+      subject.select_key
+    end
+
     context "when overridden by a subclass" do
       let(:custom_class) do
         Class.new(described_class) do

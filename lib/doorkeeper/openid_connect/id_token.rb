@@ -79,9 +79,14 @@ module Doorkeeper
       # implementation is responsible for exposing any additional keys through
       # its own JWKS handling so clients can validate the signature.
       def select_key
+        # Resolved once: `signing_key` builds a fresh JWK per call and honors
+        # callable configuration, so reading `keypair` and `kid` from separate
+        # calls could pair values from two different keys.
+        jwk = Doorkeeper::OpenidConnect.signing_key
+
         SigningKey.new(
-          keypair: Doorkeeper::OpenidConnect.signing_key.keypair,
-          kid: Doorkeeper::OpenidConnect.signing_key.kid,
+          keypair: jwk.keypair,
+          kid: jwk.kid,
           algorithm: Doorkeeper::OpenidConnect.signing_algorithm.to_s,
         )
       end
