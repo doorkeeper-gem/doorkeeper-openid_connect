@@ -56,7 +56,11 @@ describe Doorkeeper::OpenidConnect, "configuration" do
                          "not resolve to a defined class"
     end
 
-    it "fails validation at first use if id_token doesn't implement required methods" do
+    it "fails validation at first use if id_token_class does not inherit from IdToken" do
+      # A duck-typed implementation is no longer enough: the base class
+      # carries the security-critical invariants (required-claim enforcement,
+      # claim merge order, nonce and at_hash handling), so the ancestry is
+      # what gets validated.
       stub_const("CustomIdToken", Class.new)
 
       described_class.configure do
@@ -66,27 +70,16 @@ describe Doorkeeper::OpenidConnect, "configuration" do
       expect do
         subject.id_token_model
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                         "The configured id_token_class (CustomIdToken) is missing the following " \
-                         "required methods: as_jws_token, issuer, access_token"
+                         "The configured id_token_class (CustomIdToken) must inherit from " \
+                         "Doorkeeper::OpenidConnect::IdToken"
     end
 
-    it "fails validation at first use if user_info doesn't implement required methods" do
-      # BasicObject is the only class that escapes ActiveSupport's Object#as_json.
-      described_class.configure do
-        user_info_class "BasicObject"
-      end
-
-      expect do
-        subject.user_info_model
-      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                         "The configured user_info_class (BasicObject) is missing the following " \
-                         "required methods: as_json"
-    end
-
-    it "fails validation at first use if user_info is missing as_json" do
-      # ActiveSupport defines `#as_json` on Object, so the method has to be
-      # undefined explicitly to model a class that does not fulfill the contract.
-      stub_const("CustomUserInfo", Class.new { undef_method :as_json })
+    it "fails validation at first use if user_info_class does not inherit from UserInfo" do
+      # Under the earlier method-presence validation this was a no-op for
+      # user_info_class, because ActiveSupport defines `as_json` on `Object`
+      # and any class passed. The ancestry check cannot be satisfied
+      # accidentally.
+      stub_const("CustomUserInfo", Class.new)
 
       described_class.configure do
         user_info_class "CustomUserInfo"
@@ -95,29 +88,46 @@ describe Doorkeeper::OpenidConnect, "configuration" do
       expect do
         subject.user_info_model
       end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
-                         "The configured user_info_class (CustomUserInfo) is missing the following " \
-                         "required methods: as_json"
+                         "The configured user_info_class (CustomUserInfo) must inherit from " \
+                         "Doorkeeper::OpenidConnect::UserInfo"
     end
 
-    it "accepts required methods implemented as private" do
-      private_id_token = Class.new do
-        private
-
-        attr_reader :access_token
-
-        def as_json(*); end
-
-        def as_jws_token; end
-
-        def issuer; end
-      end
-      stub_const("PrivateIdToken", private_id_token)
+    it "fails validation at first use if the configured constant is not a class" do
+      stub_const("ModuleIdToken", Module.new)
 
       described_class.configure do
-        id_token_class "PrivateIdToken"
+        id_token_class "ModuleIdToken"
       end
 
-      expect { subject.id_token_model }.not_to raise_error
+      expect do
+        subject.id_token_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured id_token_class (ModuleIdToken) must inherit from " \
+                         "Doorkeeper::OpenidConnect::IdToken"
+    end
+
+    it "accepts subclasses of the default models" do
+      stub_const("InheritingIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+      stub_const("InheritingUserInfo", Class.new(Doorkeeper::OpenidConnect::UserInfo))
+
+      described_class.configure do
+        id_token_class "InheritingIdToken"
+        user_info_class "InheritingUserInfo"
+      end
+
+      expect(subject.id_token_model).to eq(InheritingIdToken)
+      expect(subject.user_info_model).to eq(InheritingUserInfo)
+    end
+
+    it "accepts indirect descendants of the default models" do
+      stub_const("BaseCustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))
+      stub_const("DeepCustomIdToken", Class.new(BaseCustomIdToken))
+
+      described_class.configure do
+        id_token_class "DeepCustomIdToken"
+      end
+
+      expect(subject.id_token_model).to eq(DeepCustomIdToken)
     end
   end
 
