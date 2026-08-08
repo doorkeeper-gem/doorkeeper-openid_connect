@@ -113,6 +113,16 @@ Doorkeeper::OpenidConnect.configure do
   # Expiration time on or after which the ID Token MUST NOT be accepted for processing. (default 120 seconds).
   # expiration 600
 
+  # Reject OpenID Connect implicit and hybrid flow authorization requests (any
+  # `response_type` that includes `id_token`) that do not carry a `nonce`, as
+  # REQUIRED by OpenID Connect Core 1.0 §3.2.2.1 (implicit) and §3.3.2.1
+  # (hybrid). When disabled (the current default) such requests are still
+  # accepted for backward compatibility but emit a one-time deprecation
+  # warning. The default will flip to `true` in the major version after the
+  # one that introduces this option.
+  # (default false)
+  # enforce_implicit_nonce true
+
   # Enable dynamic client registration (default false)
   # dynamic_client_registration true
 
