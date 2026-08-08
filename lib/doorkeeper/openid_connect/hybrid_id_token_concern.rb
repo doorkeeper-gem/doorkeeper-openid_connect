@@ -3,9 +3,10 @@
 module Doorkeeper
   module OpenidConnect
     # Adds the `at_hash` claim required by the hybrid `id_token token` flow.
-    # The host object must implement `#claims` and expose the access token
-    # via an `#access_token` reader (public or private), as
-    # `Doorkeeper::OpenidConnect::IdToken` does.
+    # The host object must implement `#claims`, expose the access token via an
+    # `#access_token` reader, and resolve its signing key via `#selected_key` —
+    # all provided by `Doorkeeper::OpenidConnect::IdToken`, which configured
+    # `id_token_class` overrides must inherit from.
     module HybridIdTokenConcern
       def claims
         super.merge(at_hash: at_hash)
@@ -37,8 +38,12 @@ module Doorkeeper
         Base64.urlsafe_encode64(first_half).tr("=", "")
       end
 
+      # OIDC Core §3.2.2.10 requires the digest to match the `alg` of the ID
+      # Token's actual JOSE header — derived from the key the token is signed
+      # with (`selected_key`, shared with `as_jws_token`), not from the global
+      # `signing_algorithm`, which a `select_key` override may diverge from.
       def at_hash_digest
-        case Doorkeeper::OpenidConnect.signing_algorithm.to_s
+        case selected_key.algorithm.to_s
         when /256\z/ then Digest::SHA256
         when /384\z/ then Digest::SHA384
         when /512\z/ then Digest::SHA512

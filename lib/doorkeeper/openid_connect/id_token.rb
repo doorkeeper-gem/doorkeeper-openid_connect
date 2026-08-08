@@ -9,6 +9,12 @@ module Doorkeeper
       # must never be silently dropped when blank.
       REQUIRED_CLAIMS = %i[iss sub aud exp iat].freeze
 
+      # The return type of `select_key`: the key material and the algorithm it
+      # signs with, kept together so `at_hash` can always be computed with the
+      # digest matching the algorithm in the token's actual JOSE header
+      # (OIDC Core §3.2.2.10).
+      SigningKey = Struct.new(:keypair, :kid, :algorithm, keyword_init: true)
+
       # `resource_owner` is exposed so callers can detect a token whose owner no
       # longer resolves (e.g. deleted after issuance) before serializing — the
       # `sub` claim would otherwise dereference a nil owner and raise.
@@ -58,10 +64,26 @@ module Doorkeeper
       end
 
       def as_jws_token
+        key = selected_key
+
         ::JWT.encode(as_json,
-                     Doorkeeper::OpenidConnect.signing_key.keypair,
-                     Doorkeeper::OpenidConnect.signing_algorithm.to_s,
-                     { typ: "JWT", kid: Doorkeeper::OpenidConnect.signing_key.kid }).to_s
+                     key.keypair,
+                     key.algorithm.to_s,
+                     { typ: "JWT", kid: key.kid }).to_s
+      end
+
+      # Override point for custom signing-key selection (per-client keys, key
+      # rotation, multi-tenant setups, …). Must return an object responding to
+      # `#keypair`, `#kid` and `#algorithm` — use `SigningKey` for convenience.
+      # Keys returned from here are not advertised automatically: a custom
+      # implementation is responsible for exposing any additional keys through
+      # its own JWKS handling so clients can validate the signature.
+      def select_key
+        SigningKey.new(
+          keypair: Doorkeeper::OpenidConnect.signing_key.keypair,
+          kid: Doorkeeper::OpenidConnect.signing_key.kid,
+          algorithm: Doorkeeper::OpenidConnect.signing_algorithm.to_s,
+        )
       end
 
       # Public: the RFC 9207 `iss` authorization response parameter must be
@@ -77,6 +99,15 @@ module Doorkeeper
       end
 
       private
+
+      # `select_key` resolved exactly once per token, mirroring the `issuer`
+      # memoization above: the signature (`as_jws_token`) and the `at_hash`
+      # digest (`HybridIdTokenConcern`) must agree on the algorithm, so a
+      # dynamic `select_key` implementation must not be re-invoked between
+      # the two.
+      def selected_key
+        @selected_key ||= select_key
+      end
 
       def subject
         Doorkeeper::OpenidConnect.configuration.subject.call(

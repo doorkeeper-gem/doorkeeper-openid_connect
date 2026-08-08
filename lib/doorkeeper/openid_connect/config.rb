@@ -140,15 +140,16 @@ module Doorkeeper
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"
 
       # A class that provides custom behavior for generating ID tokens.
-      # Should probably inherit from `Doorkeeper::OpenidConnect::IdToken`, but may also be completely custom
-      # so long as it responds to `#as_json`, `#as_jws_token`, `#issuer`, exposes the access token via
-      # an `#access_token` reader (public or private), and has the same initializer. The reader is what
-      # `HybridIdTokenConcern` uses to compute the `at_hash` claim in the hybrid `id_token token` flow.
+      # Must inherit from `Doorkeeper::OpenidConnect::IdToken`, which carries the
+      # security-critical invariants (required-claim enforcement, the merge order that keeps
+      # custom claims from overriding `sub`/`aud`/`exp`, nonce and `at_hash` handling), so a
+      # subclass only overrides what it actually needs — typically `claims` (call `super.merge(...)`
+      # to keep the merge order), `audience`, or `select_key` for custom signing-key selection.
       option :id_token_class, default: "Doorkeeper::OpenidConnect::IdToken"
 
       # A class that provides custom behavior for generating the UserInfo response.
-      # Should probably inherit from `Doorkeeper::OpenidConnect::UserInfo`, but may also be completely custom
-      # so long as it responds to `#as_json` and has the same initializer.
+      # Must inherit from `Doorkeeper::OpenidConnect::UserInfo`; a subclass typically only
+      # overrides `claims` (call `super.merge(...)` to keep `sub` intact).
       option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
 
       # Doorkeeper OpenID Request model class.
@@ -160,26 +161,32 @@ module Doorkeeper
       end
 
       def id_token_model
-        resolve_validated_model(:id_token, id_token_class, %i[as_json as_jws_token issuer access_token])
+        resolve_validated_model(:id_token, id_token_class, IdToken)
       end
 
       def user_info_model
-        resolve_validated_model(:user_info, user_info_class, %i[as_json])
+        resolve_validated_model(:user_info, user_info_class, UserInfo)
       end
 
       private
 
       # Resolves an `id_token_class` / `user_info_class` override to its class
-      # and validates that the required methods exist (presence only, not
-      # correctness). Both happen lazily at first use rather than inside
-      # `Doorkeeper::OpenidConnect.configure`: constantizing an app-defined
-      # class while initializers run breaks zeitwerk on Rails 7+, because
-      # reloadable constants must not be referenced during boot — the same
-      # reason `open_id_request_model` constantizes lazily. The class is also
-      # deliberately not memoized, so code reloading in development never
-      # hands back a stale class; only the validation result is cached, keyed
-      # on the resolved class so a reloaded class is re-validated.
-      def resolve_validated_model(kind, class_name, required_methods)
+      # and validates that it inherits from the corresponding default. The
+      # ancestry check replaced the earlier method-presence list: presence
+      # could be satisfied by any class (ActiveSupport defines `as_json` on
+      # `Object`), while inheritance also carries the security-critical
+      # behavior — required-claim enforcement, the claim merge order, nonce
+      # and `at_hash` handling — that a from-scratch implementation would
+      # have to reproduce. Both resolution and validation happen lazily at
+      # first use rather than inside `Doorkeeper::OpenidConnect.configure`:
+      # constantizing an app-defined class while initializers run breaks
+      # zeitwerk on Rails 7+, because reloadable constants must not be
+      # referenced during boot — the same reason `open_id_request_model`
+      # constantizes lazily. The class is also deliberately not memoized, so
+      # code reloading in development never hands back a stale class; only
+      # the validation result is cached, keyed on the resolved class so a
+      # reloaded class is re-validated.
+      def resolve_validated_model(kind, class_name, base_model)
         # `safe_constantize` (unlike a bare `constantize` rescue) only reports
         # nil when the configured constant itself is missing; a NameError
         # raised while loading the class body still surfaces as-is.
@@ -192,14 +199,9 @@ module Doorkeeper
         @validated_models ||= {}
         return model if @validated_models[kind] == model
 
-        missing_methods = required_methods.reject do |method|
-          model.method_defined?(method) || model.private_method_defined?(method)
-        end
-
-        unless missing_methods.empty?
+        unless model.is_a?(Class) && model <= base_model
           raise Errors::InvalidConfiguration,
-                "The configured #{kind}_class (#{class_name}) is missing the following " \
-                "required methods: #{missing_methods.join(", ")}"
+                "The configured #{kind}_class (#{class_name}) must inherit from #{base_model.name}"
         end
 
         @validated_models[kind] = model

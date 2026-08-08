@@ -326,4 +326,50 @@ describe Doorkeeper::OpenidConnect::IdToken do
       it_behaves_like "a jws token"
     end
   end
+
+  describe "#select_key" do
+    it "returns the globally configured key material, kid and algorithm" do
+      key = subject.select_key
+
+      # `signing_key` builds a fresh JWK per call, so key material is compared
+      # by its PEM export rather than object identity.
+      expect(key.keypair.to_pem).to eq Doorkeeper::OpenidConnect.signing_key.keypair.to_pem
+      expect(key.kid).to eq Doorkeeper::OpenidConnect.signing_key.kid
+      expect(key.algorithm).to eq Doorkeeper::OpenidConnect.signing_algorithm.to_s
+    end
+
+    context "when overridden by a subclass" do
+      let(:custom_class) do
+        Class.new(described_class) do
+          def select_key
+            Doorkeeper::OpenidConnect::IdToken::SigningKey.new(
+              keypair: "per-tenant-secret",
+              kid: "tenant-1",
+              algorithm: "HS512",
+            )
+          end
+        end
+      end
+
+      before { stub_const("CustomIdToken", custom_class) }
+
+      it "signs the JWS token with the selected key, algorithm and kid" do
+        instance = CustomIdToken.new(access_token, nonce)
+
+        data, headers = ::JWT.decode(instance.as_jws_token, "per-tenant-secret", true, { algorithms: ["HS512"] })
+
+        expect(headers["alg"]).to eq "HS512"
+        expect(headers["kid"]).to eq "tenant-1"
+        expect(data["sub"]).to eq user.id.to_s
+      end
+
+      it "resolves the key exactly once per token" do
+        instance = CustomIdToken.new(access_token, nonce)
+        expect(instance).to receive(:select_key).once.and_call_original
+
+        instance.as_jws_token
+        instance.as_jws_token
+      end
+    end
+  end
 end
