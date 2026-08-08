@@ -168,6 +168,16 @@ module Doorkeeper
         resolve_validated_model(:user_info, user_info_class, UserInfo)
       end
 
+      # How the library instantiates each configured model: the ID token is
+      # built with `(access_token, nonce)` in the authorization flows and with
+      # just `(access_token)` in the token response, while the UserInfo
+      # response is always built with `(access_token)`. A custom initializer
+      # must stay callable with every one of these argument counts.
+      INSTANTIATION_SIGNATURES = {
+        id_token: { arg_counts: [1, 2], description: "(access_token, nonce = nil)" },
+        user_info: { arg_counts: [1], description: "(access_token)" },
+      }.freeze
+
       private
 
       # Resolves an `id_token_class` / `user_info_class` override to its class
@@ -204,8 +214,36 @@ module Doorkeeper
                 "The configured #{kind}_class (#{class_name}) must inherit from #{base_model.name}"
         end
 
+        validate_initializer_arity!(kind, class_name, model)
+
         @validated_models[kind] = model
         model
+      end
+
+      # An incompatible custom `initialize` would otherwise only surface as an
+      # ArgumentError at runtime, in the middle of a token or userinfo request;
+      # checking it here reports the misconfiguration at first use instead,
+      # alongside the other validations. Positional arities are derived from
+      # `Method#parameters` (a bare `arity` cannot distinguish optional
+      # parameters from a `*rest`), and required keyword arguments are rejected
+      # because no call site passes any.
+      def validate_initializer_arity!(kind, class_name, model)
+        signature = INSTANTIATION_SIGNATURES.fetch(kind)
+        return if initializer_accepts?(model, signature[:arg_counts])
+
+        raise Errors::InvalidConfiguration,
+              "The configured #{kind}_class (#{class_name}) must have an initializer " \
+              "compatible with #{signature[:description]}"
+      end
+
+      def initializer_accepts?(model, arg_counts)
+        parameter_types = model.instance_method(:initialize).parameters.map(&:first)
+        return false if parameter_types.include?(:keyreq)
+
+        required = parameter_types.count(:req)
+        max = parameter_types.include?(:rest) ? Float::INFINITY : required + parameter_types.count(:opt)
+
+        arg_counts.all? { |count| count.between?(required, max) }
       end
     end
   end
