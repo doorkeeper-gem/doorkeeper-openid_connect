@@ -44,6 +44,7 @@
 - [#355] Compute the hybrid `id_token token` flow's `at_hash` claim from the plaintext access token instead of the stored value, so ID Token validation by conforming clients succeeds when `hash_token_secrets` is enabled — completing the response-side alignment from [#351]
 - [#356] Fix a boot failure on Doorkeeper < 6.0 in applications that define a top-level `MetadataResponse` constant. The Doorkeeper 6.0 capability probe introduced in [#353] used `const_defined?` with its default `inherit: true`, which continues the lookup into `Object` — and reports true for a constant Zeitwerk has merely registered for autoloading — so a host application's own unrelated class made the gem take the 6.0 branch and raise `NameError: uninitialized constant Doorkeeper::MetadataController` from the engine's `to_prepare`. The probe now lives in one place as `Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?` and is asked with `inherit: false`, instead of being repeated at each branch. [#353] has not shipped in a release, so no released version is affected
 - [#357] Add specs for the conditional `registration_endpoint` and `end_session_endpoint` members of the enriched RFC 8414 document, which were previously only asserted in their omission branches
+- [#366] CI: exercise the released Rails 8.1 series via `gemfiles/rails_8.1.gemfile` — the test matrix previously stopped at Rails 8.0
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
