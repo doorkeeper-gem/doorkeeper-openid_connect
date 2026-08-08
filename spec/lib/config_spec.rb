@@ -129,6 +129,167 @@ describe Doorkeeper::OpenidConnect, ".configuration" do
 
       expect(subject.id_token_model).to eq(DeepCustomIdToken)
     end
+
+    context "when validating the initializer arity" do
+      # The library instantiates the ID token with both `(access_token, nonce)`
+      # and `(access_token)`, and the UserInfo response with `(access_token)`.
+      # A subclass whose initializer cannot take those calls would only fail
+      # at request time, so it is rejected at first use instead.
+
+      def id_token_subclass(&block)
+        stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken, &block))
+
+        described_class.configure do
+          id_token_class "CustomIdToken"
+        end
+      end
+
+      it "rejects an id_token initializer taking no arguments" do
+        id_token_subclass do
+          def initialize; end
+        end
+
+        expect do
+          subject.id_token_model
+        end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                           "The configured id_token_class (CustomIdToken) must have an initializer " \
+                           "compatible with (access_token, nonce = nil)"
+      end
+
+      it "rejects an id_token initializer that cannot take the nonce" do
+        id_token_subclass do
+          def initialize(access_token)
+            super
+            @nonce_less = true
+          end
+        end
+
+        expect { subject.id_token_model }
+          .to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+      end
+
+      it "rejects an id_token initializer requiring more arguments than are passed" do
+        id_token_subclass do
+          def initialize(access_token, nonce, tenant)
+            super(access_token, nonce)
+            @tenant = tenant
+          end
+        end
+
+        expect { subject.id_token_model }
+          .to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+      end
+
+      it "rejects an id_token initializer with a required keyword argument" do
+        id_token_subclass do
+          def initialize(access_token, nonce = nil, tenant:)
+            super(access_token, nonce)
+            @tenant = tenant
+          end
+        end
+
+        expect { subject.id_token_model }
+          .to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+      end
+
+      it "accepts an id_token initializer with a compatible explicit signature" do
+        id_token_subclass do
+          def initialize(access_token, nonce = nil)
+            super
+          end
+        end
+
+        expect { subject.id_token_model }.not_to raise_error
+      end
+
+      it "accepts an id_token initializer taking a splat" do
+        id_token_subclass do
+          def initialize(*args)
+            super
+          end
+        end
+
+        expect { subject.id_token_model }.not_to raise_error
+      end
+
+      it "accepts an id_token initializer with optional keyword arguments" do
+        id_token_subclass do
+          def initialize(access_token, nonce = nil, tenant: nil)
+            super(access_token, nonce)
+            @tenant = tenant
+          end
+        end
+
+        expect { subject.id_token_model }.not_to raise_error
+      end
+
+      it "rejects a user_info initializer that cannot take the access token" do
+        custom = Class.new(Doorkeeper::OpenidConnect::UserInfo) do
+          def initialize; end # rubocop:disable Lint/MissingSuper
+        end
+        stub_const("CustomUserInfo", custom)
+
+        described_class.configure do
+          user_info_class "CustomUserInfo"
+        end
+
+        expect do
+          subject.user_info_model
+        end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                           "The configured user_info_class (CustomUserInfo) must have an initializer " \
+                           "compatible with (access_token)"
+      end
+
+      it "rejects a user_info initializer requiring more arguments than are passed" do
+        custom = Class.new(Doorkeeper::OpenidConnect::UserInfo) do
+          def initialize(access_token, tenant)
+            super(access_token)
+            @tenant = tenant
+          end
+        end
+        stub_const("CustomUserInfo", custom)
+
+        described_class.configure do
+          user_info_class "CustomUserInfo"
+        end
+
+        expect { subject.user_info_model }
+          .to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration
+      end
+
+      it "rejects a subclass that undefines the initializer" do
+        # `instance_method` raises instead of reporting a signature here, and
+        # the class cannot be instantiated at all — the misconfiguration has
+        # to surface as InvalidConfiguration like every other bad signature.
+        id_token_subclass do
+          silence_warnings { undef_method :initialize }
+        end
+
+        expect do
+          subject.id_token_model
+        end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                           "The configured id_token_class (CustomIdToken) must have an initializer " \
+                           "compatible with (access_token, nonce = nil)"
+      end
+
+      it "accepts a subclass that removes its own initializer, falling back to the parent" do
+        id_token_subclass do
+          def initialize(access_token, nonce = nil)
+            super
+          end
+
+          silence_warnings { remove_method :initialize }
+        end
+
+        expect { subject.id_token_model }.not_to raise_error
+      end
+
+      it "accepts a subclass that does not redefine the initializer" do
+        id_token_subclass {}
+
+        expect { subject.id_token_model }.not_to raise_error
+      end
+    end
   end
 
   describe ".configuration" do
