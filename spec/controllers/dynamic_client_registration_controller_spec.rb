@@ -577,14 +577,61 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
     end
 
     context "when the scope parameter is omitted" do
-      it "registers the client with an empty scope set without raising" do
+      # An application whose `scopes` column is blank is unrestricted as far
+      # as Doorkeeper's ScopeChecker is concerned (`app_scopes.presence ||
+      # server_scopes`), so registering with no scopes at all would hand the
+      # client every scope the server defines.
+      it "registers the client with the server's default scopes" do
         post :register, params: {
           client_name: "no_scope_client",
           redirect_uris: redirect_uris,
         }
 
         expect(response.status).to eq 201
-        expect(Doorkeeper::Application.first.scopes.to_s).to eq("")
+        expect(Doorkeeper::Application.first.scopes.to_s).to eq("public")
+        expect(JSON.parse(response.body)["scope"]).to eq("public")
+      end
+
+      it "does not entitle the client to scopes it never registered" do
+        post :register, params: {
+          client_name: "no_scope_client",
+          redirect_uris: redirect_uris,
+        }
+
+        application = Doorkeeper::Application.first
+
+        expect(
+          Doorkeeper::OAuth::Helpers::ScopeChecker.valid?(
+            scope_str: "profile",
+            server_scopes: Doorkeeper.config.scopes,
+            app_scopes: application.scopes,
+            grant_type: Doorkeeper::OAuth::AUTHORIZATION_CODE,
+          ),
+        ).to be false
+      end
+
+      context "when the server configures no default scopes" do
+        before do
+          Doorkeeper.configure do
+            orm :active_record
+            grant_flows %w[authorization_code client_credentials implicit_oidc]
+            optional_scopes :public, :openid, :profile
+          end
+        end
+
+        it "rejects the registration rather than registering an unrestricted client" do
+          post :register, params: {
+            client_name: "no_scope_client",
+            redirect_uris: redirect_uris,
+          }
+
+          expect(response.status).to eq 400
+          expect(Doorkeeper::Application.count).to eq(0)
+
+          body = JSON.parse(response.body)
+          expect(body["error"]).to eq("invalid_client_metadata")
+          expect(body["error_description"]).to include("scope is required")
+        end
       end
     end
 
