@@ -21,7 +21,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 
 ## Status
 
-The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-connect-core-1_0.html) are currently supported:
+The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-connect-core-1_0.html) and related specifications are currently supported:
 - [Authentication using the Authorization Code Flow](http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)
 - [Authentication using the Implicit Flow](http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth)
 - [Requesting Claims using Scope Values](http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
@@ -29,6 +29,9 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
 - [OAuth 2.0 Form Post Response Mode](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
 - [OAuth 2.0 Dynamic Client Registration Protocol](https://datatracker.ietf.org/doc/html/rfc7591)
+- [RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) client metadata — per-client `post_logout_redirect_uris` registration and validation; the end-session endpoint itself is provided by the host application and advertised via the `end_session_endpoint` setting
+- [RFC 9207](https://www.rfc-editor.org/rfc/rfc9207) `iss` authorization response parameter, emitted when Doorkeeper itself is configured with an `issuer`
+- [RFC 8414 Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414) — served by the gem on Doorkeeper < 6.0; on Doorkeeper 6.0+ the gem enriches Doorkeeper's own metadata document with the OpenID Connect fields
 
 In addition, we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
@@ -40,7 +43,7 @@ Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_conne
 
 ### Example Applications
 
-- [GitLab](https://gitlab.com/gitlab-org/gitlab-ce) ([original MR](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/8018))
+- [GitLab](https://gitlab.com/gitlab-org/gitlab) ([original MR](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/8018))
 - [Testing app for this gem](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/tree/master/spec/dummy)
 
 ## Installation
@@ -112,7 +115,7 @@ To run the local engine server:
 bundle exec rake server
 ```
 
-By default, the latest Rails version is used. To use a specific version run:
+By default, Rails 8.0 is used. To use a specific version run:
 
 ```
 rails=7.2 bundle update
