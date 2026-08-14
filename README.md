@@ -8,12 +8,14 @@ This library implements an [OpenID Connect](http://openid.net/connect/) authenti
 
 OpenID Connect is a single-sign-on and identity layer with a [growing list of server and client implementations](http://openid.net/developers/libraries/). If you're looking for a client in Ruby check out [omniauth_openid_connect](https://github.com/m0n9oose/omniauth_openid_connect/).
 
+Full documentation lives in the [wiki](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki).
+
 ## Table of Contents
 
 - [Status](#status)
   - [Example Applications](#example-applications)
 - [Installation](#installation)
-- [Configuration](#configuration)
+- [Documentation](#documentation)
 - [Development](#development)
 - [License](#license)
 - [Sponsors](#sponsors)
@@ -68,16 +70,15 @@ If you're upgrading from an earlier version, check [Migration from Old Versions]
 wiki and [CHANGELOG.md](CHANGELOG.md) for upgrade instructions, including the
 migrations that newer versions add to existing installations.
 
-## Configuration
+## Documentation
 
-See the [wiki](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Configuration) for detailed configuration instructions, including:
+Configuration and usage are documented in the [wiki](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki), whose home page indexes every topic. The pages to start from:
 
-- [Scopes](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Scopes)
-- [Claims](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Claims)
-- [Routes](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Routes)
-- [Nonces](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Nonces)
-- [Internationalization (I18n)](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/I18n)
-- [Dynamic Client Registration](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Dynamic-Client-Registration)
+- [Configuration](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Configuration) — the issuer, subject, signing keys, and every other initializer option
+- [Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions) — upgrade instructions for breaking changes
+- [Troubleshooting](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Troubleshooting) — symptoms, causes, and fixes for common integration pitfalls
+
+The remaining pages cover scopes and claims, `prompt` and `max_age`, routes and multiple mounts, nonces, RP-Initiated Logout, Dynamic Client Registration, and I18n.
 
 ## Development
 
