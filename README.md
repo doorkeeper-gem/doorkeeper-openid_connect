@@ -13,7 +13,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
 - [Status](#status)
   - [Example Applications](#example-applications)
 - [Installation](#installation)
-- [Configuration](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Configuration)
+- [Configuration](#configuration)
 - [Development](#development)
 - [License](#license)
 - [Sponsors](#sponsors)
