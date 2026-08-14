@@ -14,6 +14,7 @@ Full documentation lives in the [wiki](https://github.com/doorkeeper-gem/doorkee
 
 - [Status](#status)
   - [Example Applications](#example-applications)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Documentation](#documentation)
 - [Development](#development)
@@ -42,6 +43,17 @@ Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_conne
 
 - [GitLab](https://gitlab.com/gitlab-org/gitlab) ([original MR](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/8018))
 - [Testing app for this gem](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/tree/master/spec/dummy)
+
+## Requirements
+
+| Dependency | Supported versions |
+| --- | --- |
+| Ruby | 3.2 or newer |
+| Rails | 7.0 to 8.1 |
+| Doorkeeper | 5.5 or newer, below 7.0 |
+| ORM | Active Record only |
+
+The [CI matrix](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/.github/workflows/ci.yml) is the authoritative statement of what is tested: each Rails series above against Ruby 3.2 through 4.0 and — except for Rails 7.0 — against `ruby-head`, plus one build per supported Doorkeeper series and one against Doorkeeper's `main` branch.
 
 ## Installation
 
