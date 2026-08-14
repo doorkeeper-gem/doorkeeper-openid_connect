@@ -467,6 +467,25 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         expect_authorization_form!
       end
+
+      # In `api_only` mode Doorkeeper's controllers descend from
+      # ActionController::API, which cannot render a template: `render :new`
+      # answers an empty 200 instead of raising. Present the pre-authorization
+      # as JSON, exactly as Doorkeeper's own AuthorizationsController does for
+      # the consent step under `api_only`.
+      it "renders the pre-authorization as JSON when Doorkeeper runs in API mode" do
+        allow(Doorkeeper.configuration).to receive(:api_only).and_return(true)
+        create :access_token, token_attributes
+        authorize! prompt: "consent"
+
+        expect(response).to be_successful
+        expect(response.media_type).to eq "application/json"
+        expect(JSON.parse(response.body)).to include(
+          "client_id" => application.uid,
+          "scope" => default_scopes,
+          "status" => "Pre-authorization",
+        )
+      end
     end
 
     context "with a prompt=select_account parameter" do

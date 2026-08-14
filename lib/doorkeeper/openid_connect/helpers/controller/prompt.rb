@@ -57,7 +57,18 @@ module Doorkeeper
             return unless owner
 
             clear_oidc_response
-            render :new
+
+            # Mirror how Doorkeeper's own AuthorizationsController#render_success
+            # presents the consent step: under `api_only` the controller
+            # descends from ActionController::API, which carries no template
+            # rendering at all, so `render :new` there produces an empty 200
+            # with no exception to notice — the client is told the request
+            # succeeded and receives nothing it can act on.
+            if Doorkeeper.configuration.api_only
+              render json: pre_auth
+            else
+              render :new
+            end
           end
 
           def oidc_prompt_values
