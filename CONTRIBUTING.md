@@ -4,12 +4,12 @@
 
 We are using the [Feature Branch Workflow (also known as GitHub Flow)](https://guides.github.com/introduction/flow/), and prefer delivery as pull requests.
 
-Our first line of defense is the [Travis CI](https://travis-ci.org/doorkeeper-gem/doorkeeper-openid_connect) build defined within [.travis.yml](.travis.yml) and triggered for every pull request.
+Our first line of defense is the [CI workflow](.github/workflows/ci.yml), triggered for every pull request, which runs the specs against each supported Ruby, Rails and Doorkeeper combination. Two more workflows run alongside it: [rubocop](.github/workflows/rubocop.yml) reports style offenses as review comments, and the [changelog verifier](.github/workflows/changelog.yml) expects every pull request to update `CHANGELOG.md` unless it is labeled `Skip-Changelog`.
 
 Create a feature branch:
 
 ```sh
-git checkout -B feature/contributing
+git checkout -b feature/contributing
 ```
 
 ## Creating Good Commits
