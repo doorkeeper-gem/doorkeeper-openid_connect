@@ -7,4 +7,10 @@ gem "rails", "~> 8.0.0"
 gem "rails-controller-testing"
 gem "sqlite3", "~> 2.3", platform: %i[ruby mswin mingw x64_mingw]
 
+# The e2e CI job runs with this gemfile: Capybara boots spec/dummy as a real
+# server and Cuprite drives it in Chrome.
+gem "capybara", require: false
+gem "cuprite", require: false
+gem "puma"
+
 gemspec path: "../"
