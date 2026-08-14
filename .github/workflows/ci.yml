@@ -69,6 +69,46 @@ jobs:
       - name: Run tests
         timeout-minutes: 10
         run: bundle exec rake spec
+  e2e:
+    name: E2E (${{ matrix.gemfile }})
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+    if: |
+      !(   contains(github.event.pull_request.title,  '[ci skip]')
+        || contains(github.event.pull_request.title,  '[skip ci]'))
+    strategy:
+      fail-fast: false
+      matrix:
+        # Short names (not gemfile paths like the build matrix) so they can
+        # name the failure artifact below — expressions have no replace().
+        gemfile:
+          - rails_8.1
+          - doorkeeper_master
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      # Cuprite drives the Chrome the runner image already ships, so the suite
+      # needs nothing beyond the bundle.
+      - name: Run E2E tests
+        timeout-minutes: 15
+        run: bundle exec rake e2e
+
+      - name: Upload the pages of failed examples
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.gemfile }}
+          path: spec/dummy/tmp/e2e/
+          retention-days: 7
   lint:
     name: RuboCop
     runs-on: ubuntu-latest
