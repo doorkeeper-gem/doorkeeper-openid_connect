@@ -9,6 +9,11 @@ module Doorkeeper
     # Doorkeeper's own metadata endpoint advertises the same values as the
     # OpenID Connect discovery document.
     module DiscoveryHelpersMixin
+      # The claims every ID Token carries, so the discovery document advertises
+      # them whatever the configuration says. The String counterpart of
+      # `IdToken::REQUIRED_CLAIMS`, which names the same five claims.
+      BASE_CLAIMS = %w[iss sub aud exp iat].freeze
+
       private
 
       def issuer
@@ -16,7 +21,9 @@ module Doorkeeper
       end
 
       def claims_supported(openid_connect)
-        %w[iss sub aud exp iat] | openid_connect.claims.to_h.keys
+        # The configured claim names are Symbols; align the types so a custom
+        # claim shadowing a base claim is deduplicated by the union.
+        BASE_CLAIMS | openid_connect.claims.to_h.keys.map(&:to_s)
       end
 
       def protocol

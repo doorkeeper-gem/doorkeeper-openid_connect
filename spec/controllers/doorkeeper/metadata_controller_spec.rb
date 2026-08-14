@@ -34,6 +34,21 @@ if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
         expect(data["claims_supported"]).to include("iss", "sub", "aud", "exp", "iat")
       end
 
+      it "does not duplicate a base claim redefined as a custom claim" do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          claims do
+            claim(:sub) { "custom subject" }
+          end
+        end
+
+        get :show
+
+        data = JSON.parse(response.body)
+
+        expect(data["claims_supported"]).to eq %w[iss sub aud exp iat]
+      end
+
       it "keeps the Doorkeeper-derived fields of the core document" do
         get :show
 
