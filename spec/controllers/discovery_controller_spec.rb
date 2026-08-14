@@ -116,6 +116,20 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       }.sort)
     end
 
+    it "does not duplicate a base claim redefined as a custom claim" do
+      Doorkeeper::OpenidConnect.configure do
+        issuer "dummy"
+        claims do
+          claim(:sub) { "custom subject" }
+        end
+      end
+
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data["claims_supported"]).to eq %w[iss sub aud exp iat]
+    end
+
     context "when Doorkeeper is configured with an issuer (RFC 9207)" do
       before do
         allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
