@@ -31,6 +31,7 @@ This repository is the `doorkeeper-openid_connect` gem: a Rails engine that adds
 - `app/controllers/doorkeeper/openid_connect/**`: discovery, userinfo, dynamic registration endpoints
 - `spec/**`: test suite
 - `spec/dummy/**`: Rails app used by controller/integration-style specs
+- `e2e/**`: Playwright browser tests that drive the dummy app over real HTTP
 
 ## Test and lint commands
 
@@ -41,11 +42,23 @@ bundle exec rake spec
 bundle exec rubocop
 ```
 
+Browser end-to-end tests (require Node.js; Playwright boots the dummy app on
+port 3000 with its own sqlite database):
+
+```bash
+cd e2e && npm install && npx playwright install chromium && npx playwright test
+```
+
 Notes:
 
 - The default `Gemfile` uses `ENV["rails"]` and defaults to Rails `8.0.0`.
-- CI runs `bundle exec rake spec` across the matrix in `.github/workflows/ci.yml`.
+- CI runs `bundle exec rake spec` across the matrix in `.github/workflows/ci.yml`,
+  plus the `e2e` job on two gemfiles.
 - Use the root-level test command unless a task specifically requires a different `BUNDLE_GEMFILE`.
+- The dummy app runs the e2e suite in development mode; passing `force_consent=1`
+  to `/oauth/authorize` disables the development-only `skip_authorization` so the
+  consent screen renders. The dummy `resource_owner_authenticator` remembers
+  `params[:current_user]` in the session to survive the consent form POST.
 
 ## Change expectations
 

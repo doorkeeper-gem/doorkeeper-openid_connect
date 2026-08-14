@@ -24,3 +24,10 @@ task :server do
     system("bin/rails server")
   end
 end
+
+desc "Run browser end-to-end tests against the test application"
+task :e2e do
+  Dir.chdir("e2e") do
+    system("npx playwright test", exception: true)
+  end
+end

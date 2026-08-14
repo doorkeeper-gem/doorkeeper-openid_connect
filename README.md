@@ -115,6 +115,20 @@ To run the local engine server:
 bundle exec rake server
 ```
 
+To run the browser end-to-end tests (requires Node.js; they boot the dummy app
+on port 3000 and drive its dashboard with [Playwright](https://playwright.dev/)):
+
+```sh
+cd e2e
+npm install
+npx playwright install chromium
+npx playwright test
+```
+
+Use `npx playwright test --ui` for interactive debugging. If a server started
+via `bundle exec rake server` is already listening on port 3000, the tests
+reuse it (with its existing database) instead of booting their own.
+
 By default, Rails 8.0 is used. To use a specific version run:
 
 ```

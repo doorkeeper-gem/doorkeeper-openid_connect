@@ -6,6 +6,9 @@
 /spec/dummy/log/*.log
 /spec/dummy/tmp/
 /spec/examples.txt
+/e2e/node_modules/
+/e2e/test-results/
+/e2e/playwright-report/
 /pkg
 gemfiles/*.lock
 *.gem

@@ -1,0 +1,11 @@
+{
+  "name": "doorkeeper-openid_connect-e2e",
+  "private": true,
+  "description": "Browser end-to-end tests driving spec/dummy over real HTTP",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
