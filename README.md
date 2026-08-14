@@ -30,9 +30,9 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
 - [OAuth 2.0 Form Post Response Mode](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
 - [OAuth 2.0 Dynamic Client Registration Protocol](https://datatracker.ietf.org/doc/html/rfc7591)
-- [RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) client metadata — per-client `post_logout_redirect_uris` registration and validation; the end-session endpoint itself is provided by the host application and advertised via the `end_session_endpoint` setting
+- [RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) client metadata — per-client `post_logout_redirect_uris` registration and validation; see [RP-Initiated Logout](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/RP-Initiated-Logout) for the host application's part
 - [RFC 9207](https://www.rfc-editor.org/rfc/rfc9207) `iss` authorization response parameter, emitted when Doorkeeper itself is configured with an `issuer`
-- [RFC 8414 Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414) — served by the gem on Doorkeeper < 6.0; on Doorkeeper 6.0+ the gem enriches Doorkeeper's own metadata document with the OpenID Connect fields
+- [RFC 8414 Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414) — see [Routes](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Routes) for how this interacts with the metadata endpoint Doorkeeper 6.0 serves itself
 
 In addition, we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
