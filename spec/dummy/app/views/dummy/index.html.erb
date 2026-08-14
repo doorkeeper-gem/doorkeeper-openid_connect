@@ -216,8 +216,16 @@
 
   function getJson(url, outId, headers) {
     fetch(url, { headers: headers || { 'Accept': 'application/json' } })
-      .then(function (r) { return r.text(); })
-      .then(function (t) { try { show(outId, JSON.parse(t)); } catch (e) { show(outId, t); } })
+      .then(function (r) {
+        return r.text().then(function (t) {
+          if (t.trim() === '') {
+            var auth = r.headers.get('WWW-Authenticate');
+            show(outId, 'HTTP ' + r.status + (auth ? '\n' + auth : ''));
+            return;
+          }
+          try { show(outId, JSON.parse(t)); } catch (e) { show(outId, t); }
+        });
+      })
       .catch(function (e) { show(outId, String(e)); });
   }
   function postForm(url, params, outId, done) {
