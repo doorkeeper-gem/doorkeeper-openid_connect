@@ -65,17 +65,8 @@ rake db:migrate
 ```
 
 If you're upgrading from an earlier version, check [Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions)
-wiki and [CHANGELOG.md](CHANGELOG.md) for upgrade instructions.
-
-If you are upgrading an existing installation and want to use per-client
-post-logout redirect URIs (RP-Initiated Logout), add the new column with:
-
-```sh
-rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris
-rake db:migrate
-```
-
-New installations already include this column via the migration above.
+wiki and [CHANGELOG.md](CHANGELOG.md) for upgrade instructions, including the
+migrations that newer versions add to existing installations.
 
 ## Configuration
 
