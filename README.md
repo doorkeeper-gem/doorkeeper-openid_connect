@@ -3,6 +3,7 @@
 [![CI](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/actions/workflows/ci.yml/badge.svg)](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/actions/workflows/ci.yml)
 [![Maintainability](https://qlty.sh/gh/doorkeeper-gem/projects/doorkeeper-openid_connect/maintainability.svg)](https://qlty.sh/gh/doorkeeper-gem/projects/doorkeeper-openid_connect)
 [![Gem Version](https://badge.fury.io/rb/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
+[![Downloads](https://img.shields.io/gem/dt/doorkeeper-openid_connect.svg)](https://rubygems.org/gems/doorkeeper-openid_connect)
 
 This library implements an [OpenID Connect](http://openid.net/connect/) authentication provider for Rails applications on top of the [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) OAuth 2.0 framework.
 
