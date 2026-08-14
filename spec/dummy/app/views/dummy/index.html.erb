@@ -46,7 +46,7 @@
   <% end %>
   <%= form_with url: applications_path, method: :post do |f| %>
     <div class="field"><label>name</label><%= f.text_field :name, placeholder: "my-client", required: true %></div>
-    <div class="field"><label>redirect_uri</label><%= f.text_field :redirect_uri, value: "http://localhost:3000/callback" %></div>
+    <div class="field"><label>redirect_uri</label><%= f.text_field :redirect_uri, value: callback_url %></div>
     <div class="field"><label>scopes</label><%= f.text_field :scopes, value: "openid" %></div>
     <div class="field"><%= f.submit "Create application" %></div>
   <% end %>
