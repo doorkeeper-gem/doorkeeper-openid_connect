@@ -9,7 +9,7 @@ Our first line of defense is the [CI workflow](.github/workflows/ci.yml), trigge
 Create a feature branch:
 
 ```sh
-git checkout -B feature/contributing
+git checkout -b feature/contributing
 ```
 
 ## Creating Good Commits
