@@ -9,7 +9,7 @@
 
   <h3>Users</h3>
   <% if @users.any? %>
-    <table>
+    <table id="users">
       <tr><th>id</th><th>name</th></tr>
       <% @users.each do |user| %>
         <tr><td><%= user.id %></td><td><%= user.name %></td></tr>
@@ -28,7 +28,7 @@
 
   <h3>Applications</h3>
   <% if @applications.any? %>
-    <table>
+    <table id="applications">
       <tr><th>id</th><th>name</th><th>uid (client_id)</th><th>secret</th><th>redirect_uri</th><th>scopes</th></tr>
       <% @applications.each do |app| %>
         <tr>
