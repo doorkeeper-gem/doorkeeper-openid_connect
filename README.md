@@ -115,6 +115,20 @@ To run the local engine server:
 bundle exec rake server
 ```
 
+To run the browser end-to-end tests, which boot the dummy app with
+[Capybara](https://github.com/teamcapybara/capybara) and drive its dashboard
+through [Cuprite](https://github.com/rubycdp/cuprite):
+
+```sh
+bundle exec rake e2e
+```
+
+They need an installed Chrome or Chromium and nothing else. Run them with
+`HEADLESS=false` to watch a flow in a visible browser. The suite boots the app
+in the development environment against its own `spec/dummy/db/e2e.sqlite3`
+database, so it leaves the one behind `bundle exec rake server` alone, and it
+saves the page of a failing example to `spec/dummy/tmp/e2e`.
+
 By default, Rails 8.0 is used. To use a specific version run:
 
 ```sh
