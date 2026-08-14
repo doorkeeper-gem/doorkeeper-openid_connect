@@ -37,7 +37,7 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 
 In addition, we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
-Take a look at the [DiscoveryController](app/controllers/doorkeeper/openid_connect/discovery_controller.rb) for more details on supported features.
+Take a look at the [DiscoveryController](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/app/controllers/doorkeeper/openid_connect/discovery_controller.rb) for more details on supported features.
 
 ### Example Applications
 
@@ -75,11 +75,11 @@ Generate a migration for Active Record (other ORMs are currently not supported):
 
 ```sh
 rails generate doorkeeper:openid_connect:migration
-rake db:migrate
+rails db:migrate
 ```
 
 If you're upgrading from an earlier version, check [Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions)
-wiki and [CHANGELOG.md](CHANGELOG.md) for upgrade instructions, including the
+wiki and [CHANGELOG.md](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/CHANGELOG.md) for upgrade instructions, including the
 migrations that newer versions add to existing installations.
 
 ## Documentation
@@ -116,7 +116,7 @@ bundle exec rake server
 
 By default, Rails 8.0 is used. To use a specific version run:
 
-```
+```sh
 rails=7.2 bundle update
 ```
 
