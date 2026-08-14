@@ -69,6 +69,68 @@ jobs:
       - name: Run tests
         timeout-minutes: 10
         run: bundle exec rake spec
+  e2e:
+    name: E2E (${{ matrix.gemfile }})
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+    if: |
+      !(   contains(github.event.pull_request.title,  '[ci skip]')
+        || contains(github.event.pull_request.title,  '[skip ci]'))
+    strategy:
+      fail-fast: false
+      matrix:
+        # Short names (not gemfile paths like the build matrix) so they can
+        # name the failure artifact below — expressions have no replace().
+        gemfile:
+          - rails_8.1
+          - doorkeeper_master
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install Chromium
+        working-directory: e2e
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        timeout-minutes: 15
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload traces and report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ matrix.gemfile }}
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
   lint:
     name: RuboCop
     runs-on: ubuntu-latest

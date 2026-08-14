@@ -7,4 +7,7 @@ gem "rails", "~> 8.0.0"
 gem "rails-controller-testing"
 gem "sqlite3", "~> 2.3", platform: %i[ruby mswin mingw x64_mingw]
 
+# The e2e CI job boots spec/dummy as a real server with this gemfile.
+gem "puma"
+
 gemspec path: "../"
