@@ -141,6 +141,11 @@
       <label>max_age</label>
       <input type="number" id="max_age" min="0" placeholder="(unset)">
     </div>
+    <div class="field">
+      <label>force consent</label>
+      <input type="checkbox" id="force_consent">
+      <span class="hint">show the consent screen even though development skips authorization</span>
+    </div>
     <button type="button" onclick="authorize()">Authorize →</button>
     <h4>Result</h4>
     <pre id="authorize_result" class="muted">The authorization response will appear here after the redirect.</pre>
@@ -284,6 +289,7 @@
     }
     if ($('prompt').value) p.set('prompt', $('prompt').value);
     if ($('max_age').value !== '') p.set('max_age', $('max_age').value);
+    if ($('force_consent').checked) p.set('force_consent', '1');
 
     sessionStorage.setItem('oidc_ctx', JSON.stringify({
       client_id: app.uid,
