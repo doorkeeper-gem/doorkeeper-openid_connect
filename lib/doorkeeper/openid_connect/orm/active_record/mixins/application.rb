@@ -11,7 +11,7 @@ module Doorkeeper
             MISSING_COLUMN_MESSAGE =
               "can't write post_logout_redirect_uris: the oauth_applications column is missing — " \
               "run `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` " \
-              "and `rake db:migrate`"
+              "and `rails db:migrate`"
 
             included do
               # Validate registered post-logout redirect URIs with exactly the
