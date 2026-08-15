@@ -1,3 +1,5 @@
+Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions) walks through every breaking change and the steps it asks for, and the rest of the [wiki](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki) documents the configuration and behavior the entries below refer to.
+
 ## Unreleased
 
 - [#243] Add per-client `post_logout_redirect_uris` for RP-Initiated Logout, exposed via `Doorkeeper::Application#post_logout_redirect_uris` and `#valid_post_logout_redirect_uri?(uri)`. URIs are validated with the same rules as `redirect_uri`; Dynamic Client Registration accepts and echoes them back
