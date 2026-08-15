@@ -16,7 +16,33 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     steps:
+      # A pull request that only edits Markdown files documents the project
+      # instead of changing the library, so it leaves an upgrader nothing to
+      # read in CHANGELOG.md. Recognizing that here rather than through a label
+      # keeps the job green on its own: external contributors cannot label
+      # their own pull requests, so a label-based exemption would always wait
+      # for a maintainer first.
+      - name: Detect a documentation-only pull request
+        id: docs_only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FILES_ENDPOINT: repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files
+        run: |
+          files="$(gh api --paginate "$FILES_ENDPOINT" --jq '.[].filename')"
+          other="$(printf '%s\n' "$files" | grep -v '\.md$' || true)"
+
+          echo "Changed files:"
+          echo "$files"
+
+          if [ -n "$files" ] && [ -z "$other" ]; then
+            echo "Only Markdown files were changed; skipping the changelog check."
+            echo "result=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: dangoslen/changelog-enforcer@v3.7.0
+        if: steps.docs_only.outputs.result != 'true'
         with:
           # Dependabot PRs are labeled "dependencies" automatically and don't
           # need a changelog entry; "Skip-Changelog" keeps a manual escape hatch.
