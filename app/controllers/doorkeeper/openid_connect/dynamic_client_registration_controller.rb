@@ -82,6 +82,10 @@ module Doorkeeper
         response = {
           client_id: doorkeeper_application.uid,
           client_id_issued_at: doorkeeper_application.created_at.to_i,
+          # RFC 7591 §3.2.1: the response must include all registered client
+          # metadata. The name is always present on a successfully created
+          # application (the model validates its presence).
+          client_name: doorkeeper_application.name,
           redirect_uris: doorkeeper_application.redirect_uri.split,
           token_endpoint_auth_method: registration.token_endpoint_auth_method,
           token_endpoint_auth_methods_supported: registration.token_endpoint_auth_methods_supported,

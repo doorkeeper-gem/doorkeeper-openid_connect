@@ -34,6 +34,7 @@
 - [#370] Correct the stale `rake db:migrate` command to `rails db:migrate` in the README, the [#243] migration note, and the `post_logout_redirect_uris` missing-column error message
 - [#372] Fix duplicate entries in the discovery document's `claims_supported` when a custom claim shadows a base claim (`iss`/`sub`/`aud`/`exp`/`iat`)
 - [#373] Fix `prompt=consent` under Doorkeeper's `api_only` mode — the consent step now returns the pre-authorization as JSON instead of attempting to render a template that `ActionController::API` cannot serve
+- [#381] Echo the registered `client_name` in the Dynamic Client Registration response, as RFC 7591 §3.2.1 requires the response to include all registered client metadata
 - Add entry here
 
 ## v1.10.5 (2026-07-09)

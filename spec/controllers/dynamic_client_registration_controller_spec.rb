@@ -49,6 +49,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           "client_secret_expires_at" => 0,
           "client_id" => doorkeeper_application.uid,
           "client_id_issued_at" => doorkeeper_application.created_at.to_i,
+          "client_name" => "dummy_client",
           "redirect_uris" => redirect_uris,
           "token_endpoint_auth_method" => "client_secret_basic",
           "token_endpoint_auth_methods_supported" => %w[client_secret_basic client_secret_post],
@@ -57,6 +58,23 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
           "scope" => "public",
           "application_type" => "web",
         })
+      end
+    end
+
+    context "when client_name is provided" do
+      it "stores it and echoes it back (RFC 7591 §3.2.1)" do
+        post :register, params: {
+          client_name: "My Example App",
+          redirect_uris: redirect_uris,
+          scope: "public",
+        }
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application.name).to eq("My Example App")
+        expect(body["client_name"]).to eq("My Example App")
       end
     end
 
