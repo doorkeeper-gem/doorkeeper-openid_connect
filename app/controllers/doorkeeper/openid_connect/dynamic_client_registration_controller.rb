@@ -60,26 +60,40 @@ module Doorkeeper
       end
 
       def application_params(registration)
-        application_params = {
+        {
           name: params[:client_name],
           redirect_uri: params[:redirect_uris] || [],
           scopes: registration.permitted_scopes,
           confidential: registration.confidential_client?,
-        }
+        }.merge(optional_column_params)
+      end
 
-        # Existing installations may not have run the migration that adds the
-        # `post_logout_redirect_uris` column yet. RFC 7591 §2 allows the server
-        # to ignore client metadata it does not understand, so the parameter is
-        # simply dropped in that case instead of failing the registration.
+      # Client metadata backed by a column that an existing installation may
+      # not have migrated in yet. RFC 7591 §2 allows the server to ignore
+      # client metadata it does not understand, so each parameter is simply
+      # dropped when its column is missing instead of failing the
+      # registration.
+      def optional_column_params
+        optional = {}
+
         if post_logout_redirect_uris_supported?
-          application_params[:post_logout_redirect_uris] = params[:post_logout_redirect_uris] || []
+          optional[:post_logout_redirect_uris] = params[:post_logout_redirect_uris] || []
         end
 
-        application_params
+        # Back-Channel Logout 1.0 §2.2 registration metadata.
+        if backchannel_logout_uri_supported? && params[:backchannel_logout_uri].present?
+          optional[:backchannel_logout_uri] = params[:backchannel_logout_uri]
+        end
+
+        optional
       end
 
       def post_logout_redirect_uris_supported?
         Doorkeeper.config.application_model.column_names.include?("post_logout_redirect_uris")
+      end
+
+      def backchannel_logout_uri_supported?
+        Doorkeeper.config.application_model.column_names.include?("backchannel_logout_uri")
       end
 
       # One method per metadata document: the registration response echoes
@@ -108,6 +122,8 @@ module Doorkeeper
         post_logout_uris = doorkeeper_application.post_logout_redirect_uris
         response[:post_logout_redirect_uris] = post_logout_uris if post_logout_uris.present?
 
+        response.merge!(backchannel_logout_metadata(doorkeeper_application))
+
         if registration.confidential_client?
           response[:client_secret] =
             doorkeeper_application.plaintext_secret || doorkeeper_application.secret
@@ -120,6 +136,20 @@ module Doorkeeper
         response
       end
       # rubocop:enable Metrics/AbcSize
+
+      # Back-Channel Logout 1.0 §2.2 client metadata, echoed only when the
+      # client registered a `backchannel_logout_uri` — registration is
+      # optional, like the RP-Initiated Logout metadata above. The
+      # `backchannel_logout_session_required` echo makes the sub-only contract
+      # explicit: registrations requiring a `sid` claim are rejected by
+      # DynamicRegistrationRequest, so a registered client is always `false`
+      # here.
+      def backchannel_logout_metadata(doorkeeper_application)
+        uri = doorkeeper_application.backchannel_logout_uri
+        return {} if uri.blank?
+
+        { backchannel_logout_uri: uri, backchannel_logout_session_required: false }
+      end
     end
   end
 end
