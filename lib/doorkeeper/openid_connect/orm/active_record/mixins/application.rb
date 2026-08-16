@@ -13,6 +13,64 @@ module Doorkeeper
               "run `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` " \
               "and `rails db:migrate`"
 
+            # The client's Back-Channel Logout URI (Back-Channel Logout 1.0
+            # §2.2), validated with the same `Doorkeeper::RedirectUriValidator`
+            # rules as `redirect_uri` — which enforces exactly what §2.2
+            # requires (absolute URI, no fragment, forbidden schemes) and
+            # keeps the https requirement in lockstep with
+            # `force_ssl_in_redirect_uri`. Registration is optional, so a
+            # blank value is allowed (the client then receives no Logout
+            # Tokens).
+            #
+            # As with the `post_logout_redirect_uris` handling below, all
+            # paths degrade gracefully when the column has not been added yet
+            # (an existing installation that has not run the upgrade
+            # migration): reads answer nil, validation is skipped — only an
+            # explicit write raises, pointing at the missing migration,
+            # because silently dropping an assigned logout URI would surface
+            # much later as an RP that never receives logout notifications.
+            module BackchannelLogout
+              extend ::ActiveSupport::Concern
+
+              BACKCHANNEL_LOGOUT_URI_MISSING_COLUMN_MESSAGE =
+                "can't write backchannel_logout_uri: the oauth_applications column is missing — " \
+                "run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` " \
+                "and `rails db:migrate`"
+
+              included do
+                validate do
+                  next unless has_attribute?(:backchannel_logout_uri)
+
+                  raw_value = read_attribute(:backchannel_logout_uri)
+                  next if raw_value.blank?
+
+                  Doorkeeper::RedirectUriValidator
+                    .new(attributes: [:backchannel_logout_uri])
+                    .validate_each(self, :backchannel_logout_uri, raw_value)
+                end
+
+                def backchannel_logout_uri=(uri)
+                  unless has_attribute?(:backchannel_logout_uri)
+                    raise ActiveModel::MissingAttributeError,
+                          BACKCHANNEL_LOGOUT_URI_MISSING_COLUMN_MESSAGE
+                  end
+
+                  super
+                end
+
+                # Returns nil for both the missing-column case and a stored
+                # blank value, so callers can treat "no logout URI registered"
+                # as one condition.
+                def backchannel_logout_uri
+                  return nil unless has_attribute?(:backchannel_logout_uri)
+
+                  super.presence
+                end
+              end
+            end
+
+            include BackchannelLogout
+
             included do
               # Validate registered post-logout redirect URIs with exactly the
               # same rules Doorkeeper applies to `redirect_uri`, by delegating
