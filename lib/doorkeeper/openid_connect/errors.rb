@@ -12,9 +12,10 @@ module Doorkeeper
       # internal errors
       class InvalidConfiguration < OpenidConnectError; end
 
-      # Raised when a REQUIRED ID Token claim (OIDC Core §2: iss/sub/aud/exp/iat)
-      # resolves to a blank value, which would otherwise be silently dropped and
-      # produce a non-conformant ID Token.
+      # Raised when a REQUIRED claim of a token this gem issues resolves to a
+      # blank value — an ID Token claim (OIDC Core §2: iss/sub/aud/exp/iat) or
+      # a Logout Token claim (Back-Channel Logout 1.0 §2.4) — which would
+      # otherwise be silently dropped and produce a non-conformant token.
       class MissingRequiredClaim < OpenidConnectError
         attr_reader :claim
 
