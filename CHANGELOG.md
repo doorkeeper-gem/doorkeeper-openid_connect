@@ -34,6 +34,11 @@
 - [#370] Correct the stale `rake db:migrate` command to `rails db:migrate` in the README, the [#243] migration note, and the `post_logout_redirect_uris` missing-column error message
 - [#372] Fix duplicate entries in the discovery document's `claims_supported` when a custom claim shadows a base claim (`iss`/`sub`/`aud`/`exp`/`iat`)
 - [#373] Fix `prompt=consent` under Doorkeeper's `api_only` mode — the consent step now returns the pre-authorization as JSON instead of attempting to render a template that `ActionController::API` cannot serve
+- [#382] Add OpenID Connect Back-Channel Logout 1.0 support, phase 1 ([#191]): signed Logout Token generation (`Doorkeeper::OpenidConnect::LogoutToken`, `sub`-based, no `sid`), per-client `backchannel_logout_uri` registration (model attribute and Dynamic Client Registration metadata), and discovery advertisement (`backchannel_logout_supported` / `backchannel_logout_session_supported`). Token delivery follows in phase 2
+
+> [!NOTE]
+> **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` followed by `rails db:migrate` to enable the feature; without the column nothing is advertised and the registration metadata is ignored
+
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
