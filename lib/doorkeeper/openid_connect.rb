@@ -26,6 +26,7 @@ module Doorkeeper
     autoload :IdToken, "doorkeeper/openid_connect/id_token"
     autoload :JwkAlgorithm, "doorkeeper/openid_connect/jwk_algorithm"
     autoload :LogoutToken, "doorkeeper/openid_connect/logout_token"
+    autoload :SigningKeySelection, "doorkeeper/openid_connect/signing_key_selection"
     autoload :TokenEndpointAuthMethodsSupportedMixin,
              "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
     autoload :UserInfo, "doorkeeper/openid_connect/user_info"
