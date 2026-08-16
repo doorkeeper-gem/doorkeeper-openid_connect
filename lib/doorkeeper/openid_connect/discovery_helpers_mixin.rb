@@ -26,6 +26,22 @@ module Doorkeeper
         BASE_CLAIMS | openid_connect.claims.to_h.keys.map(&:to_s)
       end
 
+      # Back-Channel Logout 1.0 §2 OP metadata. Advertised only when the
+      # application model has the `backchannel_logout_uri` column, i.e. RPs
+      # can actually register a logout URI — an installation that has not run
+      # the migration should not claim support. `sid` is never issued (no
+      # OP-side session tracking), so `backchannel_logout_session_supported`
+      # is an explicit `false`; both keys survive the callers' `.compact`.
+      def backchannel_logout_metadata
+        application_model = ::Doorkeeper.config.application_model
+        return {} unless application_model.column_names.include?("backchannel_logout_uri")
+
+        {
+          backchannel_logout_supported: true,
+          backchannel_logout_session_supported: false,
+        }
+      end
+
       def protocol
         configured = Doorkeeper::OpenidConnect.configuration.protocol
         configured.respond_to?(:call) ? configured.call : configured
