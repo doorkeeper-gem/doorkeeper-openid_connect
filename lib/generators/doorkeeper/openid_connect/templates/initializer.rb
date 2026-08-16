@@ -204,12 +204,13 @@ Doorkeeper::OpenidConnect.configure do
   # end
 
   # If you need more control than what `claims` provides, you can implement your own models for ID
-  # Token and User Info. This is useful if you need to respond to business requirements (e.g.,
-  # different apps may need different claim sets) or if you need to transform data before returning
-  # it to external clients.
+  # Token, User Info and Logout Token. This is useful if you need to respond to business
+  # requirements (e.g., different apps may need different claim sets) or if you need to transform
+  # data before returning it to external clients.
   #
   # Custom classes must inherit from Doorkeeper::OpenidConnect::IdToken /
-  # Doorkeeper::OpenidConnect::UserInfo (validated when the class is first used). The base classes
+  # Doorkeeper::OpenidConnect::UserInfo / Doorkeeper::OpenidConnect::LogoutToken (validated when
+  # the class is first used). The base classes
   # carry the security-critical behavior — required-claim enforcement, the claim merge order that
   # keeps the `claims` configuration block from overriding `sub`/`aud`/`exp`, nonce and `at_hash`
   # handling — so a subclass only overrides what it actually needs. Typical override points:
@@ -218,14 +219,18 @@ Doorkeeper::OpenidConnect.configure do
   #     that collides with a registered claim replaces it, so keep your keys distinct unless
   #     replacing it is what you mean
   #   - `audience` (ID Token) — the `aud` claim may be a string or an array per OIDC Core
-  #   - `select_key` (ID Token) — return a Doorkeeper::OpenidConnect::IdToken::SigningKey to sign
-  #     with a different key/algorithm (per-client keys, rotation, multi-tenancy). The `at_hash`
-  #     digest follows the selected algorithm automatically; advertising any additional keys via
-  #     JWKS is the application's responsibility.
+  #   - `select_key` (ID Token and Logout Token) — return a
+  #     Doorkeeper::OpenidConnect::SigningKeySelection::SigningKey to sign with a different
+  #     key/algorithm (per-client keys, rotation, multi-tenancy). The `at_hash` digest follows the
+  #     selected algorithm automatically; advertising any additional keys via JWKS is the
+  #     application's responsibility. Override it on both classes: Back-Channel Logout 1.0 §2.4
+  #     has Logout Tokens signed with the same key as ID Tokens, so an RP can validate both
+  #     against one JWKS.
   #
-  # Refer to Doorkeeper::OpenidConnect::IdToken and Doorkeeper::OpenidConnect::UserInfo for more
-  # information and implementation details.
+  # Refer to Doorkeeper::OpenidConnect::IdToken, Doorkeeper::OpenidConnect::UserInfo and
+  # Doorkeeper::OpenidConnect::LogoutToken for more information and implementation details.
   #
   # id_token_class "MyIdToken"
   # user_info_class "MyUserInfo"
+  # logout_token_class "MyLogoutToken"
 end
