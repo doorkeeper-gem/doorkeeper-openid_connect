@@ -57,6 +57,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           plain
           S256
         ],
+
+        "backchannel_logout_supported" => true,
+        "backchannel_logout_session_supported" => false,
       }.sort)
     end
 
@@ -113,7 +116,25 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
           plain
           S256
         ],
+
+        "backchannel_logout_supported" => true,
+        "backchannel_logout_session_supported" => false,
       }.sort)
+    end
+
+    context "when the application model does not have the backchannel_logout_uri column" do
+      before do
+        allow(Doorkeeper.config.application_model).to receive(:column_names)
+          .and_return(Doorkeeper::Application.column_names - ["backchannel_logout_uri"])
+      end
+
+      it "does not advertise back-channel logout support" do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data).not_to have_key("backchannel_logout_supported")
+        expect(data).not_to have_key("backchannel_logout_session_supported")
+      end
     end
 
     it "does not duplicate a base claim redefined as a custom claim" do
