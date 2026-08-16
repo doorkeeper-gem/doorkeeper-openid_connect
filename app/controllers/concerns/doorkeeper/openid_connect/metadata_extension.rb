@@ -52,7 +52,7 @@ module Doorkeeper
           id_token_signing_alg_values_supported: [::Doorkeeper::OpenidConnect.signing_algorithm],
           claim_types_supported: ["normal"],
           claims_supported: claims_supported(openid_connect),
-        }.compact
+        }.compact.merge(backchannel_logout_metadata)
       end
 
       def registration_endpoint_url(openid_connect)
