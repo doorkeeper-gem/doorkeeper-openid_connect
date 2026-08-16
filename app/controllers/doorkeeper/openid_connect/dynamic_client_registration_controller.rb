@@ -71,11 +71,21 @@ module Doorkeeper
           application_params[:post_logout_redirect_uris] = params[:post_logout_redirect_uris] || []
         end
 
+        # Same graceful degradation for the Back-Channel Logout 1.0 §2.2
+        # registration metadata when its column is missing.
+        if backchannel_logout_uri_supported? && params[:backchannel_logout_uri].present?
+          application_params[:backchannel_logout_uri] = params[:backchannel_logout_uri]
+        end
+
         application_params
       end
 
       def post_logout_redirect_uris_supported?
         Doorkeeper.config.application_model.column_names.include?("post_logout_redirect_uris")
+      end
+
+      def backchannel_logout_uri_supported?
+        Doorkeeper.config.application_model.column_names.include?("backchannel_logout_uri")
       end
 
       def registration_response(doorkeeper_application, registration)
@@ -95,6 +105,17 @@ module Doorkeeper
         # field is only echoed when post-logout redirect URIs were registered.
         post_logout_uris = doorkeeper_application.post_logout_redirect_uris
         response[:post_logout_redirect_uris] = post_logout_uris if post_logout_uris.present?
+
+        # Also optional (Back-Channel Logout 1.0 §2.2). The
+        # `backchannel_logout_session_required` echo makes the sub-only
+        # contract explicit: registrations requiring a `sid` claim are
+        # rejected by DynamicRegistrationRequest, so a registered client is
+        # always `false` here.
+        backchannel_uri = doorkeeper_application.backchannel_logout_uri
+        if backchannel_uri.present?
+          response[:backchannel_logout_uri] = backchannel_uri
+          response[:backchannel_logout_session_required] = false
+        end
 
         if registration.confidential_client?
           response[:client_secret] =

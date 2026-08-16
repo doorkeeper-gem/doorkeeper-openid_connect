@@ -11,7 +11,7 @@ module Doorkeeper
       WEBFINGER_RELATION = "http://openid.net/specs/connect/1.0/issuer"
 
       def provider
-        render json: provider_response
+        render json: provider_response.merge(backchannel_logout_metadata)
       end
 
       def webfinger
