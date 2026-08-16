@@ -26,6 +26,7 @@ require "doorkeeper/openid_connect/version"
 
 require "doorkeeper/openid_connect/helpers/controller"
 
+require "doorkeeper/openid_connect/backchannel_logout_registration_mixin"
 require "doorkeeper/openid_connect/discovery_helpers_mixin"
 require "doorkeeper/openid_connect/grant_types_supported_mixin"
 require "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
