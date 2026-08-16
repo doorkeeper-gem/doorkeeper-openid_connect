@@ -23,6 +23,7 @@ module Doorkeeper
     autoload :Errors, "doorkeeper/openid_connect/errors"
     autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
     autoload :IdToken, "doorkeeper/openid_connect/id_token"
+    autoload :LogoutToken, "doorkeeper/openid_connect/logout_token"
     autoload :TokenEndpointAuthMethodsSupportedMixin,
              "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
     autoload :UserInfo, "doorkeeper/openid_connect/user_info"

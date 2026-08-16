@@ -3,6 +3,7 @@ en:
     attributes:
       doorkeeper/application:
         post_logout_redirect_uris: 'Post Logout Redirect URIs'
+        backchannel_logout_uri: 'Back-Channel Logout URI'
     errors:
       models:
         doorkeeper/application:
@@ -11,6 +12,13 @@ en:
             # invalid post_logout_redirect_uris value (validated through
             # Doorkeeper::RedirectUriValidator) produces a readable message.
             post_logout_redirect_uris:
+              fragment_present: 'cannot contain a fragment.'
+              invalid_uri: 'must be a valid URI.'
+              unspecified_scheme: 'must specify a scheme.'
+              relative_uri: 'must be an absolute URI.'
+              secured_uri: 'must be an HTTPS/SSL URI.'
+              forbidden_uri: 'is forbidden by the server.'
+            backchannel_logout_uri:
               fragment_present: 'cannot contain a fragment.'
               invalid_uri: 'must be a valid URI.'
               unspecified_scheme: 'must specify a scheme.'
@@ -43,4 +51,4 @@ en:
           issuer_not_configured: 'Doorkeeper::OpenidConnect.configure.issuer must resolve to a non-blank value.'
           dynamic_client_registration_unauthorized: 'Authorization required for client registration'
           # ID Token claim error messages
-          missing_required_claim: 'Required ID Token claim `%{claim}` is missing or blank'
+          missing_required_claim: 'Required claim `%{claim}` is missing or blank'
