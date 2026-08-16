@@ -39,6 +39,7 @@
 > [!NOTE]
 > **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` followed by `rails db:migrate` to enable the feature; without the column nothing is advertised and the registration metadata is ignored
 
+- [#383] Add OpenID Connect Back-Channel Logout 1.0 support, phase 2 ([#191]): Logout Token delivery. `Doorkeeper::OpenidConnect::BackchannelLogout.notify(user)` — called from the host application's session-teardown path — POSTs a signed Logout Token to the `backchannel_logout_uri` of every client holding a token or grant for the user; delivery is best-effort per client and returns per-client results
 - Add entry here
 
 ## v1.10.5 (2026-07-09)
