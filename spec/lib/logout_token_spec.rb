@@ -138,4 +138,70 @@ describe Doorkeeper::OpenidConnect::LogoutToken do
       it_behaves_like "a signed logout token"
     end
   end
+
+  # Back-Channel Logout 1.0 §2.4: "The same keys are used to sign and encrypt
+  # Logout Tokens as are used for ID Tokens", so a custom key selection has to
+  # reach Logout Tokens as well — otherwise an RP validating against the JWKS
+  # the ID Tokens point at cannot verify the Logout Token it receives.
+  describe "#select_key" do
+    it "returns the globally configured key material, kid and algorithm" do
+      key = subject.select_key
+
+      # `signing_key` builds a fresh JWK per call, so key material is compared
+      # by its PEM export rather than object identity.
+      expect(key.keypair.to_pem).to eq Doorkeeper::OpenidConnect.signing_key.keypair.to_pem
+      expect(key.kid).to eq Doorkeeper::OpenidConnect.signing_key.kid
+      expect(key.algorithm).to eq Doorkeeper::OpenidConnect.signing_algorithm.to_s
+    end
+
+    it "resolves the global signing key once, so keypair and kid come from the same JWK" do
+      # A callable `signing_key` is re-evaluated per call, so reading keypair
+      # and kid from separate calls could pair values from different keys.
+      expect(Doorkeeper::OpenidConnect).to receive(:signing_key).once.and_call_original
+
+      subject.select_key
+    end
+
+    it "shares the hook with IdToken, so one override covers both token types" do
+      expect(described_class.include?(Doorkeeper::OpenidConnect::SigningKeySelection))
+        .to be true
+      expect(Doorkeeper::OpenidConnect::IdToken.include?(Doorkeeper::OpenidConnect::SigningKeySelection))
+        .to be true
+    end
+
+    context "when overridden by a subclass" do
+      let(:custom_class) do
+        Class.new(described_class) do
+          def select_key
+            Doorkeeper::OpenidConnect::SigningKeySelection::SigningKey.new(
+              keypair: "per-tenant-secret",
+              kid: "tenant-1",
+              algorithm: "HS512",
+            )
+          end
+        end
+      end
+
+      before { stub_const("CustomLogoutToken", custom_class) }
+
+      it "signs the Logout Token with the selected key, algorithm and kid" do
+        instance = CustomLogoutToken.new(user, application)
+
+        data, headers = ::JWT.decode(instance.as_jws_token, "per-tenant-secret", true, { algorithms: ["HS512"] })
+
+        expect(headers["alg"]).to eq "HS512"
+        expect(headers["kid"]).to eq "tenant-1"
+        expect(headers["typ"]).to eq described_class::JWT_TYP
+        expect(data["sub"]).to eq user.id.to_s
+      end
+
+      it "resolves the key exactly once per token" do
+        instance = CustomLogoutToken.new(user, application)
+        expect(instance).to receive(:select_key).once.and_call_original
+
+        instance.as_jws_token
+        instance.as_jws_token
+      end
+    end
+  end
 end
