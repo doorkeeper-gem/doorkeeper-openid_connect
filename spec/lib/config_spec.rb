@@ -92,6 +92,20 @@ describe Doorkeeper::OpenidConnect, ".configuration" do
                          "Doorkeeper::OpenidConnect::UserInfo"
     end
 
+    it "fails validation at first use if logout_token_class does not inherit from LogoutToken" do
+      stub_const("CustomLogoutToken", Class.new)
+
+      described_class.configure do
+        logout_token_class "CustomLogoutToken"
+      end
+
+      expect do
+        subject.logout_token_model
+      end.to raise_error Doorkeeper::OpenidConnect::Errors::InvalidConfiguration,
+                         "The configured logout_token_class (CustomLogoutToken) must inherit " \
+                         "from Doorkeeper::OpenidConnect::LogoutToken"
+    end
+
     it "fails validation at first use if the configured constant is not a class" do
       stub_const("ModuleIdToken", Module.new)
 
@@ -392,6 +406,44 @@ describe Doorkeeper::OpenidConnect, ".configuration" do
       end
 
       expect(subject.user_info_model).to eq(CustomUserInfo)
+    end
+  end
+
+  describe "logout_token_class" do
+    before do
+      stub_const("CustomLogoutToken", Class.new(Doorkeeper::OpenidConnect::LogoutToken))
+    end
+
+    it "defaults to Doorkeeper::OpenidConnect::LogoutToken" do
+      described_class.configure {}
+
+      expect(subject.logout_token_class).to eq("Doorkeeper::OpenidConnect::LogoutToken")
+    end
+
+    it "sets the value that is accessible via logout_token_class" do
+      described_class.configure do
+        logout_token_class "CustomLogoutToken"
+      end
+
+      expect(subject.logout_token_class).to eq("CustomLogoutToken")
+    end
+  end
+
+  describe "#logout_token_model" do
+    it "constantizes the default logout_token_class" do
+      described_class.configure {}
+
+      expect(subject.logout_token_model).to eq(Doorkeeper::OpenidConnect::LogoutToken)
+    end
+
+    it "constantizes a custom logout_token_class" do
+      stub_const("CustomLogoutToken", Class.new(Doorkeeper::OpenidConnect::LogoutToken))
+
+      described_class.configure do
+        logout_token_class "CustomLogoutToken"
+      end
+
+      expect(subject.logout_token_model).to eq(CustomLogoutToken)
     end
   end
 
