@@ -7,6 +7,7 @@ module Doorkeeper
         include Doorkeeper::Validations
         include Doorkeeper::OpenidConnect::TokenEndpointAuthMethodsSupportedMixin
         include Doorkeeper::OpenidConnect::GrantTypesSupportedMixin
+        include Doorkeeper::OpenidConnect::BackchannelLogoutRegistrationMixin
 
         DEFAULT_TOKEN_ENDPOINT_AUTH_METHOD = "client_secret_basic"
         PUBLIC_CLIENT_AUTH_METHOD = "none"
@@ -18,11 +19,12 @@ module Doorkeeper
         DEFAULT_RESPONSE_TYPES = %w[code].freeze
         DEFAULT_GRANT_TYPES = %w[authorization_code].freeze
 
-        validate :token_endpoint_auth_method, error: :invalid_client_metadata
-        validate :application_type,           error: :invalid_client_metadata
-        validate :response_types,             error: :invalid_client_metadata
-        validate :grant_types,                error: :invalid_client_metadata
-        validate :scope,                      error: :invalid_client_metadata
+        validate :token_endpoint_auth_method,             error: :invalid_client_metadata
+        validate :application_type,                       error: :invalid_client_metadata
+        validate :response_types,                         error: :invalid_client_metadata
+        validate :grant_types,                            error: :invalid_client_metadata
+        validate :scope,                                  error: :invalid_client_metadata
+        validate :backchannel_logout_session_required,    error: :invalid_client_metadata
 
         def initialize(server, params)
           @server = server
