@@ -4,10 +4,11 @@ module Doorkeeper
   module OpenidConnect
     # A Logout Token as defined by OpenID Connect Back-Channel Logout 1.0 §2.4:
     # a signed JWT the OP sends to an RP's `backchannel_logout_uri` to request
-    # that the RP log out the End-User. It is signed with the same key and
-    # algorithm as ID Tokens, which §2.4 states outright — "The same keys are
-    # used to sign and encrypt Logout Tokens as are used for ID Tokens" — so an
-    # RP validates both against the same published JWKS.
+    # that the RP log out the End-User. §2.4 states outright that "the same
+    # keys are used to sign and encrypt Logout Tokens as are used for ID
+    # Tokens", so the key is resolved through `SigningKeySelection#select_key`
+    # — the same hook ID Tokens use — and an RP validates both against the same
+    # published JWKS.
     #
     # This implementation identifies the End-User via `sub` only and never
     # emits a `sid` claim — the gem tracks no OP-side sessions. §2.4 permits
@@ -17,6 +18,8 @@ module Doorkeeper
     # the iss and sub Claims be logged out." The discovery document accordingly
     # advertises `backchannel_logout_session_supported: false`.
     class LogoutToken
+      include SigningKeySelection
+
       # §2.4 — the member name identifying the logout event in the `events`
       # claim. Its value is a (possibly empty) JSON object.
       BACKCHANNEL_LOGOUT_EVENT = "http://schemas.openid.net/event/backchannel-logout"
@@ -70,15 +73,12 @@ module Doorkeeper
       end
 
       def as_jws_token
-        # Resolved once: `signing_key` builds a fresh JWK per call and honors
-        # callable configuration, so reading `keypair` and `kid` from separate
-        # calls could sign with one key while naming another in `kid`.
-        jwk = Doorkeeper::OpenidConnect.signing_key
+        key = selected_key
 
         ::JWT.encode(as_json,
-                     jwk.keypair,
-                     Doorkeeper::OpenidConnect.signing_algorithm.to_s,
-                     { typ: JWT_TYP, kid: jwk.kid }).to_s
+                     key.keypair,
+                     key.algorithm.to_s,
+                     { typ: JWT_TYP, kid: key.kid }).to_s
       end
 
       def issuer
