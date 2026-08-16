@@ -18,6 +18,8 @@ require "jwt"
 module Doorkeeper
   module OpenidConnect
     autoload :AtHashConcern, "doorkeeper/openid_connect/at_hash_concern"
+    autoload :BackchannelLogoutRegistrationMixin,
+             "doorkeeper/openid_connect/backchannel_logout_registration_mixin"
     autoload :ClaimsBuilder, "doorkeeper/openid_connect/claims_builder"
     autoload :DiscoveryHelpersMixin, "doorkeeper/openid_connect/discovery_helpers_mixin"
     autoload :Errors, "doorkeeper/openid_connect/errors"
