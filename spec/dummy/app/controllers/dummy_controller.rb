@@ -21,7 +21,9 @@ class DummyController < ApplicationController
   def create_application
     application = Doorkeeper::Application.new(
       name: params[:name],
-      redirect_uri: params[:redirect_uri].presence || "http://localhost:3000/callback",
+      # Default to this server's own callback, whatever host and port it is
+      # reachable on, so the dashboard also works on a non-default port.
+      redirect_uri: params[:redirect_uri].presence || callback_url,
       scopes: params[:scopes].presence || "openid",
     )
 

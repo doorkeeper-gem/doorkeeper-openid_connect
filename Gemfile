@@ -16,6 +16,11 @@ end
 
 group :development do
   gem "puma"
+
+  # The browser end-to-end suite in spec/e2e. `require: false` keeps them out
+  # of the dummy application's own Bundler.require.
+  gem "capybara", require: false
+  gem "cuprite", require: false
 end
 
 gemspec

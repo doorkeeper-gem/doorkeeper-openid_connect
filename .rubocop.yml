@@ -40,10 +40,19 @@ Layout/LineLength:
     - lib/doorkeeper/openid_connect/orm/active_record/mixins/openid_request.rb
     - lib/generators/doorkeeper/openid_connect/templates/initializer.rb
   Max: 100
+Lint/Debugger:
+  Exclude:
+    # The end-to-end suite deliberately keeps the page of a failed example,
+    # through Capybara's save_page/save_screenshot, which this cop reads as
+    # debugger entry points.
+    - spec/e2e/e2e_helper.rb
 Metrics/BlockLength:
   Exclude:
     - spec/**/*
     - doorkeeper-openid_connect.gemspec
+Metrics/ParameterLists:
+  Exclude:
+    - spec/**/*
 Metrics/MethodLength:
   Exclude:
     - spec/dummy/db/**/*

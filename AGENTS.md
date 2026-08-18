@@ -31,6 +31,7 @@ This repository is the `doorkeeper-openid_connect` gem: a Rails engine that adds
 - `app/controllers/doorkeeper/openid_connect/**`: discovery, userinfo, dynamic registration endpoints
 - `spec/**`: test suite
 - `spec/dummy/**`: Rails app used by controller/integration-style specs
+- `spec/e2e/**`: Capybara + Cuprite browser tests that drive the dummy app over real HTTP
 
 ## Test and lint commands
 
@@ -41,11 +42,27 @@ bundle exec rake spec
 bundle exec rubocop
 ```
 
+Browser end-to-end tests (Capybara boots the dummy app, Cuprite drives it in an
+installed Chrome):
+
+```bash
+bundle exec rake e2e
+```
+
 Notes:
 
 - The default `Gemfile` uses `ENV["rails"]` and defaults to Rails `8.0.0`.
-- CI runs `bundle exec rake spec` across the matrix in `.github/workflows/ci.yml`.
+- CI runs `bundle exec rake spec` across the matrix in `.github/workflows/ci.yml`,
+  plus the `e2e` job on two gemfiles.
 - Use the root-level test command unless a task specifically requires a different `BUNDLE_GEMFILE`.
+- `rake e2e` is a separate task, and `rake spec` excludes `spec/e2e`, because the
+  e2e suite boots the dummy app in the development environment (with its own
+  `db/e2e.sqlite3`) while the rest of the suite boots it in the test environment.
+  One process can only do one of the two.
+- Development mode is what the dashboard needs: Doorkeeper skips authorization
+  there, so passing `force_consent=1` to `/oauth/authorize` is what makes the
+  consent screen render. The dummy `resource_owner_authenticator` remembers
+  `params[:current_user]` in the session to survive the consent form POST.
 
 ## Change expectations
 
