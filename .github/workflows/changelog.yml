@@ -41,7 +41,7 @@ jobs:
             echo "result=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: dangoslen/changelog-enforcer@v3.7.0
+      - uses: dangoslen/changelog-enforcer@8b5e9dc3121363bb7c0115f8533404d92af382de # v3.7.0
         if: steps.docs_only.outputs.result != 'true'
         with:
           # Dependabot PRs are labeled "dependencies" automatically and don't
