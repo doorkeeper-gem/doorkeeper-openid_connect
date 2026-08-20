@@ -2,11 +2,21 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- Add entry here
+
+## v2.0.0.beta1 (2026-08-20)
+
+>[!IMPORTANT]
+>
+>- **This is a prerelease.** RubyGems does not resolve prereleases from an unqualified requirement, so it must be requested explicitly: `gem "doorkeeper-openid_connect", "2.0.0.beta1"`
+>- **Migration required:** existing installations must add the `post_logout_redirect_uris` column — `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` followed by `rails db:migrate` ([#243])
+>- **Breaking (hybrid response type):** the `id_token token` response object is now the configured `id_token_class` extended with `HybridIdTokenConcern`, and a custom `id_token_class` must expose an `#access_token` reader ([#337])
+>- **Breaking (constant removed):** `Doorkeeper::OpenidConnect::IdTokenToken` is gone — custom subclasses must subclass `IdToken` and include `HybridIdTokenConcern` ([#338])
+>- **Breaking (Dynamic Client Registration):** a registration request that omits `response_types` / `grant_types` now defaults to `["code"]` / `["authorization_code"]` per RFC 7591 §2, instead of inheriting the server's global configuration ([#350])
+>
+>[Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions) walks through each one.
+
 - [#243] Add per-client `post_logout_redirect_uris` for RP-Initiated Logout, exposed via `Doorkeeper::Application#post_logout_redirect_uris` and `#valid_post_logout_redirect_uri?(uri)`. URIs are validated with the same rules as `redirect_uri`; Dynamic Client Registration accepts and echoes them back
-
-> [!NOTE]
-> **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_post_logout_redirect_uris` followed by `rails db:migrate`
-
 - [#320] Support mounting the engine under multiple named scopes — `use_doorkeeper_openid_connect as: :users` makes each mount's discovery document advertise its own endpoints ([#192])
 - [#322] Fall back to Doorkeeper's `issuer` configuration when the OpenID Connect `issuer` is not set. The OpenID Connect value still takes precedence ([#321])
 - [#323] Resolve `token_endpoint_auth_methods_supported` from Doorkeeper's client authentication methods registry when available, falling back to legacy `client_credentials_methods` on older versions
@@ -38,7 +48,6 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 - [#372] Fix duplicate entries in the discovery document's `claims_supported` when a custom claim shadows a base claim (`iss`/`sub`/`aud`/`exp`/`iat`)
 - [#373] Fix `prompt=consent` under Doorkeeper's `api_only` mode — the consent step now returns the pre-authorization as JSON instead of attempting to render a template that `ActionController::API` cannot serve
 - [#381] Echo the registered `client_name` in the Dynamic Client Registration response, as RFC 7591 §3.2.1 requires the response to include all registered client metadata
-- Add entry here
 
 ## v1.10.5 (2026-07-09)
 
