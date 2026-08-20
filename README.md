@@ -93,6 +93,28 @@ Configuration and usage are documented in the [wiki](https://github.com/doorkeep
 
 The remaining pages cover scopes and claims, `prompt` and `max_age`, routes and multiple mounts, nonces, RP-Initiated Logout, Dynamic Client Registration, and I18n.
 
+### Nonces
+
+Nonce support is built in: the gem ships a `doorkeeper/authorizations/new`
+view that carries the `nonce` (along with the other authorization parameters)
+through the consent screen, so the nonce ends up in the issued ID token
+without any manual setup. If your application overrides Doorkeeper's
+authorization view, make sure both the authorize and deny forms include:
+
+```erb
+<%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
+```
+
+`nonce` is REQUIRED for OpenID Connect Implicit Flow requests — a
+`response_type` of `id_token` or `id_token token` (OpenID Connect Core 1.0
+[§3.2.2.1](https://openid.net/specs/openid-connect-core-1_0.html#ImplicitAuthRequest)).
+Set `enforce_implicit_nonce true` in your initializer to reject such requests
+when the nonce is missing; while the option is disabled (the current default)
+they are still accepted for backward compatibility, with a one-time
+deprecation warning. The default will flip to `true` in the major version
+after the one that introduces the option, so upgrading only starts the
+deprecation period.
+
 ## Development
 
 Run `bundle install` to setup all development dependencies.
