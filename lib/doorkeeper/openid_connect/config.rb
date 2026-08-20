@@ -68,15 +68,6 @@ module Doorkeeper
         def build
           @config
         end
-
-        def jws_public_key(*_args)
-          warn "DEPRECATION WARNING: `jws_public_key` is not needed anymore and will be removed in a future version, please remove it from config/initializers/doorkeeper_openid_connect.rb"
-        end
-
-        def jws_private_key(*args)
-          warn "DEPRECATION WARNING: `jws_private_key` has been replaced by `signing_key` and will be removed in a future version, please remove it from config/initializers/doorkeeper_openid_connect.rb"
-          signing_key(*args)
-        end
       end
 
       mattr_reader(:builder_class) { Config::Builder }
