@@ -928,6 +928,18 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
   describe "authorization view" do
     render_views
 
+    let(:upstream_view) do
+      File.read(
+        File.join(Gem.loaded_specs["doorkeeper"].gem_dir, "app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+    end
+
+    let(:bundled_view) do
+      File.read(
+        Doorkeeper::OpenidConnect::Engine.root.join("app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+    end
+
     it "renders the nonce hidden field (gem view overrides doorkeeper's default)" do
       authorize! nonce: "view-nonce-123"
 
@@ -947,14 +959,20 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         source.scan(/hidden_field_tag\s+(:?"?[\w\[\]]+"?)/).flatten.map { |t| t.delete(%(:")) }.uniq
       end
 
-      upstream = File.read(
-        File.join(Gem.loaded_specs["doorkeeper"].gem_dir, "app/views/doorkeeper/authorizations/new.html.erb"),
-      )
-      bundled = File.read(
-        Doorkeeper::OpenidConnect::Engine.root.join("app/views/doorkeeper/authorizations/new.html.erb"),
-      )
+      expect(targets.call(bundled_view)).to include(*targets.call(upstream_view))
+    end
 
-      expect(targets.call(bundled)).to include(*targets.call(upstream))
+    # The same fork-drift hazard applies to what the screen *shows*, not only to
+    # what it posts. Doorkeeper 6.0 added a resource-indicator section, and a
+    # bundled view that omits it asks the user to approve an audience the
+    # consent screen never named. Comparing the rendered sections directly would
+    # need whatever storage each one depends on, so compare the translation keys
+    # the two templates use instead: a new upstream section fails here rather
+    # than quietly disappearing from the consent screen.
+    it "renders every translated section the installed Doorkeeper's own view renders" do
+      sections = ->(source) { source.scan(/\bt\(\s*'(\.\w+)'/).flatten.uniq }
+
+      expect(sections.call(bundled_view)).to include(*sections.call(upstream_view))
     end
 
     # Guarded with `respond_to?` in the view: `custom_access_token_attributes`
