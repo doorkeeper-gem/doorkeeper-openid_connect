@@ -58,6 +58,22 @@ module Doorkeeper
           @nonce = attrs[:nonce]
         end
 
+        # Carry the nonce through the `api_only` consent step as well. There the
+        # authorization form is not rendered at all: Doorkeeper answers with
+        # `render json: pre_auth`, and so does this gem for `prompt=consent`, so
+        # the bundled view cannot relay anything. A host application that
+        # rebuilds the approve request from this payload would drop the nonce
+        # exactly the way the HTML form did before the view was bundled.
+        #
+        # The key is omitted entirely when there is no nonce, so a plain OAuth
+        # pre-authorization keeps the payload Doorkeeper already documents.
+        def as_json(options = nil)
+          json = super
+          return json if nonce.blank?
+
+          json.merge(nonce: nonce)
+        end
+
         # NOTE: Auto get default response_mode of specified response_type if response_mode is not
         #   yet present. We can delete this method after Doorkeeper's minimize version support it.
         def response_on_fragment?
