@@ -35,14 +35,10 @@ module Doorkeeper
             relation = token_model.authorized_tokens_for(pre_auth.client.id, owner)
             batch_size = Doorkeeper.configuration.token_lookup_batch_size
 
-            match_found = false
             token_model.find_access_token_in_batches(relation, batch_size: batch_size) do |batch|
-              if batch.any? { |token| token.scopes.scopes?(pre_auth.scopes) }
-                match_found = true
-                break
-              end
+              return true if batch.any? { |token| token.scopes.scopes?(pre_auth.scopes) }
             end
-            match_found
+            false
           end
 
           # Force Doorkeeper's `render_success` onto the auto-issue path when a
