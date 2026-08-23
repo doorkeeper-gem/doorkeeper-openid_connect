@@ -75,6 +75,11 @@ module Doorkeeper
 
           def return_without_oidc_prompt_param(prompt_value)
             return_to = URI.parse(request.path)
+            return_to.query = query_parameters_without_oidc_prompt(prompt_value).to_query
+            return_to.to_s
+          end
+
+          def query_parameters_without_oidc_prompt(prompt_value)
             # Work on a copy: `request.query_parameters` is memoized and shared, so
             # mutating it in place would corrupt the parameters seen by the rest of
             # the request (and any subsequent prompt value in the same loop).
@@ -89,8 +94,7 @@ module Doorkeeper
             else
               query.delete("prompt")
             end
-            return_to.query = query.to_query
-            return_to.to_s
+            query
           end
 
           def reauthenticate_oidc_resource_owner(owner)
