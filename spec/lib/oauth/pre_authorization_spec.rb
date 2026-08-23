@@ -18,6 +18,42 @@ describe Doorkeeper::OpenidConnect::OAuth::PreAuthorization do
     end
   end
 
+  # `#as_json` is what Doorkeeper serializes for the `api_only` consent step,
+  # so it is the only channel a nonce has when no view is rendered.
+  describe "#as_json" do
+    let(:application) { create(:application) }
+    let(:base_attrs) do
+      {
+        client_id: application.uid,
+        response_type: "code",
+        redirect_uri: application.redirect_uri,
+        scope: "openid",
+        state: "the-state",
+      }
+    end
+
+    # `client` is resolved during validation, which is also the order the
+    # controller uses: it serializes the pre-authorization only once
+    # `authorizable?` has passed.
+    before { subject.authorizable? }
+
+    context "with a nonce" do
+      let(:attrs) { base_attrs.merge(nonce: "123456") }
+
+      it "exposes it alongside the attributes Doorkeeper already serializes" do
+        expect(subject.as_json).to include(nonce: "123456", client_id: application.uid, state: "the-state")
+      end
+    end
+
+    context "without a nonce" do
+      let(:attrs) { base_attrs }
+
+      it "omits the key rather than serializing a null" do
+        expect(subject.as_json).not_to have_key(:nonce)
+      end
+    end
+  end
+
   describe "#authorizable? nonce enforcement" do
     let(:application) { create(:application) }
     let(:client) { Doorkeeper::OAuth::Client.new(application) }
