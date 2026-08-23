@@ -82,6 +82,10 @@ module Doorkeeper
         Doorkeeper.config.application_model.column_names.include?("post_logout_redirect_uris")
       end
 
+      # One method per metadata document: the registration response echoes
+      # the client metadata as RFC 7591 §3.2.1 lists it, and splitting it
+      # would hide the shape of the published document.
+      # rubocop:disable Metrics/AbcSize
       def registration_response(doorkeeper_application, registration)
         response = {
           client_id: doorkeeper_application.uid,
@@ -115,6 +119,7 @@ module Doorkeeper
 
         response
       end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end
