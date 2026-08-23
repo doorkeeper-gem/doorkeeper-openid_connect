@@ -975,6 +975,29 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  # In API mode the consent step is not the bundled view at all: Doorkeeper
+  # answers `GET /oauth/authorize` with `render json: pre_auth`, and so does
+  # this gem for `prompt=consent`. The nonce therefore has to travel in that
+  # payload, or an api_only host rebuilding the approve request from it drops
+  # the nonce and the ID token is issued without one.
+  describe "api_only pre-authorization" do
+    before { allow(Doorkeeper.configuration).to receive(:api_only).and_return(true) }
+
+    it "exposes the nonce so the approve request can carry it back" do
+      authorize! nonce: "api-nonce-123"
+
+      expect(response).to be_successful
+      expect(JSON.parse(response.body)["nonce"]).to eq "api-nonce-123"
+    end
+
+    it "omits the nonce for a pre-authorization that carries none" do
+      authorize!
+
+      expect(response).to be_successful
+      expect(JSON.parse(response.body)).not_to have_key("nonce")
+    end
+  end
+
   describe "implicit flow nonce enforcement" do
     before do
       allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
