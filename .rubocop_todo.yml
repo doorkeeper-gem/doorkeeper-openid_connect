@@ -23,6 +23,3 @@ Style/SymbolProc:
     - "spec/lib/id_token_spec.rb"
     - "spec/lib/user_info_spec.rb"
     - "spec/support/doorkeeper_configuration.rb"
-
-RSpec/SubjectStub:
-  Enabled: false

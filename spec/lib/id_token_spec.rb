@@ -259,6 +259,8 @@ describe Doorkeeper::OpenidConnect::IdToken do
     end
   end
 
+  # Stubs the claim source so the examples can feed #as_json blank claims directly.
+  # rubocop:disable RSpec/SubjectStub
   describe "#as_json" do
     let(:valid_claims) do
       {
@@ -298,6 +300,7 @@ describe Doorkeeper::OpenidConnect::IdToken do
       end
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 
   describe "#as_jws_token" do
     shared_examples "a jws token" do

@@ -9,6 +9,8 @@ RSpec.describe Doorkeeper::OpenidConnect::TokenEndpointAuthMethodsSupportedMixin
     end.new
   end
 
+  # Stubs doorkeeper_config, the mixin's only input, to emulate each Doorkeeper generation.
+  # rubocop:disable RSpec/SubjectStub
   describe "#token_endpoint_auth_methods_supported" do
     context "when Doorkeeper exposes the client authentication methods registry (doorkeeper#1840)" do
       # Doorkeeper >= the release shipping the registry returns
@@ -90,4 +92,5 @@ RSpec.describe Doorkeeper::OpenidConnect::TokenEndpointAuthMethodsSupportedMixin
       end
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 end

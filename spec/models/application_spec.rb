@@ -10,6 +10,8 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
     expect(subject).to respond_to(:valid_post_logout_redirect_uri?)
   end
 
+  # Stubs has_attribute? to emulate an installation that has not run the migration yet.
+  # rubocop:disable RSpec/SubjectStub
   describe "#post_logout_redirect_uris" do
     it "returns an empty array when not set" do
       expect(subject.post_logout_redirect_uris).to eq([])
@@ -54,6 +56,7 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
         .to raise_error(ActiveModel::MissingAttributeError, /add_post_logout_redirect_uris/)
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 
   describe "post_logout_redirect_uris validation" do
     # The attribute is validated by delegating to Doorkeeper's own

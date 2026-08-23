@@ -777,6 +777,8 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  # Stubs the helpers the action delegates to, so the example exercises only this method's branching.
+  # rubocop:disable RSpec/SubjectStub
   describe "#reauthenticate_oidc_resource_owner" do
     let(:performed) { true }
 
@@ -841,7 +843,10 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 
+  # Stubs the response writer so the example can observe the reset without rendering.
+  # rubocop:disable RSpec/SubjectStub
   describe "#clear_oidc_response" do
     before { allow(subject).to receive(:response_body=) }
 
@@ -858,7 +863,10 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect { subject.send :clear_oidc_response }.not_to raise_error
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 
+  # Stubs the helpers the action delegates to, so the example exercises only this method's branching.
+  # rubocop:disable RSpec/SubjectStub
   describe "#select_account_for_oidc_resource_owner" do
     let(:performed) { true }
 
@@ -908,6 +916,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 
   describe "#pre_auth" do
     it "permits nonce parameter" do

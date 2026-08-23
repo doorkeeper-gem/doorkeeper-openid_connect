@@ -147,6 +147,8 @@ describe Doorkeeper::OpenidConnect::UserInfo do
     end
   end
 
+  # Stubs the claim source so the example can feed #as_json blank claims directly.
+  # rubocop:disable RSpec/SubjectStub
   describe "#as_json" do
     it "returns claims with nil values and empty strings removed" do
       allow(subject).to receive(:claims).and_return({
@@ -160,4 +162,5 @@ describe Doorkeeper::OpenidConnect::UserInfo do
       })
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 end
