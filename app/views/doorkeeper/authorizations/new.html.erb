@@ -32,6 +32,22 @@
     </div>
   <% end %>
 
+  <%# Doorkeeper 6.0 shows the RFC 8707 target resources next to the scopes.
+      Guarded like the hidden `resource[]` fields below: `resource_indicators`
+      only exists on newer Doorkeeper versions, and omitting the list here would
+      ask the user to approve an audience the consent screen never named. %>
+  <% if @pre_auth.respond_to?(:resource_indicators) && Array(@pre_auth.resource_indicators).any? %>
+    <div id="oauth-resources">
+      <h3><%= t('.resources') %></h3>
+
+      <ul class="text-info">
+        <% Array(@pre_auth.resource_indicators).each do |resource| %>
+          <li><%= resource %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <div class="actions">
     <%= form_tag oauth_authorization_path, method: :post do %>
       <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
