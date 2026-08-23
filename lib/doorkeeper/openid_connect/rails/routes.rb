@@ -26,32 +26,37 @@ module Doorkeeper
 
         def generate_routes!(options)
           @mapping = Mapper.new.map(&@block)
-          openid_connect = ::Doorkeeper::OpenidConnect.configuration
-          prefix = route_helper_prefix(options)
 
           routes.scope options[:scope] || "oauth", as: "oauth" do
-            map_route(:userinfo, :userinfo_routes)
-            map_route(:discovery, :discovery_routes)
-
-            if openid_connect.dynamic_client_registration
-              map_route(:dynamic_client_registration, :dynamic_client_registration_routes)
-            end
+            map_oauth_routes
           end
 
-          well_known_scope = { as: "oauth" }
-          # When the engine is mounted under a named scope (e.g.
-          # `scope :users, as: :users`), Doorkeeper's and this engine's URL
-          # helpers are generated with that prefix (`users_oauth_*`). Pass the
-          # prefix down to the discovery controller via a route default so it can
-          # resolve the correct namespaced helpers for the published endpoints.
-          well_known_scope[:defaults] = { route_helper_prefix: prefix } if prefix.present?
-
-          routes.scope(**well_known_scope) do
+          routes.scope(**well_known_scope(options)) do
             map_route(:discovery, :discovery_well_known_routes)
           end
         end
 
         private
+
+        def map_oauth_routes
+          map_route(:userinfo, :userinfo_routes)
+          map_route(:discovery, :discovery_routes)
+          return unless ::Doorkeeper::OpenidConnect.configuration.dynamic_client_registration
+
+          map_route(:dynamic_client_registration, :dynamic_client_registration_routes)
+        end
+
+        def well_known_scope(options)
+          prefix = route_helper_prefix(options)
+          scope = { as: "oauth" }
+          # When the engine is mounted under a named scope (e.g.
+          # `scope :users, as: :users`), Doorkeeper's and this engine's URL
+          # helpers are generated with that prefix (`users_oauth_*`). Pass the
+          # prefix down to the discovery controller via a route default so it can
+          # resolve the correct namespaced helpers for the published endpoints.
+          scope[:defaults] = { route_helper_prefix: prefix } if prefix.present?
+          scope
+        end
 
         def route_helper_prefix(options)
           name = options[:as]
