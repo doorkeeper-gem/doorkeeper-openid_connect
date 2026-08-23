@@ -17,23 +17,13 @@ module Doorkeeper
             # itself gates the emission on redirectability and on the issuer
             # being configured. Versions predating #1849 simply ignore the
             # attribute, so no version guard is needed.
-            error_response = if exception.type == :invalid_request
-                               ::Doorkeeper::OAuth::InvalidRequestResponse.new(
-                                 name: exception.type,
-                                 state: params[:state],
-                                 redirect_uri: params[:redirect_uri],
-                                 response_on_fragment: pre_auth.response_on_fragment?,
-                                 issuer: Doorkeeper::OpenidConnect.doorkeeper_issuer,
-                               )
-                             else
-                               ::Doorkeeper::OAuth::ErrorResponse.new(
-                                 name: exception.type,
-                                 state: params[:state],
-                                 redirect_uri: params[:redirect_uri],
-                                 response_on_fragment: pre_auth.response_on_fragment?,
-                                 issuer: Doorkeeper::OpenidConnect.doorkeeper_issuer,
-                               )
-                             end
+            error_response = oidc_error_response_class(exception).new(
+              name: exception.type,
+              state: params[:state],
+              redirect_uri: params[:redirect_uri],
+              response_on_fragment: pre_auth.response_on_fragment?,
+              issuer: Doorkeeper::OpenidConnect.doorkeeper_issuer,
+            )
 
             response.headers.merge!(error_response.headers)
 
@@ -44,6 +34,14 @@ module Doorkeeper
             # - https://github.com/doorkeeper-gem/doorkeeper/blob/v5.5.0/app/controllers/doorkeeper/authorizations_controller.rb#L52
             @authorize_response = error_response
             redirect_or_render(@authorize_response)
+          end
+
+          def oidc_error_response_class(exception)
+            if exception.type == :invalid_request
+              ::Doorkeeper::OAuth::InvalidRequestResponse
+            else
+              ::Doorkeeper::OAuth::ErrorResponse
+            end
           end
         end
       end
