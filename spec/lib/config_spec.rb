@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe Doorkeeper::OpenidConnect, "configuration" do
+describe Doorkeeper::OpenidConnect, ".configuration" do
   subject { described_class.configuration }
 
   describe "#configure" do
@@ -417,13 +417,13 @@ describe Doorkeeper::OpenidConnect, "configuration" do
 
   describe "protocol" do
     it "defaults to https in production" do
-      expect(::Rails.env).to receive(:production?).and_return(true)
+      allow(::Rails.env).to receive(:production?).and_return(true)
 
       expect(subject.protocol.call).to eq(:https)
     end
 
     it "defaults to http in other environments" do
-      expect(::Rails.env).to receive(:production?).and_return(false)
+      allow(::Rails.env).to receive(:production?).and_return(false)
 
       expect(subject.protocol.call).to eq(:http)
     end

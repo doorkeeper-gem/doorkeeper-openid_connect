@@ -60,7 +60,7 @@ describe Doorkeeper::OAuth::IdTokenRequest do
     end
   end
 
-  context "token reuse" do
+  context "with reuse_access_token enabled" do
     it "creates a new token if there are no matching tokens" do
       allow(Doorkeeper.configuration).to receive(:reuse_access_token).and_return(true)
       expect do
