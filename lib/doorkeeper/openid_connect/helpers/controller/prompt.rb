@@ -22,18 +22,12 @@ module Doorkeeper
 
           def apply_oidc_prompt!(prompt, prompt_values, owner)
             case prompt
-            when "none"
-              handle_oidc_prompt_none!(prompt_values, owner)
-            when "login"
-              handle_oidc_prompt_login!(owner)
-            when "consent"
-              handle_oidc_prompt_consent!(owner)
-            when "select_account"
-              select_account_for_oidc_resource_owner(owner)
-            when "create"
-              # NOTE: not supported, but does not raise an error.
-            else
-              raise Errors::InvalidRequest
+            when "none" then handle_oidc_prompt_none!(prompt_values, owner)
+            when "login" then handle_oidc_prompt_login!(owner)
+            when "consent" then handle_oidc_prompt_consent!(owner)
+            when "select_account" then select_account_for_oidc_resource_owner(owner)
+            when "create" then nil # NOTE: not supported, but does not raise an error.
+            else raise Errors::InvalidRequest
             end
           end
 
