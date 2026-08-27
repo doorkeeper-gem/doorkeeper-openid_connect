@@ -111,3 +111,21 @@ RSpec/MultipleExpectations:
   Enabled: false
 RSpec/NestedGroups:
   Enabled: false
+# The suite's specs refer to the subject as `subject` and stub collaborators
+# with plain doubles throughout; naming every subject or verifying every
+# double would be churn without a safety gain for a library this size.
+RSpec/NamedSubject:
+  Enabled: false
+RSpec/VerifiedDoubles:
+  Enabled: false
+# `expect(...).to receive` before the action reads fine for one-shot
+# assertions; rewriting them as spies is not worth the noise.
+RSpec/MessageSpies:
+  Enabled: false
+RSpec/ExpectInHook:
+  Enabled: false
+# Token/claim specs legitimately set up several `let`s per group.
+RSpec/MultipleMemoizedHelpers:
+  Max: 7
+RSpec/IndexedLet:
+  Enabled: false

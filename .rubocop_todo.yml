@@ -13,18 +13,6 @@ Metrics/MethodLength:
 Metrics/AbcSize:
   Max: 35
 
-# Configuration parameters: .
-# SupportedStyles: have_received, receive
-RSpec/MessageSpies:
-  Enabled: false
-
-RSpec/NamedSubject:
-  Enabled: false
-
-# Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
-RSpec/VerifiedDoubles:
-  Enabled: false
-
 # This gem does not enforce top-level documentation comments.
 Style/Documentation:
   Enabled: false
@@ -40,22 +28,12 @@ Style/SymbolProc:
     - "spec/lib/user_info_spec.rb"
     - "spec/support/doorkeeper_configuration.rb"
 
-# Configuration parameters: Max, AllowSubject.
-RSpec/MultipleMemoizedHelpers:
-  Max: 7
-
 RSpec/SubjectStub:
   Enabled: false
 
 # Configuration parameters: Prefixes, AllowedPatterns.
 # Prefixes: when, with, without
 RSpec/ContextWording:
-  Enabled: false
-
-RSpec/ExpectInHook:
-  Enabled: false
-
-RSpec/IndexedLet:
   Enabled: false
 
 RSpec/StubbedMock:
