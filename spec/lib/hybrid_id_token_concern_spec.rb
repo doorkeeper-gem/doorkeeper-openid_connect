@@ -75,10 +75,40 @@ describe Doorkeeper::OpenidConnect::HybridIdTokenConcern do
     end
 
     context "when the signing algorithm name carries no digest length (e.g. EdDSA)" do
-      before { configure_doorkeeper("the_greatest_secret_key", :EdDSA) }
+      before do
+        configure_doorkeeper("the_greatest_secret_key", :EdDSA)
+
+        # `select_key` resolves the key material eagerly, and the dummy string
+        # above is not a parseable EdDSA key — this context only exercises the
+        # digest fallback, so the key resolution is stubbed out.
+        allow(Doorkeeper::OpenidConnect).to receive(:signing_key)
+          .and_return(instance_double(JWT::JWK::RSA, keypair: nil, kid: "stub"))
+      end
 
       it "falls back to SHA-256" do
         expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA256))
+      end
+    end
+
+    context "when a select_key override signs with a different algorithm than the global config" do
+      subject { custom_class.new(access_token, nonce).extend(described_class) }
+
+      let(:custom_class) do
+        Class.new(Doorkeeper::OpenidConnect::IdToken) do
+          def select_key
+            Doorkeeper::OpenidConnect::IdToken::SigningKey.new(
+              keypair: "per-tenant-secret",
+              kid: "tenant-1",
+              algorithm: "HS512",
+            )
+          end
+        end
+      end
+
+      it "derives the digest from the selected algorithm, not the global signing_algorithm" do
+        # The global config stays RS256 (SHA-256); the token is actually
+        # signed with HS512, so §3.2.2.10 demands SHA-512.
+        expect(subject.claims[:at_hash]).to eq(expected_at_hash(token_value, Digest::SHA512))
       end
     end
 

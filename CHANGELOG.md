@@ -2,6 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- [#364] Require `id_token_class` / `user_info_class` overrides to inherit from `Doorkeeper::OpenidConnect::IdToken` / `UserInfo` ([#344](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/344)) — the previous method-presence check was effectively a no-op for `user_info_class`, and a from-scratch implementation had to reproduce security-critical behavior (required-claim enforcement, the claim merge order that keeps the `claims` configuration block from overriding `sub`/`aud`/`exp`, nonce and `at_hash` handling). Also adds an `IdToken#select_key` hook returning the signing key material and algorithm together (`IdToken::SigningKey`) for per-client, rotating, or multi-tenant keys, and binds the hybrid flow's `at_hash` digest to the selected key's algorithm (OIDC Core §3.2.2.10) instead of the global `signing_algorithm`. [#335] has not shipped in a release, so no released configuration is affected
 - [#387] **Breaking:** Remove the deprecated `jws_private_key` and `jws_public_key` initializer settings
 - Add entry here
 
