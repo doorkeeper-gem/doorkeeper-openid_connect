@@ -135,26 +135,6 @@ describe Doorkeeper::OpenidConnect, "configuration" do
     end
   end
 
-  describe "jws_public_key" do
-    it "warns that the setting is no longer needed" do
-      expect do
-        described_class.configure do
-          jws_public_key "public_key"
-        end
-      end.to output(/DEPRECATION WARNING: `jws_public_key` is not needed anymore/).to_stderr
-    end
-  end
-
-  describe "jws_private_key" do
-    it "delegates to signing_key" do
-      value = "private_key"
-      described_class.configure do
-        jws_private_key value
-      end
-      expect(subject.signing_key).to eq(value)
-    end
-  end
-
   describe "signing_key" do
     it "sets the value that is accessible via signing_key" do
       value = "private_key"

@@ -2,6 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- [#387] **Breaking:** Remove the deprecated `jws_private_key` and `jws_public_key` initializer settings
 - Add entry here
 
 ## v2.0.0.beta1 (2026-08-20)
