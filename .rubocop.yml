@@ -53,9 +53,14 @@ Metrics/BlockLength:
 Metrics/ParameterLists:
   Exclude:
     - spec/**/*
+# Spec support code and the dummy app favour one readable setup method over
+# a split one; Metrics/BlockLength and ParameterLists already skip spec/.
 Metrics/MethodLength:
   Exclude:
-    - spec/dummy/db/**/*
+    - spec/**/*
+Metrics/AbcSize:
+  Exclude:
+    - spec/**/*
 # Match upstream doorkeeper: require trailing commas on multiline literals.
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: consistent_comma
