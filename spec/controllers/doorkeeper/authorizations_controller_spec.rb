@@ -227,7 +227,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
       end
 
-      context "and a matching token" do
+      context "with a matching token" do
         before do
           create :access_token, token_attributes
         end
@@ -314,7 +314,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         end
       end
 
-      context "and no matching token" do
+      context "without a matching token" do
         it "redirects to the callback if skip_authorization is set to true" do
           allow(controller).to receive(:skip_authorization?).and_return(true)
 
@@ -372,7 +372,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       # Issue #63: a `prompt=none` request that asks for a narrower subset of
       # scopes than was previously granted must succeed without showing the
       # consent form (which is forbidden under `prompt=none`).
-      context "and a token covering a wider scope than the request (issue #63)" do
+      context "with a token covering a wider scope than the request (issue #63)" do
         let(:application) { create :application, scopes: "openid profile email" }
         let(:granted_scopes) { "openid profile email" }
         let(:token_attributes) do

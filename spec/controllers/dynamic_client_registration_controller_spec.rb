@@ -268,7 +268,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
-    context "token_endpoint_auth_methods_supported in the response" do
+    context "with token_endpoint_auth_methods_supported in the response" do
       it "matches the server's configured client_credentials methods" do
         Doorkeeper.configure do
           orm :active_record
@@ -288,7 +288,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
-    context "security regression: confidential client cannot bypass credentials" do
+    context "when a confidential client tries to bypass its credentials (security regression)" do
       it "is not returned by by_uid_and_secret(uid, nil)" do
         expect do
           post :register, params: {

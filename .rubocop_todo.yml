@@ -26,14 +26,3 @@ Style/SymbolProc:
 
 RSpec/SubjectStub:
   Enabled: false
-
-# Configuration parameters: Prefixes, AllowedPatterns.
-# Prefixes: when, with, without
-RSpec/ContextWording:
-  Enabled: false
-
-RSpec/StubbedMock:
-  Enabled: false
-
-RSpec/DescribeMethod:
-  Enabled: false
