@@ -2,6 +2,14 @@
 
 source "https://rubygems.org"
 
+# json 3.0 raises on unknown keyword arguments, and the released 8.0.x
+# ActiveSupport still passes `quirks_mode: true` from JSONGemEncoder, so every
+# `render json:` fails under ruby-head. The fix is on 8-0-stable but unreleased.
+# `~> 2.21` rather than `< 3` so 3.0.0.rc1 is not resolvable either.
+# TODO: drop this pin once an 8.0.x release carries the fix. That may be a
+# while: the 8.0 series is past its one-year bug-fix window, so the fix has to
+# ride along with a security release.
+gem "json", "~> 2.21"
 gem "rails", "~> 8.0.0"
 gem "rails-controller-testing"
 gem "sqlite3", "~> 2.3", platform: %i[ruby mswin mingw x64_mingw]

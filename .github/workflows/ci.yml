@@ -35,8 +35,23 @@ jobs:
           - gemfiles/rails_8.1.gemfile
           - gemfiles/doorkeeper_master.gemfile
         exclude:
+          # None of these Rails series will be made to work on a development
+          # Ruby: 7.0, 7.1 and 7.2 have all passed the two-year security-fix
+          # window Rails grants a series (7.2.0 shipped 2024-08-09), so nothing
+          # lands there any more. The released Rubies still cover all three.
+          #
+          # 7.0 has been excluded since Ruby 3.4 landed. 7.1 and 7.2 joined
+          # when json 3.0 — which ruby-head bundles — turned an unknown
+          # keyword argument into an ArgumentError while ActiveSupport's
+          # JSONGemEncoder still passed `quirks_mode: true`, so every
+          # `render json:` raises. That one is fixed on Rails main and on
+          # 8-0-stable, but neither fix reaches a 7.x series.
           - ruby: head
             gemfile: gemfiles/rails_7.0.gemfile
+          - ruby: head
+            gemfile: gemfiles/rails_7.1.gemfile
+          - ruby: head
+            gemfile: gemfiles/rails_7.2.gemfile
         # Oldest supported Doorkeeper series — one Ruby each is enough to
         # keep the `>= 5.5` gemspec constraint honest.
         include:
