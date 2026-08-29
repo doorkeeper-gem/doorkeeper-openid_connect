@@ -61,6 +61,12 @@ Metrics/MethodLength:
 Metrics/AbcSize:
   Exclude:
     - spec/**/*
+# DynamicRegistrationRequest validates each RFC 7591 client metadata field in
+# its own predicate, so it grows by a few lines with every field the server
+# honors. Raised rather than compressing those predicates, which would make
+# each one harder to read than the metric it satisfies.
+Metrics/ClassLength:
+  Max: 110
 # Match upstream doorkeeper: require trailing commas on multiline literals.
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: consistent_comma

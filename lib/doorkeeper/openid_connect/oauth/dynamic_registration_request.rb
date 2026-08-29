@@ -65,9 +65,9 @@ module Doorkeeper
           server_scopes = server.scopes
 
           if server_scopes.respond_to?(:allowed)
-            server_scopes.allowed(requested_scopes).to_s
+            server_scopes.allowed(effective_requested_scopes).to_s
           else
-            (server_scopes & requested_scopes).to_s
+            (server_scopes & effective_requested_scopes).to_s
           end
         end
 
@@ -121,12 +121,34 @@ module Doorkeeper
           ::Doorkeeper::OAuth::Scopes.from_string(@params[:scope].to_s)
         end
 
+        # RFC 7591 §2: when the request omits `scope`, the authorization
+        # server registers the client with its own default set. Doorkeeper
+        # has one — `default_scopes` — and registering with no scopes at all
+        # is emphatically not it: an application whose `scopes` column is
+        # blank is treated as unrestricted by Doorkeeper's ScopeChecker
+        # (`app_scopes.presence || server_scopes`), so an omitted `scope`
+        # would register a client entitled to every scope the server defines,
+        # while a client that honestly declared a narrow scope stays confined
+        # to it.
+        def effective_requested_scopes
+          requested_scopes.presence || server.default_scopes
+        end
+
+        # A registration must never persist an empty scope set, whichever way
+        # it got there: neither an explicit `scope` made up entirely of
+        # unsupported values, nor an omitted `scope` on a server that
+        # configures no default scopes.
         def validate_scope
-          return true if requested_scopes.blank? || permitted_scopes.present?
+          return true if permitted_scopes.present?
 
           @error_description =
-            "scope '#{requested_scopes}' contains no scopes supported by this server. " \
-            "Supported scopes: #{server.scopes}"
+            if requested_scopes.present?
+              "scope '#{requested_scopes}' contains no scopes supported by this server. " \
+              "Supported scopes: #{server.scopes}"
+            else
+              "scope is required: this server registers no default scopes, so a client " \
+              "must request at least one of its supported scopes: #{server.scopes}"
+            end
           false
         end
 
