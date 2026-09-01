@@ -5,7 +5,7 @@ module Doorkeeper
     MAJOR = 2
     MINOR = 0
     TINY = 0
-    PRE = "beta1"
+    PRE = nil
 
     # Full version number
     VERSION = [MAJOR, MINOR, TINY, PRE].compact.join(".")
