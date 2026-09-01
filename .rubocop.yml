@@ -56,6 +56,10 @@ Metrics/ParameterLists:
 # Spec support code and the dummy app favour one readable setup method over
 # a split one; Metrics/BlockLength and ParameterLists already skip spec/.
 Metrics/MethodLength:
+  # A multi-line hash, array, heredoc or method call is one statement; a
+  # method that builds a metadata document should not be split just because
+  # the literal listing its keys is long.
+  CountAsOne: [array, hash, heredoc, method_call]
   Exclude:
     - spec/**/*
 Metrics/AbcSize:
