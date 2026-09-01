@@ -17,11 +17,11 @@ require "jwt"
 # `ClaimsBuilder` while its class body runs.
 module Doorkeeper
   module OpenidConnect
+    autoload :AtHashConcern, "doorkeeper/openid_connect/at_hash_concern"
     autoload :ClaimsBuilder, "doorkeeper/openid_connect/claims_builder"
     autoload :DiscoveryHelpersMixin, "doorkeeper/openid_connect/discovery_helpers_mixin"
     autoload :Errors, "doorkeeper/openid_connect/errors"
     autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
-    autoload :HybridIdTokenConcern, "doorkeeper/openid_connect/hybrid_id_token_concern"
     autoload :IdToken, "doorkeeper/openid_connect/id_token"
     autoload :TokenEndpointAuthMethodsSupportedMixin,
              "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
@@ -45,8 +45,8 @@ module Doorkeeper
   # makes them safe to autoload from a namespace this gem does not own.
   #
   # `Request::IdToken` and `Request::IdTokenToken` reach these at request time;
-  # for an application that never enables the OpenID Connect implicit or hybrid
-  # flows, none of the four is ever loaded.
+  # for an application that never enables the OpenID Connect implicit flows,
+  # none of the four is ever loaded.
   module OAuth
     autoload :IdTokenRequest, "doorkeeper/oauth/id_token_request"
     autoload :IdTokenResponse, "doorkeeper/oauth/id_token_response"

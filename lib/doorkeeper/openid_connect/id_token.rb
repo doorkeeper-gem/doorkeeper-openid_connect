@@ -18,7 +18,7 @@ module Doorkeeper
       # `resource_owner` is exposed so callers can detect a token whose owner no
       # longer resolves (e.g. deleted after issuance) before serializing — the
       # `sub` claim would otherwise dereference a nil owner and raise.
-      # `access_token` is the reader HybridIdTokenConcern relies on to compute
+      # `access_token` is the reader AtHashConcern relies on to compute
       # `at_hash`; a custom id_token_class must expose one as well.
       attr_reader :access_token, :nonce, :resource_owner
 
@@ -107,7 +107,7 @@ module Doorkeeper
 
       # `select_key` resolved exactly once per token, mirroring the `issuer`
       # memoization above: the signature (`as_jws_token`) and the `at_hash`
-      # digest (`HybridIdTokenConcern`) must agree on the algorithm, so a
+      # digest (`AtHashConcern`) must agree on the algorithm, so a
       # dynamic `select_key` implementation must not be re-invoked between
       # the two.
       def selected_key

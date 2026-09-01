@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe Doorkeeper::OpenidConnect::HybridIdTokenConcern do
+describe Doorkeeper::OpenidConnect::AtHashConcern do
   subject { Doorkeeper::OpenidConnect::IdToken.new(access_token, nonce).extend(described_class) }
 
   let(:access_token) { create :access_token, resource_owner_id: user.id, scopes: "openid" }
