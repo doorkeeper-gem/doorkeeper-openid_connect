@@ -47,11 +47,11 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
     expect(subject.authorize).to be_a(Doorkeeper::OAuth::IdTokenTokenResponse)
   end
 
-  it "returns an id_token extended with HybridIdTokenConcern" do
+  it "returns an id_token extended with AtHashConcern" do
     id_token = subject.authorize.id_token
 
     expect(id_token).to be_a(Doorkeeper::OpenidConnect::IdToken)
-    expect(id_token).to be_a(Doorkeeper::OpenidConnect::HybridIdTokenConcern)
+    expect(id_token).to be_a(Doorkeeper::OpenidConnect::AtHashConcern)
   end
 
   context "with a persisted resource owner" do
@@ -72,9 +72,9 @@ describe Doorkeeper::OAuth::IdTokenTokenRequest do
       expect(subject.authorize.id_token).to be_a(CustomIdToken)
     end
 
-    it "implements HybridIdTokenConcern" do
+    it "implements AtHashConcern" do
       # Duplicate of above, but we want to ensure that this continues being attached.
-      expect(subject.authorize.id_token).to be_a(Doorkeeper::OpenidConnect::HybridIdTokenConcern)
+      expect(subject.authorize.id_token).to be_a(Doorkeeper::OpenidConnect::AtHashConcern)
     end
   end
 end

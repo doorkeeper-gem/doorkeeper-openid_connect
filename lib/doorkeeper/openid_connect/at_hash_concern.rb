@@ -2,12 +2,16 @@
 
 module Doorkeeper
   module OpenidConnect
-    # Adds the `at_hash` claim required by the hybrid `id_token token` flow.
+    # Adds the `at_hash` claim required when an ID Token is issued alongside an
+    # access token — the `id_token token` response type, which OpenID Connect
+    # Core §3.2 defines as part of the Implicit Flow, not the Hybrid Flow of §3.3
+    # (whose response types this gem does not implement).
+    #
     # The host object must implement `#claims`, expose the access token via an
     # `#access_token` reader, and resolve its signing key via `#selected_key` —
     # all provided by `Doorkeeper::OpenidConnect::IdToken`, which configured
     # `id_token_class` overrides must inherit from.
-    module HybridIdTokenConcern
+    module AtHashConcern
       def claims
         super.merge(at_hash: at_hash)
       end
