@@ -1,4 +1,3 @@
-inherit_from: .rubocop_todo.yml
 plugins:
   - rubocop-performance
   - rubocop-rails
@@ -84,6 +83,16 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 Style/FrozenStringLiteralComment:
   Enabled: true
+# The Doorkeeper config DSL (subject, auth_time_from_resource_owner, claim)
+# invokes these blocks with extra arguments, so a strict-arity `&:sym`
+# lambda raises ArgumentError. Keep explicit blocks here.
+Style/SymbolProc:
+  Exclude:
+    - spec/controllers/doorkeeper/authorizations_controller_spec.rb
+    - spec/dummy/config/initializers/doorkeeper_openid_connect.rb
+    - spec/lib/id_token_spec.rb
+    - spec/lib/user_info_spec.rb
+    - spec/support/doorkeeper_configuration.rb
 Style/SymbolArray:
   MinSize: 3
 Style/WordArray:
