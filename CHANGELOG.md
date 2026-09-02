@@ -2,11 +2,24 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- Add entry here
+
+## v2.0.0 (2026-XX-XX)
+
+>[!IMPORTANT]
+>
+>- **Breaking (class overrides):** a configured `id_token_class` / `user_info_class` must now inherit from `Doorkeeper::OpenidConnect::IdToken` / `UserInfo` ([#364])
+>- **Breaking (settings removed):** the deprecated `jws_private_key` / `jws_public_key` initializer settings are gone ([#387])
+>- **Breaking (constant renamed):** `Doorkeeper::OpenidConnect::HybridIdTokenConcern` is now `AtHashConcern`, with no alias for the old name ([#399])
+>
+>**Coming from 1.10.x?** Every breaking change listed under 2.0.0.beta1 below applies as well — the `post_logout_redirect_uris` migration ([#243]), the `id_token token` response type change ([#337]), the removal of `IdTokenToken` ([#338]) and the Dynamic Client Registration defaults ([#350]). Those notes name `HybridIdTokenConcern`; read them as `AtHashConcern`, which is what 2.0.0 ships.
+>
+>[Migration from Old Versions](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/wiki/Migration-from-Old-Versions) walks through each one.
+
 - **Security:** Register a dynamically registered client with the server's `default_scopes` when the registration request omits `scope`, instead of persisting an empty scope set. Only deployments that enable `dynamic_client_registration` are affected.
 - [#364] **Breaking:** Require `id_token_class` / `user_info_class` overrides to inherit from `Doorkeeper::OpenidConnect::IdToken` / `UserInfo` ([#344](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/344)). Adds an `IdToken#select_key` hook returning the signing key and its algorithm together (`IdToken::SigningKey`) for per-client, rotating or multi-tenant keys, and binds the `at_hash` digest to that algorithm (OIDC Core §3.2.2.10) rather than the global `signing_algorithm`
 - [#387] **Breaking:** Remove the deprecated `jws_private_key` and `jws_public_key` initializer settings
 - [#399] **Breaking:** Rename `Doorkeeper::OpenidConnect::HybridIdTokenConcern` to `AtHashConcern`. The old name described the `id_token token` response type as a hybrid flow, but OpenID Connect Core defines that response type under the Implicit Flow (§3.2) — the Hybrid Flow response types of §3.3 are not implemented by this gem. Removed without an alias: the constant only ever shipped in 2.0.0.beta1
-- Add entry here
 
 ## v2.0.0.beta1 (2026-08-20)
 
