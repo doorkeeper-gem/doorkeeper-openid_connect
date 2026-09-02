@@ -28,6 +28,10 @@ module Doorkeeper
 
       private
 
+      # One method per metadata document: the provider metadata is a flat
+      # listing of endpoints and capabilities, and splitting it would hide the
+      # shape of the published document.
+      # rubocop:disable Metrics/AbcSize
       def provider_response
         doorkeeper = ::Doorkeeper.configuration
         openid_connect = ::Doorkeeper::OpenidConnect.configuration
@@ -79,6 +83,7 @@ module Doorkeeper
           code_challenge_methods_supported: code_challenge_methods_supported(doorkeeper),
         }.compact
       end
+      # rubocop:enable Metrics/AbcSize
 
       def response_modes_supported(doorkeeper)
         doorkeeper.authorization_response_flows.flat_map(&:response_mode_matches).uniq

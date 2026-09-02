@@ -6,13 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-Metrics/MethodLength:
-  Max: 33
-
-# Configuration parameters: IgnoredMethods.
-Metrics/AbcSize:
-  Max: 35
-
 # The Doorkeeper config DSL (subject, auth_time_from_resource_owner, claim)
 # invokes these blocks with extra arguments, so a strict-arity `&:sym`
 # lambda raises ArgumentError. Keep explicit blocks here.
