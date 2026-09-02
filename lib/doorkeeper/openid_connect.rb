@@ -298,14 +298,10 @@ module Doorkeeper
       return issuer unless issuer.respond_to?(:call)
 
       case issuer.arity
-      when 0
-        issuer.call
-      when 1
-        issuer.call(request || resource_owner)
-      when 2
-        issuer.call(resource_owner, application)
-      else
-        issuer.call(resource_owner, application, request)
+      when 0 then issuer.call
+      when 1 then issuer.call(request || resource_owner)
+      when 2 then issuer.call(resource_owner, application)
+      else issuer.call(resource_owner, application, request)
       end
     end
     private_class_method :call_issuer

@@ -16,10 +16,7 @@ module Doorkeeper
         client = Doorkeeper.configuration.application_model.create!(application_params(registration))
         render json: registration_response(client, registration), status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: {
-          error: registration_error_code(e.record),
-          error_description: e.record.errors.full_messages.join(", "),
-        }, status: :bad_request
+        render json: record_invalid_response(e.record), status: :bad_request
       end
 
       private
@@ -47,6 +44,13 @@ module Doorkeeper
         else
           authorizer
         end
+      end
+
+      def record_invalid_response(record)
+        {
+          error: registration_error_code(record),
+          error_description: record.errors.full_messages.join(", "),
+        }
       end
 
       # RFC 7591 §3.2.2 registration error codes: `invalid_redirect_uri` for

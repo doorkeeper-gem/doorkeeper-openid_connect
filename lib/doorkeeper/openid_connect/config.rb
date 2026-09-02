@@ -193,13 +193,15 @@ module Doorkeeper
         @validated_models ||= {}
         return model if @validated_models[kind] == model
 
-        unless model.is_a?(Class) && model <= base_model
-          raise Errors::InvalidConfiguration,
-                "The configured #{kind}_class (#{class_name}) must inherit from #{base_model.name}"
-        end
-
+        validate_model_inheritance!(kind, class_name, model, base_model)
         @validated_models[kind] = model
-        model
+      end
+
+      def validate_model_inheritance!(kind, class_name, model, base_model)
+        return if model.is_a?(Class) && model <= base_model
+
+        raise Errors::InvalidConfiguration,
+              "The configured #{kind}_class (#{class_name}) must inherit from #{base_model.name}"
       end
     end
   end

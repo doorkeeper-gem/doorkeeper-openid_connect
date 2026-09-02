@@ -18,12 +18,19 @@ module Doorkeeper
         end
 
         Doorkeeper::OpenidConnect.configuration.claims.to_h.map do |name, claim|
-          if claim.scopes.any? { |scope| access_token.scopes.exists?(scope) } &&
-             claim.response.include?(response)
+          if claim_applies?(claim, access_token, response)
             [name, claim.generator.call(resource_owner, access_token.scopes, access_token)]
           end
         end.compact.to_h
       end
+
+      # A claim is included when the token carries one of its scopes and it is
+      # configured for this response type (:id_token / :user_info).
+      def self.claim_applies?(claim, access_token, response)
+        claim.scopes.any? { |scope| access_token.scopes.exists?(scope) } &&
+          claim.response.include?(response)
+      end
+      private_class_method :claim_applies?
 
       def initialize(&block)
         @claims = OpenStruct.new
