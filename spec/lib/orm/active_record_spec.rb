@@ -62,4 +62,56 @@ describe "Doorkeeper::OpenidConnect ActiveRecord ORM integration" do
       expect(custom_model.reflect_on_association(:openid_request)).not_to be_nil
     end
   end
+
+  # Regression coverage for the boot failure introduced in v1.10.3 (#308).
+  #
+  # Since #308 the association is wired from the grant mixin's `included`
+  # callback, so it is evaluated whenever the model loads — which the host
+  # application can easily arrange to happen before
+  # `Doorkeeper::OpenidConnect.configure` runs: Doorkeeper's own
+  # `initialize_models!` reaches for the grant model from `Doorkeeper.configure`
+  # (immediately, on Doorkeeper 5.5.x with `ActiveRecord::Base` already loaded),
+  # and any initializer sorting between `doorkeeper.rb` and
+  # `doorkeeper_openid_connect.rb` can name the model itself. Reading
+  # `open_id_request_class` at that point raised `MissingConfiguration`, whose
+  # message ("Do you have doorkeeper_openid_connect initializer?") points at an
+  # initializer that does exist and simply has not run yet. #174 is the same
+  # ordering hazard one layer down: an unrelated gem (Sorcery) loaded
+  # `ActiveRecord::Base` before the doorkeeper initializers, and Doorkeeper's
+  # own model wiring reported a missing Doorkeeper initializer.
+  describe "an access grant model that loads before the OpenID Connect configuration" do
+    around do |example|
+      previous_config = Doorkeeper::OpenidConnect.instance_variable_get(:@config)
+      Doorkeeper::OpenidConnect.instance_variable_set(:@config, nil)
+      example.run
+    ensure
+      Doorkeeper::OpenidConnect.instance_variable_set(:@config, previous_config)
+    end
+
+    def load_grant_model
+      Class.new(ApplicationRecord) do
+        self.table_name = "oauth_access_grants"
+        include Doorkeeper::Orm::ActiveRecord::Mixins::AccessGrant
+      end
+    end
+
+    it "does not raise MissingConfiguration" do
+      expect { load_grant_model }.not_to raise_error
+    end
+
+    it "wires the association once the configuration arrives" do
+      custom_model = load_grant_model
+
+      expect(custom_model.reflect_on_association(:openid_request)).to be_nil
+
+      Doorkeeper::OpenidConnect.configure do
+        issuer "dummy"
+        open_id_request_class "CustomOpenidRequest308"
+      end
+
+      association = custom_model.reflect_on_association(:openid_request)
+      expect(association).not_to be_nil
+      expect(association.options[:class_name]).to eq("CustomOpenidRequest308")
+    end
+  end
 end

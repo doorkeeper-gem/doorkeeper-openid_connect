@@ -10,6 +10,12 @@ module Doorkeeper
 
       @config = Config::Builder.new(&block).build
       validate_issuer_consistency
+      # Access grant models that loaded before this point deferred their
+      # `openid_request` association because it needs `open_id_request_class`.
+      # The namespace is spelled out: a bare `AccessGrant` would resolve to
+      # Doorkeeper's own grant model through the enclosing lexical scope if the
+      # autoload were ever dropped.
+      OpenidConnect::AccessGrant.wire_pending_hosts
       @config
     end
 
