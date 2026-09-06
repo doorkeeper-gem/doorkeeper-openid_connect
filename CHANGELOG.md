@@ -2,7 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
-- Add entry here
+- [#402] Fix a boot failure (`MissingConfiguration`) when the access grant model loads before `Doorkeeper::OpenidConnect.configure` — e.g. from an initializer sorting between `doorkeeper.rb` and `doorkeeper_openid_connect.rb` (regression since v1.10.3)
 
 ## v2.0.0 (2026-09-22)
 
