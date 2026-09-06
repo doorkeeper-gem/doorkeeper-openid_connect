@@ -59,9 +59,13 @@ Doorkeeper::OpenidConnect.configure do
   # piggy-backing on a fresh login from another device.
   #
   # The block is executed in the controller's scope and receives the
-  # current `session` and `request`. Return value can be a `Time`,
-  # `DateTime`, or anything responding to `to_i`. Return `nil` to force
-  # reauthentication.
+  # current `session` and `request`. Return value can be a `Time`, a
+  # `DateTime`, epoch seconds (an Integer or a numeric String), or a
+  # serialized timestamp String such as `"2026-09-05T03:59:10.270Z"` — a
+  # `Time` stored in the session comes back as the latter once it
+  # round-trips through the JSON cookie serializer, which Rails 7.0+
+  # selects by default. A String of any other shape is read as an unknown
+  # auth_time and forces reauthentication, as does `nil`.
   #
   # auth_time_from_session do |session, _request|
   #   # Example implementation: capture auth_time on the session at login,
