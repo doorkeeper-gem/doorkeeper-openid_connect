@@ -6,6 +6,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 - [#364] **Breaking:** Require `id_token_class` / `user_info_class` overrides to inherit from `Doorkeeper::OpenidConnect::IdToken` / `UserInfo` ([#344](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/344)). Adds an `IdToken#select_key` hook returning the signing key and its algorithm together (`IdToken::SigningKey`) for per-client, rotating or multi-tenant keys, and binds the `at_hash` digest to that algorithm (OIDC Core §3.2.2.10) rather than the global `signing_algorithm`
 - [#387] **Breaking:** Remove the deprecated `jws_private_key` and `jws_public_key` initializer settings
 - [#399] **Breaking:** Rename `Doorkeeper::OpenidConnect::HybridIdTokenConcern` to `AtHashConcern`. The old name described the `id_token token` response type as a hybrid flow, but OpenID Connect Core defines that response type under the Implicit Flow (§3.2) — the Hybrid Flow response types of §3.3 are not implemented by this gem. Removed without an alias: the constant only ever shipped in 2.0.0.beta1
+- [#402] Fix a boot failure (`MissingConfiguration`) when the access grant model loads before `Doorkeeper::OpenidConnect.configure` — e.g. from an initializer sorting between `doorkeeper.rb` and `doorkeeper_openid_connect.rb` (regression since v1.10.3)
 - Add entry here
 
 ## v2.0.0.beta1 (2026-08-20)
