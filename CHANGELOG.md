@@ -2,6 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- [#401] Fix `max_age` reauthentication loop when `auth_time_from_session` returns a String — parse it as a timestamp instead of falling through to `to_i` (same class of bug as [#248]) — and treat a future auth_time as stale (60 s clock-skew leeway)
 - Add entry here
 
 ## v2.0.0 (2026-09-22)
