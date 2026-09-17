@@ -36,6 +36,6 @@ end
 #
 # TODO: drop this pin once a released 8.0.x carries the ActiveSupport fix
 # (already on 8-0-stable).
-gem "json", "~> 2.21"
+gem "json", "~> 3.0"
 
 gemspec
