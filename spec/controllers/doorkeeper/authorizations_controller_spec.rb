@@ -707,6 +707,175 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         expect(response).to redirect_to "/reauthenticate"
       end
 
+      # A `Time` put on the session comes back as a String once the session is
+      # serialized, which the JSON cookie serializer — the default since Rails
+      # 7.0 — always does. `to_i` on such a value returns the leading year,
+      # placing auth_time in 1970 and making every request look stale.
+      context "when the session round-tripped the auth_time through a serializer" do
+        it "accepts a bare-Time JSON String within max_age" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.utc.strftime("%Y-%m-%d %H:%M:%S UTC") },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        it "accepts an ISO 8601 String within max_age" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.utc.iso8601(3) },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        it "reauthenticates on an ISO 8601 String older than max_age" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.minutes.ago.utc.iso8601(3) },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        # `ActiveSupport::JSON::Encoding.use_standard_json_time_format` can be
+        # turned off, and the same encoder then emits `"%Y/%m/%d %H:%M:%S %z"`.
+        it "accepts the non-standard ActiveSupport JSON time format within max_age" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.utc.strftime("%Y/%m/%d %H:%M:%S %z") },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        it "reauthenticates on a non-standard ActiveSupport JSON time older than max_age" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.minutes.ago.utc.strftime("%Y/%m/%d %H:%M:%S %z") },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        it "reauthenticates on a String mixing the two date separators" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.utc.strftime("%Y-%m/%d %H:%M:%S %z") },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        it "accepts a digit-only String as epoch seconds" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.to_i.to_s },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        # `to_i` on the String resolved a fractional or signed epoch just as
+        # well as a bare one, so narrowing to digit-only values would have
+        # regressed both of these to nil.
+        it "accepts a fractional epoch String" do
+          authorize_with_session!(
+            { current_session_auth_time: 5.seconds.ago.to_f.to_s },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        it "accepts a positively signed epoch String" do
+          authorize_with_session!(
+            { current_session_auth_time: "+#{5.seconds.ago.to_i}" },
+            max_age: 10,
+          )
+
+          expect_authorization_form!
+        end
+
+        # A negative epoch is a pre-1970 time, which is stale under any max_age.
+        it "reauthenticates on a negatively signed epoch String" do
+          authorize_with_session!(
+            { current_session_auth_time: "-#{5.seconds.ago.to_i}" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        # `"9" * 400` overflows to `Float::INFINITY`, which makes `Time.zone.at`
+        # raise `FloatDomainError` — a `RangeError`, not an `ArgumentError`.
+        it "reauthenticates on a numeric String too large to be a Float" do
+          authorize_with_session!(
+            { current_session_auth_time: "9" * 400 },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        # `to_i` truncated a String to its leading integer, so this used to
+        # resolve. Keeping that fallback would send every unrecognised
+        # serialization back to 1970 — the loop this fixes — so it is dropped
+        # deliberately and the value fails closed instead.
+        it "reauthenticates on a String with a numeric prefix and a suffix" do
+          authorize_with_session!(
+            { current_session_auth_time: "#{5.seconds.ago.to_i} seconds" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        it "reauthenticates when the String cannot be parsed as a time" do
+          authorize_with_session!(
+            { current_session_auth_time: "not a time" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        # `Time.zone.parse` alone reads "10 minutes" as day 10 of the current
+        # month, which is a future timestamp for most of the month and would
+        # therefore look fresh and skip reauthentication entirely.
+        it "reauthenticates on a String that only Time.zone.parse would accept" do
+          authorize_with_session!(
+            { current_session_auth_time: "10 minutes" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        # `Time.zone.parse` rolls an impossible calendar date over rather than
+        # raising, so February 31st comes back as March 3rd. A year far enough
+        # ahead makes that rollover land in the future, which would read as
+        # fresh and skip reauthentication if the date were not validated.
+        it "reauthenticates on a well-shaped String holding an impossible date" do
+          authorize_with_session!(
+            { current_session_auth_time: "2999-02-31 03:59:27 UTC" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+
+        it "reauthenticates on a well-shaped String holding an out-of-range time" do
+          authorize_with_session!(
+            { current_session_auth_time: "2999-09-05 25:00:00 UTC" },
+            max_age: 10,
+          )
+
+          expect(response).to redirect_to "/reauthenticate"
+        end
+      end
+
       it "does not emit the auth_time_from_resource_owner deprecation warning" do
         expect(Doorkeeper::OpenidConnect::Helpers::Controller)
           .not_to receive(:warn_auth_time_from_resource_owner_deprecation)
