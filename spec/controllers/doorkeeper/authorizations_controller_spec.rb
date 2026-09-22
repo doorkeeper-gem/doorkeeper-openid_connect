@@ -925,6 +925,150 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
+  describe "authorization view" do
+    render_views
+
+    let(:upstream_view) do
+      File.read(
+        File.join(Gem.loaded_specs["doorkeeper"].gem_dir, "app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+    end
+
+    let(:bundled_view) do
+      File.read(
+        Doorkeeper::OpenidConnect::Engine.root.join("app/views/doorkeeper/authorizations/new.html.erb"),
+      )
+    end
+
+    it "renders the nonce hidden field (gem view overrides doorkeeper's default)" do
+      authorize! nonce: "view-nonce-123"
+
+      expect(response).to be_successful
+      expect(response.body).to include('name="nonce"')
+      expect(response.body).to include('value="view-nonce-123"')
+    end
+
+    # The bundled view replaces Doorkeeper's own template rather than extending
+    # it, so any hidden field Doorkeeper renders and this one does not is
+    # silently dropped from the authorization request. That is invisible at
+    # boot and invisible in every spec that does not render views, so compare
+    # the two templates directly: when Doorkeeper adds a field, this fails
+    # instead of the field quietly disappearing from the consent screen.
+    it "carries every hidden field the installed Doorkeeper's own view renders" do
+      targets = lambda do |source|
+        source.scan(/hidden_field_tag\s+(:?"?[\w\[\]]+"?)/).flatten.map { |t| t.delete(%(:")) }.uniq
+      end
+
+      expect(targets.call(bundled_view)).to include(*targets.call(upstream_view))
+    end
+
+    # The same fork-drift hazard applies to what the screen *shows*, not only to
+    # what it posts. Doorkeeper 6.0 added a resource-indicator section, and a
+    # bundled view that omits it asks the user to approve an audience the
+    # consent screen never named. Comparing the rendered sections directly would
+    # need whatever storage each one depends on, so compare the translation keys
+    # the two templates use instead: a new upstream section fails here rather
+    # than quietly disappearing from the consent screen.
+    it "renders every translated section the installed Doorkeeper's own view renders" do
+      sections = ->(source) { source.scan(/\bt\(\s*'(\.\w+)'/).flatten.uniq }
+
+      expect(sections.call(bundled_view)).to include(*sections.call(upstream_view))
+    end
+
+    # Guarded with `respond_to?` in the view: `custom_access_token_attributes`
+    # only exists on newer Doorkeeper versions, and dropping it would stop
+    # custom attributes from surviving the consent screen.
+    it "carries Doorkeeper's custom access token attributes through the form" do
+      skip "Doorkeeper #{Gem.loaded_specs["doorkeeper"].version} has no custom_access_token_attributes" unless
+        Doorkeeper.configuration.respond_to?(:custom_access_token_attributes)
+
+      allow(Doorkeeper.configuration).to receive(:custom_access_token_attributes).and_return([:tenant_id])
+      authorize! tenant_id: "acme"
+
+      # Doorkeeper 5.6 hands these back as ActionController::Parameters; later
+      # versions convert them to a plain Hash.
+      expect(assigns(:pre_auth).custom_access_token_attributes.to_h).to eq("tenant_id" => "acme")
+      expect(response.body).to include('name="tenant_id"')
+      expect(response.body).to include('value="acme"')
+    end
+  end
+
+  # In API mode the consent step is not the bundled view at all: Doorkeeper
+  # answers `GET /oauth/authorize` with `render json: pre_auth`, and so does
+  # this gem for `prompt=consent`. The nonce therefore has to travel in that
+  # payload, or an api_only host rebuilding the approve request from it drops
+  # the nonce and the ID token is issued without one.
+  describe "api_only pre-authorization" do
+    before { allow(Doorkeeper.configuration).to receive(:api_only).and_return(true) }
+
+    it "exposes the nonce so the approve request can carry it back" do
+      authorize! nonce: "api-nonce-123"
+
+      expect(response).to be_successful
+      expect(JSON.parse(response.body)["nonce"]).to eq "api-nonce-123"
+    end
+
+    it "omits the nonce for a pre-authorization that carries none" do
+      authorize!
+
+      expect(response).to be_successful
+      expect(JSON.parse(response.body)).not_to have_key("nonce")
+    end
+  end
+
+  describe "implicit flow nonce enforcement" do
+    before do
+      allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])
+      Doorkeeper::OpenidConnect::OAuth::PreAuthorization.reset_implicit_nonce_deprecation_warning!
+    end
+
+    context "when enforce_implicit_nonce is enabled" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration).to receive(:enforce_implicit_nonce).and_return(true)
+      end
+
+      it "rejects an implicit request without a nonce" do
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(assigns(:pre_auth)).not_to be_authorizable
+        # `invalid_request` is a symbol up to Doorkeeper 5.6.7 and an error
+        # class from 5.6.8 on (5.6.7 defines `Errors::InvalidRequest` but still
+        # registers the symbol); assert against whichever the gem resolved for
+        # this version.
+        expect(assigns(:pre_auth).error)
+          .to eq Doorkeeper::OpenidConnect::OAuth::PreAuthorization.invalid_request_error
+        expect(assigns(:pre_auth).missing_param).to eq :nonce
+      end
+
+      it "renders the error end-to-end when nonce is missing" do
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(response).to render_template("doorkeeper/authorizations/error")
+        # Doorkeeper's `InvalidRequestResponse#status` is `:bad_request` on
+        # every version, but it is only applied to the HTML error render since
+        # 5.6.7; 5.5.x renders the same template with a 200.
+        if Gem.loaded_specs["doorkeeper"].version >= Gem::Version.new("5.6.7")
+          expect(response).to have_http_status(:bad_request)
+        end
+      end
+
+      it "accepts an implicit request that carries a nonce" do
+        authorize! response_type: "id_token token", scope: "openid", nonce: "abc123"
+
+        expect(assigns(:pre_auth)).to be_authorizable
+      end
+    end
+
+    context "when enforce_implicit_nonce is disabled (default)" do
+      it "accepts an implicit request without a nonce" do
+        allow(Doorkeeper::OpenidConnect::OAuth::PreAuthorization).to receive(:warn_missing_nonce_deprecation)
+        authorize! response_type: "id_token token", scope: "openid"
+
+        expect(assigns(:pre_auth)).to be_authorizable
+      end
+    end
+  end
+
   context "with the implicit OIDC flows enabled" do
     before do
       allow(Doorkeeper.configuration).to receive(:grant_flows).and_return(["implicit_oidc"])

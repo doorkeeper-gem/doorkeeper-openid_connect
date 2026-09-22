@@ -126,6 +126,16 @@ module Doorkeeper
       # `max_age` remains OIDC-only because it is defined by OIDC Core.
       option :apply_prompt_to_non_oidc_requests, default: false
 
+      # When enabled, authorization requests for the OpenID Connect Implicit Flow
+      # (a `response_type` of `id_token` or `id_token token`) are rejected with
+      # `invalid_request` unless they carry a `nonce`, as REQUIRED by OpenID
+      # Connect Core 1.0 §3.2.2.1. When disabled (the current default) such
+      # requests are still accepted for backward compatibility, but emit a
+      # one-time deprecation warning. The default will flip to `true` in the
+      # major version after the one that introduces this option, so the release
+      # adding it only starts the deprecation period.
+      option :enforce_implicit_nonce, default: false
+
       option :authorize_dynamic_client_registration, default: nil
 
       option :open_id_request_class, default: "Doorkeeper::OpenidConnect::Request"

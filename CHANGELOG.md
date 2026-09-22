@@ -2,7 +2,8 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
-- Add entry here
+- [#244] Add a built-in `doorkeeper/authorizations/new` view that passes the `nonce` through the authorization form, and add the `enforce_implicit_nonce` config option (default `false`) which rejects Implicit Flow requests (a `response_type` of `id_token` or `id_token token`) that are missing the REQUIRED `nonce` (OpenID Connect Core 1.0 §3.2.2.1). While disabled such requests are still accepted for backward compatibility but emit a one-time deprecation warning; the default will flip to `true` in the major version after the one this ships in, so this release only starts the deprecation period ([#154](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/154))
+- [#244] Also carry the `nonce` through the `api_only` consent step, where no form is rendered and Doorkeeper answers `GET /oauth/authorize` with the pre-authorization JSON
 
 ## v2.0.0 (2026-09-22)
 
