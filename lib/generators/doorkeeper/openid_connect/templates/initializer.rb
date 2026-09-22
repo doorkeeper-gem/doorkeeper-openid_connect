@@ -155,6 +155,15 @@ Doorkeeper::OpenidConnect.configure do
   #   end_session_url
   # end
 
+  # Back-Channel Logout 1.0: this gem tracks no OP-side sessions, so it
+  # cannot know when one ends. To notify the clients that registered a
+  # `backchannel_logout_uri`, call
+  #
+  #   Doorkeeper::OpenidConnect::BackchannelLogout.notify(user)
+  #
+  # from your own session-teardown path (e.g. after Devise signs the user
+  # out). Each relevant client receives a signed Logout Token via HTTP POST.
+
   # Per-endpoint overrides for the URLs generated in the discovery document
   # (e.g. to advertise a different host or force HTTPS). The block receives the
   # current `request` and returns a hash keyed by endpoint name.
