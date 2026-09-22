@@ -4,7 +4,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 - Add entry here
 
-## v2.0.0 (2026-09-16)
+## v2.0.0 (2026-09-22)
 
 >[!IMPORTANT]
 >
