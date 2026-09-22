@@ -2,7 +2,10 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
-- Add entry here
+- [#382] Add OpenID Connect Back-Channel Logout 1.0 support, phase 1 ([#191]): signed Logout Token generation (`Doorkeeper::OpenidConnect::LogoutToken`, `sub`-based, no `sid`), per-client `backchannel_logout_uri` registration (model attribute and Dynamic Client Registration metadata), and discovery advertisement (`backchannel_logout_supported` / `backchannel_logout_session_supported`). Logout Tokens are signed with the same key as ID Tokens, as §2.4 requires, through the `select_key` hook that [#364] introduced — it now lives in `Doorkeeper::OpenidConnect::SigningKeySelection`, included by both token classes, so a single override covers both (`IdToken::SigningKey` still resolves, unchanged). A new `logout_token_class` option mirrors `id_token_class` / `user_info_class`. Token delivery follows in phase 2
+
+> [!NOTE]
+> **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` followed by `rails db:migrate` to enable the feature; without the column nothing is advertised and the registration metadata is ignored
 
 ## v2.0.0 (2026-09-22)
 

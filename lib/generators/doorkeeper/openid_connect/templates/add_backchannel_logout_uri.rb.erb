@@ -1,0 +1,5 @@
+class AddBackchannelLogoutUriToOauthApplications < ActiveRecord::Migration<%= migration_version %>
+  def change
+    add_column :oauth_applications, :backchannel_logout_uri, :string
+  end
+end

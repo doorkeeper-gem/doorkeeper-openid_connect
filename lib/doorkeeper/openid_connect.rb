@@ -18,11 +18,15 @@ require "jwt"
 module Doorkeeper
   module OpenidConnect
     autoload :AtHashConcern, "doorkeeper/openid_connect/at_hash_concern"
+    autoload :BackchannelLogoutRegistrationMixin,
+             "doorkeeper/openid_connect/backchannel_logout_registration_mixin"
     autoload :ClaimsBuilder, "doorkeeper/openid_connect/claims_builder"
     autoload :DiscoveryHelpersMixin, "doorkeeper/openid_connect/discovery_helpers_mixin"
     autoload :Errors, "doorkeeper/openid_connect/errors"
     autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
     autoload :IdToken, "doorkeeper/openid_connect/id_token"
+    autoload :LogoutToken, "doorkeeper/openid_connect/logout_token"
+    autoload :SigningKeySelection, "doorkeeper/openid_connect/signing_key_selection"
     autoload :TokenEndpointAuthMethodsSupportedMixin,
              "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
     autoload :UserInfo, "doorkeeper/openid_connect/user_info"
