@@ -223,6 +223,33 @@ describe Doorkeeper::OpenidConnect::IdToken do
         expect(claims[:exp]).to eq 180
       end
     end
+
+    context "when the colliding custom claim is declared with a String name" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+
+          resource_owner_from_access_token do |access_token|
+            User.find_by(id: access_token.resource_owner_id)
+          end
+
+          subject do |resource_owner|
+            resource_owner.id
+          end
+
+          claims do
+            claim("sub", scope: :openid, response: [:id_token]) { "SPOOFED-SUB" }
+          end
+        end
+      end
+
+      it "still lets the registered claim win, without a second String key" do
+        claims = subject.claims
+
+        expect(claims[:sub]).to eq user.id.to_s
+        expect(claims).not_to have_key("sub")
+      end
+    end
   end
 
   describe "a custom id_token_class subclass" do

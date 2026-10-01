@@ -2,6 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- [#406](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/pull/406) Drop the `ostruct` runtime dependency ([#210](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/210), added in [#218](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/pull/218)): the claims DSL now builds a plain Hash keyed by Symbol claim name instead of an `OpenStruct`. `Doorkeeper::OpenidConnect.configuration.claims` is therefore a Hash — code reading it method-style (`claims.nickname`) should use `claims[:nickname]`
 - Add entry here
 
 ## v2.0.0 (2026-09-22)
