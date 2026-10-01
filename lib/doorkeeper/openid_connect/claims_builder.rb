@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 module Doorkeeper
   module OpenidConnect
     class ClaimsBuilder
@@ -33,7 +31,7 @@ module Doorkeeper
       private_class_method :claim_applies?
 
       def initialize(&block)
-        @claims = OpenStruct.new
+        @claims = {}
         instance_eval(&block)
       end
 
@@ -41,14 +39,18 @@ module Doorkeeper
         @claims
       end
 
+      # Claims are keyed by the claim's Symbol name, so a claim declared with a
+      # String name cannot sit beside the registered Symbol claims that the
+      # ID Token and UserInfo responses merge in after it.
       def normal_claim(name, response: [:user_info], scope: nil, &block)
-        @claims[name] =
+        claim =
           Claims::NormalClaim.new(
             name: name,
             response: response,
             scope: scope,
             generator: block,
           )
+        @claims[claim.name] = claim
       end
       alias claim normal_claim
     end
