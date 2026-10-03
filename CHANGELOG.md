@@ -2,7 +2,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
-- Prepend `AuthorizationsExtension` and `MetadataExtension` when Zeitwerk loads `Doorkeeper::AuthorizationsController` and `Doorkeeper::MetadataController`, instead of from `to_prepare`. Naming the controllers in `to_prepare` autoloaded them on every boot, together with `Doorkeeper::ApplicationController` and, through its default `ActionController::Base` superclass, every helper in the host application
+- [#407] Prepend `AuthorizationsExtension` and `MetadataExtension` when Zeitwerk loads `Doorkeeper::AuthorizationsController` and `Doorkeeper::MetadataController`, instead of from `to_prepare`. Naming the controllers in `to_prepare` autoloaded them on every boot, together with `Doorkeeper::ApplicationController` and, through its default `ActionController::Base` superclass, every helper in the host application
 - Add entry here
 
 ## v2.0.0 (2026-09-22)
