@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 module Doorkeeper
   module OpenidConnect
     class ClaimsBuilder
@@ -33,7 +31,7 @@ module Doorkeeper
       private_class_method :claim_applies?
 
       def initialize(&block)
-        @claims = OpenStruct.new
+        @claims = ClaimsHash.new
         instance_eval(&block)
       end
 
@@ -42,13 +40,14 @@ module Doorkeeper
       end
 
       def normal_claim(name, response: [:user_info], scope: nil, &block)
-        @claims[name] =
+        claim =
           Claims::NormalClaim.new(
             name: name,
             response: response,
             scope: scope,
             generator: block,
           )
+        @claims[claim.name] = claim
       end
       alias claim normal_claim
     end
