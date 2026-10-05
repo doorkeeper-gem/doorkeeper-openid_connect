@@ -5,9 +5,10 @@ module Doorkeeper
     # The configured claims, keyed by Symbol claim name.
     #
     # This used to be an `OpenStruct`. It is a Hash now, but it still answers the
-    # OpenStruct-only forms (`claims.nickname`, `claims.nickname = ...` and
-    # `claims["nickname"]`) with a deprecation warning, so apps that relied on them
-    # keep working until the next major version, when this becomes a plain Hash.
+    # OpenStruct-only forms (`claims.nickname`, `claims.nickname = ...`, String keys
+    # in `[]`, `[]=` and `dig`, and `delete_field`) with a deprecation warning, so
+    # apps that relied on them keep working until the next major version, when this
+    # becomes a plain Hash.
     class ClaimsHash < Hash
       # Emit the deprecation at most once per process; claims are read on every
       # ID Token and UserInfo response.
@@ -20,8 +21,9 @@ module Doorkeeper
           @deprecation_warned = true
           warn "DEPRECATION WARNING: `Doorkeeper::OpenidConnect.configuration.claims` is a Hash " \
                "keyed by Symbol claim name. Reading or writing it method-style " \
-               "(`claims.nickname`) or with String keys (`claims[\"nickname\"]`) is deprecated " \
-               "and will stop working in the next major version. Use `claims[:nickname]` instead."
+               "(`claims.nickname`), with String keys (`claims[\"nickname\"]`) or with " \
+               "`delete_field` is deprecated and will stop working in the next major version. " \
+               "Use `claims[:nickname]` and `claims.delete(:nickname)` instead."
         end
 
         # Reset the deprecation flag (test helper).
@@ -35,6 +37,31 @@ module Doorkeeper
 
         self.class.warn_deprecation
         super(name.to_sym)
+      end
+
+      def []=(name, value)
+        if name.is_a?(String)
+          self.class.warn_deprecation
+          name = name.to_sym
+        end
+        super
+      end
+
+      def dig(name, *rest)
+        return super unless name.is_a?(String)
+
+        self.class.warn_deprecation
+        super(name.to_sym, *rest)
+      end
+
+      # Like OpenStruct#delete_field: raises NameError for an unknown claim unless given a block.
+      def delete_field(name)
+        self.class.warn_deprecation
+        key = name.to_sym
+        return delete(key) if key?(key)
+        return yield if block_given?
+
+        raise NameError.new("no field `#{key}' in #{self.class}", key)
       end
 
       def method_missing(method_name, *args, &block)
