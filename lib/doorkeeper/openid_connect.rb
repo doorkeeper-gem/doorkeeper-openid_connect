@@ -19,6 +19,7 @@ module Doorkeeper
   module OpenidConnect
     autoload :AtHashConcern, "doorkeeper/openid_connect/at_hash_concern"
     autoload :ClaimsBuilder, "doorkeeper/openid_connect/claims_builder"
+    autoload :ClaimsHash, "doorkeeper/openid_connect/claims_hash"
     autoload :DiscoveryHelpersMixin, "doorkeeper/openid_connect/discovery_helpers_mixin"
     autoload :Errors, "doorkeeper/openid_connect/errors"
     autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
