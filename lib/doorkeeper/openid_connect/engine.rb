@@ -7,8 +7,8 @@ module Doorkeeper
         Doorkeeper::OpenidConnect::Rails::Routes.install!
       end
 
-      initializer "doorkeeper.openid_connect.controller_extensions" do
-        ::Rails.autoloaders.main.on_load("Doorkeeper::AuthorizationsController") do |controller|
+      initializer "doorkeeper.openid_connect.controller_extensions" do |app|
+        app.autoloaders.main.on_load("Doorkeeper::AuthorizationsController") do |controller|
           controller.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
         end
 
@@ -16,7 +16,7 @@ module Doorkeeper
         # /.well-known/oauth-authorization-server; enrich it with the OpenID
         # Connect metadata (see MetadataExtension).
         if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
-          ::Rails.autoloaders.main.on_load("Doorkeeper::MetadataController") do |controller|
+          app.autoloaders.main.on_load("Doorkeeper::MetadataController") do |controller|
             controller.prepend Doorkeeper::OpenidConnect::MetadataExtension
           end
         end
