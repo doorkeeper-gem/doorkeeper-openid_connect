@@ -7,14 +7,18 @@ module Doorkeeper
         Doorkeeper::OpenidConnect::Rails::Routes.install!
       end
 
-      config.to_prepare do
-        Doorkeeper::AuthorizationsController.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
+      initializer "doorkeeper.openid_connect.controller_extensions" do |app|
+        app.autoloaders.main.on_load("Doorkeeper::AuthorizationsController") do |controller|
+          controller.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
+        end
 
         # Doorkeeper >= 6.0 serves its own RFC 8414 metadata document at
         # /.well-known/oauth-authorization-server; enrich it with the OpenID
         # Connect metadata (see MetadataExtension).
         if Doorkeeper::OpenidConnect.doorkeeper_metadata_endpoint?
-          Doorkeeper::MetadataController.prepend Doorkeeper::OpenidConnect::MetadataExtension
+          app.autoloaders.main.on_load("Doorkeeper::MetadataController") do |controller|
+            controller.prepend Doorkeeper::OpenidConnect::MetadataExtension
+          end
         end
       end
     end
