@@ -3,6 +3,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 ## Unreleased
 
 - [#407] Prepend `AuthorizationsExtension` and `MetadataExtension` when Zeitwerk loads `Doorkeeper::AuthorizationsController` and `Doorkeeper::MetadataController`, instead of from `to_prepare`. Naming the controllers in `to_prepare` autoloaded them on every boot, together with `Doorkeeper::ApplicationController` and, through its default `ActionController::Base` superclass, every helper in the host application
+- [#408] Drop the `ostruct` runtime dependency (#210, added in #218). `Doorkeeper::OpenidConnect.configuration.claims` is now a Hash keyed by Symbol claim name instead of an `OpenStruct`. The OpenStruct-only forms (`claims.nickname`, `claims.nickname = ...`, String keys in `[]`, `[]=` and `dig`, and `delete_field`) still work but print a deprecation warning and will be removed in the next major version; use `claims[:nickname]`.
 - Add entry here
 
 ## v2.0.0 (2026-09-22)
