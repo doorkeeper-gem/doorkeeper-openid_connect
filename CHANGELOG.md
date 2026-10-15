@@ -5,6 +5,11 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 - [#401] Fix `max_age` reauthentication loop when `auth_time_from_session` returns a String — parse it as a timestamp instead of falling through to `to_i` (same class of bug as [#248]) — and treat a future auth_time as stale (60 s clock-skew leeway)
 - [#407] Prepend `AuthorizationsExtension` and `MetadataExtension` when Zeitwerk loads `Doorkeeper::AuthorizationsController` and `Doorkeeper::MetadataController`, instead of from `to_prepare`. Naming the controllers in `to_prepare` autoloaded them on every boot, together with `Doorkeeper::ApplicationController` and, through its default `ActionController::Base` superclass, every helper in the host application
 - [#408] Drop the `ostruct` runtime dependency (#210, added in #218). `Doorkeeper::OpenidConnect.configuration.claims` is now a Hash keyed by Symbol claim name instead of an `OpenStruct`. The OpenStruct-only forms (`claims.nickname`, `claims.nickname = ...`, String keys in `[]`, `[]=` and `dig`, and `delete_field`) still work but print a deprecation warning and will be removed in the next major version; use `claims[:nickname]`.
+- [#382] Add OpenID Connect Back-Channel Logout 1.0 support, phase 1 ([#191]): signed Logout Token generation (`Doorkeeper::OpenidConnect::LogoutToken`, `sub`-based, no `sid`), per-client `backchannel_logout_uri` registration (model attribute and Dynamic Client Registration metadata), and discovery advertisement (`backchannel_logout_supported` / `backchannel_logout_session_supported`). Logout Tokens are signed with the same key as ID Tokens, as §2.4 requires, through the `select_key` hook that [#364] introduced — it now lives in `Doorkeeper::OpenidConnect::SigningKeySelection`, included by both token classes, so a single override covers both (`IdToken::SigningKey` still resolves, unchanged). A new `logout_token_class` option mirrors `id_token_class` / `user_info_class`. Token delivery follows in phase 2
+
+> [!NOTE]
+> **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` followed by `rails db:migrate` to enable the feature; without the column nothing is advertised and the registration metadata is ignored
+
 - Add entry here
 
 ## v2.0.0 (2026-09-22)
