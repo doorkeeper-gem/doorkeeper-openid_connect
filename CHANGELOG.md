@@ -4,6 +4,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 - [#401] Fix `max_age` reauthentication loop when `auth_time_from_session` returns a String — parse it as a timestamp instead of falling through to `to_i` (same class of bug as [#248]) — and treat a future auth_time as stale (60 s clock-skew leeway)
 - [#407] Prepend `AuthorizationsExtension` and `MetadataExtension` when Zeitwerk loads `Doorkeeper::AuthorizationsController` and `Doorkeeper::MetadataController`, instead of from `to_prepare`. Naming the controllers in `to_prepare` autoloaded them on every boot, together with `Doorkeeper::ApplicationController` and, through its default `ActionController::Base` superclass, every helper in the host application
+  - This gem no longer loads `ActionController::Base` during boot, so an Action Controller load hook that names an application constant such as `ApplicationController` should move to `config.to_prepare`
 - [#408] Drop the `ostruct` runtime dependency (#210, added in #218). `Doorkeeper::OpenidConnect.configuration.claims` is now a Hash keyed by Symbol claim name instead of an `OpenStruct`. The OpenStruct-only forms (`claims.nickname`, `claims.nickname = ...`, String keys in `[]`, `[]=` and `dig`, and `delete_field`) still work but print a deprecation warning and will be removed in the next major version; use `claims[:nickname]`.
 - Add entry here
 
