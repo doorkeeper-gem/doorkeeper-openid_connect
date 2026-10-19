@@ -146,6 +146,17 @@ module Doorkeeper
       # replacing the canonical subject identifier is what you mean).
       option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
 
+      # A class that provides custom behavior for generating Logout Tokens.
+      # Must inherit from `Doorkeeper::OpenidConnect::LogoutToken`, which carries the
+      # Back-Channel Logout 1.0 §2.4 invariants — every emitted claim is REQUIRED and
+      # enforced, the End-User is identified by `sub` alone (matching the
+      # `backchannel_logout_session_supported: false` the discovery document
+      # advertises), and no `nonce` claim is ever emitted, which §2.4 prohibits. A
+      # subclass typically only overrides `select_key`, and then only alongside the
+      # same override on `id_token_class`: §2.4 has both token types signed with the
+      # same key so an RP can validate them against one JWKS.
+      option :logout_token_class, default: "Doorkeeper::OpenidConnect::LogoutToken"
+
       # Doorkeeper OpenID Request model class.
       #
       # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
@@ -162,9 +173,14 @@ module Doorkeeper
         resolve_validated_model(:user_info, user_info_class, UserInfo)
       end
 
+      def logout_token_model
+        resolve_validated_model(:logout_token, logout_token_class, LogoutToken)
+      end
+
       private
 
-      # Resolves an `id_token_class` / `user_info_class` override to its class
+      # Resolves an `id_token_class` / `user_info_class` / `logout_token_class`
+      # override to its class
       # and validates that it inherits from the corresponding default. The
       # ancestry check replaced the earlier method-presence list: presence
       # could be satisfied by any class (ActiveSupport defines `as_json` on
