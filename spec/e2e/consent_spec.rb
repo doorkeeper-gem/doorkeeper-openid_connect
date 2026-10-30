@@ -20,6 +20,25 @@ RSpec.describe "Consent screen" do
     expect(page).to have_css("#exchange_result", text: '"access_token"')
   end
 
+  # The consent form is the one place a nonce can silently go missing: the
+  # browser posts back only what the view carried as hidden fields, so a view
+  # without a nonce field issues an ID token without one, exactly the trap
+  # behind #154. Drive it through a real browser rather than trusting the
+  # rendered markup alone.
+  it "carries the nonce through the consent screen into the ID token" do
+    client = dashboard_client("consent-nonce")
+    nonce = start_authorization(client, nonce: true, force_consent: true)
+
+    expect(page).to have_text("Authorization required")
+    expect(page).to have_css("input[name='nonce'][value='#{nonce}']", visible: :all)
+    click_button "Authorize"
+
+    expect(page).to have_css("#authorize_result", text: '"code"')
+    click_button "Exchange"
+    expect(page).to have_css("#exchange_result", text: '"id_token"')
+    expect(id_token_payload["nonce"]).to eq(nonce)
+  end
+
   it "redirects back with access_denied when the user denies" do
     client = dashboard_client("consent-ng")
     start_authorization(client, force_consent: true)
