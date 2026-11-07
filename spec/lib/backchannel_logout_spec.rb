@@ -72,8 +72,20 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
         expect(jtis.uniq.size).to eq 2
       end
 
+      context "when the RP accepts the Logout Token" do
+        before { allow(Rails.logger).to receive(:warn) }
+
+        it "does not log a warning" do
+          described_class.notify(user)
+
+          expect(Rails.logger).not_to have_received(:warn)
+        end
+      end
+
       context "when the RP rejects the Logout Token" do
         let(:response_code) { "400" }
+
+        before { allow(Rails.logger).to receive(:warn) }
 
         it "reports the failure status without raising" do
           results = described_class.notify(user)
@@ -81,6 +93,27 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
           expect(results.first).not_to be_delivered
           expect(results.first.status).to eq 400
           expect(results.first.error).to be_nil
+        end
+
+        it "logs a warning with the HTTP status" do
+          described_class.notify(user)
+
+          expect(Rails.logger).to have_received(:warn)
+            .with(/Back-channel logout delivery to .* \(client #{application.uid}\) failed: HTTP 400/)
+        end
+      end
+
+      context "when the RP answers with a redirect" do
+        let(:response_code) { "302" }
+
+        before { allow(Rails.logger).to receive(:warn) }
+
+        it "logs a warning with the HTTP status" do
+          results = described_class.notify(user)
+
+          expect(results.first).not_to be_delivered
+          expect(Rails.logger).to have_received(:warn)
+            .with(/\(client #{application.uid}\) failed: HTTP 302/)
         end
       end
     end
