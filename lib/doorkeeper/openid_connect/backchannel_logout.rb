@@ -80,20 +80,28 @@ module Doorkeeper
         token = token_class.new(resource_owner, application).as_jws_token
 
         response = post_logout_token(uri, token)
-        Result.new(application: application, uri: uri.to_s, status: response.code.to_i)
+        build_result(application, uri, response)
       rescue StandardError => e
-        log_delivery_failure(application, e)
+        log_delivery_failure(application, "#{e.class}: #{e.message}")
         Result.new(application: application, uri: application.backchannel_logout_uri, error: e)
       end
+
+      # Wraps the RP's response in a Result, warning about any non-2xx status.
+      def build_result(application, uri, response)
+        result = Result.new(application: application, uri: uri.to_s, status: response.code.to_i)
+        log_delivery_failure(application, "HTTP #{result.status}") unless result.delivered?
+        result
+      end
+      private_class_method :build_result
 
       # §2.8 tells the OP not to treat an RP's errors as fatal, so a failed
       # delivery is only recorded — here for the operator, and in the Result
       # the caller receives.
-      def log_delivery_failure(application, error)
+      def log_delivery_failure(application, reason)
         ::Rails.logger.warn(
           "[DOORKEEPER-OPENID_CONNECT] Back-channel logout delivery to " \
             "#{application.backchannel_logout_uri.inspect} (client #{application.uid}) " \
-            "failed: #{error.class}: #{error.message}",
+            "failed: #{reason}",
         )
       end
       private_class_method :log_delivery_failure
