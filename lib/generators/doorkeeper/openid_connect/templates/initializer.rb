@@ -167,6 +167,9 @@ Doorkeeper::OpenidConnect.configure do
   #
   # from your own session-teardown path (e.g. after Devise signs the user
   # out). Each relevant client receives a signed Logout Token via HTTP POST.
+  # Delivery is sequential and synchronous, so consider calling `notify`
+  # from a background job to avoid blocking the logout request on slow or
+  # unresponsive clients.
 
   # Per-endpoint overrides for the URLs generated in the discovery document
   # (e.g. to advertise a different host or force HTTPS). The block receives the
