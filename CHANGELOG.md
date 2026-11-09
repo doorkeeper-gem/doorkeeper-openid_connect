@@ -2,11 +2,13 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- [#414] Log a warning when a back-channel logout delivery gets a non-2xx response (including redirects, which are not followed), in the same format as request failures
 - [#382] Add OpenID Connect Back-Channel Logout 1.0 support, phase 1 ([#191]): signed Logout Token generation (`Doorkeeper::OpenidConnect::LogoutToken`, `sub`-based, no `sid`), per-client `backchannel_logout_uri` registration (model attribute and Dynamic Client Registration metadata), and discovery advertisement (`backchannel_logout_supported` / `backchannel_logout_session_supported`). Logout Tokens are signed with the same key as ID Tokens, as §2.4 requires, through the `select_key` hook that [#364] introduced — it now lives in `Doorkeeper::OpenidConnect::SigningKeySelection`, included by both token classes, so a single override covers both (`IdToken::SigningKey` still resolves, unchanged). A new `logout_token_class` option mirrors `id_token_class` / `user_info_class`. Token delivery follows in phase 2
 
 > [!NOTE]
 > **Migration required:** existing installations must run `rails generate doorkeeper:openid_connect:add_backchannel_logout_uri` followed by `rails db:migrate` to enable the feature; without the column nothing is advertised and the registration metadata is ignored
 
+- [#383] Add OpenID Connect Back-Channel Logout 1.0 support, phase 2 ([#191]): Logout Token delivery. `Doorkeeper::OpenidConnect::BackchannelLogout.notify(user)` — called from the host application's session-teardown path — POSTs a Logout Token built by the configured `logout_token_class` to the `backchannel_logout_uri` of every client holding a token or grant for the user; delivery is best-effort per client and returns per-client results
 - Add entry here
 
 ## v2.1.0 (2026-10-20)
