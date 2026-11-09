@@ -57,6 +57,9 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
 
       it "when action is not :new" do
+        # Doorkeeper has no show action; ActionController::Base renders its show template, ActionController::API has none.
+        skip "no show template under api_only" if api_only?
+
         get :show, params: {
           response_type: "code",
           current_user: user.id,
@@ -73,7 +76,11 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         # doorkeeper-gem/doorkeeper@6cd5cca2 started propagating the error
         # status to the response.
         let(:error_status) do
-          Gem::Version.new(Doorkeeper::VERSION::STRING) >= Gem::Version.new("5.6.7") ? :bad_request : :ok
+          if api_only? || Gem::Version.new(Doorkeeper::VERSION::STRING) >= Gem::Version.new("5.6.7")
+            :bad_request
+          else
+            :ok
+          end
         end
 
         it "render error when client_id is missing" do
