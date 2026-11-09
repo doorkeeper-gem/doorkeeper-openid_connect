@@ -30,16 +30,6 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
   end
 
-  def expect_authorization_form!
-    expect(response).to be_successful
-    expect(response).to render_template("doorkeeper/authorizations/new")
-  end
-
-  def expect_successful_callback!
-    expect(response).to be_redirect
-    expect(response.location).to match(/^#{Regexp.quote application.redirect_uri}\?code=[-\w]+$/)
-  end
-
   describe "#authenticate_resource_owner!" do
     it "redirects to login form when not logged in" do
       authorize! current_user: nil
@@ -89,15 +79,13 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
         it "render error when client_id is missing" do
           authorize!(client_id: nil)
 
-          expect(response).to have_http_status(error_status)
-          expect(response).to render_template("doorkeeper/authorizations/error")
+          expect_authorization_error!(error_status)
         end
 
         it "render error when response_type is missing" do
           authorize!(response_type: nil)
 
-          expect(response).to have_http_status(error_status)
-          expect(response).to render_template("doorkeeper/authorizations/error")
+          expect_authorization_error!(error_status)
         end
       end
 
@@ -184,7 +172,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           "error_description" => "The authorization server requires end-user authentication",
         }
 
-        expect(response).to redirect_to build_redirect_uri(error_params)
+        expect_client_redirect! build_redirect_uri(error_params)
       end
 
       it "still rejects unknown prompt values on a non-OIDC request" do
@@ -195,7 +183,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
         }
 
-        expect(response).to redirect_to build_redirect_uri(error_params)
+        expect_client_redirect! build_redirect_uri(error_params)
       end
     end
 
@@ -256,7 +244,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it "redirect as the query uri with an invalid_request error" do
             authorize! request_param
 
-            expect(response).to redirect_to build_redirect_uri(error_params)
+            expect_client_redirect! build_redirect_uri(error_params)
           end
 
           it "redirect as the fragment style uri when response_type is implicit flow request" do
@@ -264,7 +252,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize! request_param.merge(response_type: "id_token token")
 
-            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+            expect_client_redirect! build_redirect_uri(error_params, type: "fragment")
           end
 
           it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
@@ -274,7 +262,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
+            expect_form_post!
           end
         end
 
@@ -291,7 +279,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it "returns a login_required error" do
             authorize! request_param.merge(prompt: "none", state: "somestate")
 
-            expect(response).to redirect_to build_redirect_uri(error_params)
+            expect_client_redirect! build_redirect_uri(error_params)
           end
 
           it "redirect as the fragment style uri when response_type is implicit flow request" do
@@ -299,7 +287,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize! request_param.merge(response_type: "id_token token", prompt: "none", state: "somestate")
 
-            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+            expect_client_redirect! build_redirect_uri(error_params, type: "fragment")
           end
 
           it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
@@ -309,7 +297,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
+            expect_form_post!
           end
         end
       end
@@ -335,7 +323,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           it "returns the login_required error when not logged in" do
             authorize! request_param.merge(prompt: "none", state: "somestate")
 
-            expect(response).to redirect_to build_redirect_uri(error_params)
+            expect_client_redirect! build_redirect_uri(error_params)
           end
 
           it "uses the fragment style uris when redirecting an error for implicit flow request" do
@@ -343,7 +331,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize! request_param.merge(response_type: "id_token token", prompt: "none", state: "somestate")
 
-            expect(response).to redirect_to build_redirect_uri(error_params, type: "fragment")
+            expect_client_redirect! build_redirect_uri(error_params, type: "fragment")
           end
 
           it "set @authorize_response variable and render form_post template and when the form_post response_mode is specified" do
@@ -353,7 +341,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
             authorize_response = controller.instance_variable_get :@authorize_response
             expect(authorize_response.body.to_json).to eq(error_params.to_json)
-            expect(response).to render_template(:form_post)
+            expect_form_post!
           end
         end
 
@@ -365,7 +353,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
             "error_description" => "The authorization server requires end-user consent",
           }
 
-          expect(response).to redirect_to build_redirect_uri(error_params)
+          expect_client_redirect! build_redirect_uri(error_params)
         end
       end
 
@@ -429,7 +417,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
             "error_description" => "The authorization server requires end-user consent",
             "state" => "somestate",
           }
-          expect(response).to redirect_to build_redirect_uri(error_params)
+          expect_client_redirect! build_redirect_uri(error_params)
         end
       end
     end
@@ -500,7 +488,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       it "ignore it w/o returinig invalid_request error" do
         authorize! prompt: "create"
 
-        expect(response).to render_template("doorkeeper/authorizations/new")
+        expect_authorization_form!
       end
     end
 
@@ -540,7 +528,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.",
         }
 
-        expect(response).to redirect_to build_redirect_uri(error_params)
+        expect_client_redirect! build_redirect_uri(error_params)
       end
 
       it "does not redirect to an invalid redirect_uri" do
@@ -967,7 +955,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
 
         authorize! max_age: 10, prompt: "none", state: "somestate"
 
-        expect(response).to redirect_to build_redirect_uri({
+        expect_client_redirect! build_redirect_uri({
           "error" => "login_required",
           "error_description" => "The authorization server requires end-user authentication",
           "state" => "somestate",
@@ -1142,9 +1130,9 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
     end
 
     def redirected_fragment
-      expect(response).to be_redirect
-      expect(response.location).to start_with "#{application.redirect_uri}#"
-      Rack::Utils.parse_query(URI.parse(response.location).fragment)
+      location = client_redirect_location
+      expect(location).to start_with "#{application.redirect_uri}#"
+      Rack::Utils.parse_query(URI.parse(location).fragment)
     end
 
     describe "#create" do

@@ -77,7 +77,7 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       expect { authorize!(prompt: "none", state: "somestate") }.not_to raise_error
 
       expect(response).not_to redirect_to("/login")
-      expect(response).to redirect_to(
+      expect_client_redirect!(
         build_redirect_uri(
           "error" => "login_required",
           "error_description" => "The authorization server requires end-user authentication",
