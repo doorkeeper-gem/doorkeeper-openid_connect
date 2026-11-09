@@ -50,6 +50,8 @@ describe "RFC 8414 authorization server metadata", type: :request do
       id_token_signing_alg_values_supported
       claim_types_supported
       claims_supported
+      backchannel_logout_supported
+      backchannel_logout_session_supported
     ].each do |field|
       rfc8414_value = rfc8414.fetch(field, absent)
       oidc_value = oidc.fetch(field, absent)
