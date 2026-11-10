@@ -30,6 +30,7 @@ Dir.chdir("spec/dummy") do
   ActiveRecord::Migration.maintain_test_schema!
 end
 
+require_relative "support/authorization_response_helpers"
 require_relative "support/doorkeeper_configuration"
 
 require "factory_bot"
@@ -50,6 +51,7 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.include FactoryBot::Syntax::Methods
+  config.include AuthorizationResponseHelpers, type: :controller
 
   # Reinitialize configuration after each example
   config.after do
