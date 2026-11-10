@@ -1,4 +1,5 @@
 /.bundle
+/gemfiles/.bundle
 /vendor/bundle
 /Gemfile.lock
 /spec/dummy/db/*.sqlite3*
