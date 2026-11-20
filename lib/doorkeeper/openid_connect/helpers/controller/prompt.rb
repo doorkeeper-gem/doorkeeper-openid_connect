@@ -34,13 +34,16 @@ module Doorkeeper
           def handle_oidc_prompt_none!(prompt_values, owner)
             raise Errors::InvalidRequest if (prompt_values - ["none"]).any?
             raise Errors::LoginRequired unless owner
-            raise Errors::ConsentRequired if oidc_consent_required?(owner)
 
-            # Issue #63: if an active token already covers the requested scopes
-            # (a non-strict superset, including the exact-match case), force
-            # auto-issue rather than rendering the consent form — `prompt=none`
-            # forbids any interactive UI (OIDC Core §3.1.2.1).
-            @_oidc_prompt_none_skip_authorization = true if oidc_matching_subset_token?(owner)
+            # Issue #63: from here on, an earlier token covering more than the
+            # requested scopes counts as a matching token as well (see
+            # AuthorizationsExtension#matching_token?), so that a client
+            # re-authorizing with a narrower scope is not held up by a consent
+            # form `prompt=none` forbids. This does not decide that consent
+            # can be skipped; Doorkeeper does, with its own conditions.
+            @_oidc_prompt_none = true
+
+            raise Errors::ConsentRequired if oidc_consent_required?(owner)
           end
 
           def handle_oidc_prompt_login!(owner)
