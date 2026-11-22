@@ -34,8 +34,6 @@ Layout/LineLength:
     - app/controllers/doorkeeper/openid_connect/dynamic_client_registration_controller.rb
     - lib/doorkeeper/openid_connect/config.rb
     - lib/doorkeeper/openid_connect/errors.rb
-    - lib/doorkeeper/openid_connect/helpers/controller.rb
-    - lib/doorkeeper/openid_connect/orm/active_record.rb
     - lib/doorkeeper/openid_connect/orm/active_record/mixins/openid_request.rb
     - lib/generators/doorkeeper/openid_connect/templates/initializer.rb
   Max: 100
@@ -114,9 +112,6 @@ Style/HashTransformKeys:
 Style/HashTransformValues:
   Enabled: true
 
-Rails/HttpPositionalArguments:
-  Exclude:
-    - spec/grape/*
 Rails/HttpStatus:
   Enabled: false
 Rails/RakeEnvironment:
