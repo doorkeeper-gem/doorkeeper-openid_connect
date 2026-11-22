@@ -67,6 +67,15 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
       end
 
       it "when action is not :new" do
+        # Doorkeeper 6.0 only draws the native authorization code route
+        # (`#show`) while `allow_oob_redirect_uris` is set. Other examples
+        # install a Doorkeeper configuration without it and draw the routes
+        # under that one — explicitly, or as the first to touch the lazily
+        # loaded route set — and the config-level reset in rails_helper
+        # restores the configuration, not the routes. Redraw them under the
+        # dummy configuration, which is back in place by now.
+        Rails.application.reload_routes!
+
         get :show, params: {
           response_type: "code",
           current_user: user.id,
