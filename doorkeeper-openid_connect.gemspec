@@ -40,7 +40,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "jwt", ">= 2.5"
 
   spec.add_development_dependency "bigdecimal"
-  spec.add_development_dependency "conventional-changelog", "~> 1.2"
   spec.add_development_dependency "drb"
   spec.add_development_dependency "factory_bot"
   spec.add_development_dependency "mutex_m"
