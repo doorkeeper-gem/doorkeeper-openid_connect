@@ -146,5 +146,133 @@ describe "Authorization requests with prompt=none", type: :request do
         expect_consent_required!
       end
     end
+
+    # Issue #63 on the implicit flow: the wider-scope match has to reach
+    # Doorkeeper's auto-issue path there too, and issue the tokens.
+    it "answers with tokens on the implicit flow when an earlier token covers more than the requested scopes" do
+      expect { authorize(response_type: "id_token token", scope: "openid", nonce: "some-nonce") }
+        .to change(Doorkeeper::AccessToken, :count).by(1)
+
+      expect(URI.parse(response.location).fragment).to be_present
+      expect(authorization_response)
+        .to include("access_token" => be_present, "id_token" => be_present, "state" => "some-state")
+      expect(authorization_response).not_to have_key("error")
+    end
+
+    # Doorkeeper 6.0 does not accept an earlier token in place of the consent
+    # of a client known only from its metadata document, confidential or not:
+    # anyone can publish one. Such a client turns confidential when its
+    # document declares private_key_jwt and this server offers it, so the
+    # client type alone does not stop it.
+    #
+    # Only the fetch of the document is stubbed: Doorkeeper resolves the
+    # client_id and writes the application row itself. The columns come from
+    # Doorkeeper's client_id_metadata_documents generator and from the host
+    # (jwks_uri); they are added inside the example's transaction, so the
+    # rollback takes them away again.
+    context "when the client is known only from its metadata document",
+            if: defined?(Doorkeeper::OAuth::ClientIdMetadataDocument) do
+      let(:client_id) { "https://client.example.com/oauth/metadata.json" }
+      let(:redirect_uri) { "https://client.example.com/oauth/callback" }
+
+      before do
+        connection = ActiveRecord::Base.connection
+        connection.add_column :oauth_applications, Doorkeeper::OAuth::ClientIdMetadataDocument::MARKER, :datetime
+        connection.add_column :oauth_applications, :jwks_uri, :string
+        Doorkeeper::Application.reset_column_information
+
+        allow(Doorkeeper.configuration).to receive_messages(
+          use_client_id_metadata_documents?: true,
+          client_authentication_methods: %i[client_secret_basic none private_key_jwt].map do |name|
+            Doorkeeper::ClientAuthentication.get(name)
+          end,
+        )
+        fetcher = instance_double(Doorkeeper::HttpFetcher)
+        allow(Doorkeeper::HttpFetcher).to receive(:new).and_return(fetcher)
+        allow(fetcher).to receive(:fetch).with(client_id).and_return({
+          client_id: client_id,
+          client_name: "Example",
+          redirect_uris: [redirect_uri],
+          scope: "openid profile email",
+          token_endpoint_auth_methods_supported: %w[none private_key_jwt],
+          jwks_uri: "https://client.example.com/oauth/jwks.json",
+        }.to_json)
+
+        create :access_token, application: Doorkeeper::OAuth::ClientIdMetadataDocument.application(client_id),
+                              resource_owner_id: user.id, scopes: granted_scopes
+      end
+
+      after do
+        Doorkeeper::OAuth::ClientIdMetadataDocument.cache.clear
+        Doorkeeper::Application.reset_column_information
+      end
+
+      it "is a confidential client known from its document" do
+        application = Doorkeeper::Application.by_uid(client_id)
+
+        expect(application).to be_confidential
+        expect(Doorkeeper::OAuth::ClientIdMetadataDocument).to be_materialized(application)
+      end
+
+      it "requires consent when an earlier token has exactly the requested scopes" do
+        expect { authorize(client_id: client_id) }.not_to change(Doorkeeper::AccessGrant, :count)
+
+        expect_consent_required!
+      end
+
+      it "requires consent when an earlier token covers more than the requested scopes" do
+        expect { authorize(client_id: client_id, scope: "openid") }.not_to change(Doorkeeper::AccessGrant, :count)
+
+        expect_consent_required!
+      end
+    end
+
+    # RFC 8707 (Doorkeeper >= 6.0): an earlier token issued for another
+    # `resource` does not stand in for consent, whatever its scopes. The
+    # `resource` columns come from Doorkeeper's resource_indicators generator
+    # and are added inside the example's transaction, as above.
+    context "when the earlier token was issued for a resource",
+            if: Doorkeeper.config.access_token_model.respond_to?(:resource_indicators_match?) do
+      let(:resource) { "https://api.example.com" }
+
+      before do
+        ActiveRecord::Base.connection.add_column :oauth_access_tokens, :resource, :text
+        ActiveRecord::Base.connection.add_column :oauth_access_grants, :resource, :text
+        Doorkeeper::AccessToken.reset_column_information
+        Doorkeeper::AccessGrant.reset_column_information
+        Doorkeeper::AccessToken.update_all(resource: resource)
+        allow(Doorkeeper.configuration).to receive(:resource_indicator_validator).and_return(->(*) { true })
+      end
+
+      after do
+        Doorkeeper::AccessToken.reset_column_information
+        Doorkeeper::AccessGrant.reset_column_information
+      end
+
+      it "answers with a code when the request names the same resource and fewer scopes" do
+        expect { authorize(scope: "openid", resource: resource) }.to change(Doorkeeper::AccessGrant, :count).by(1)
+
+        expect_authorization_code!
+      end
+
+      it "requires consent when the request names another resource" do
+        expect { authorize(resource: "https://other.example.com") }.not_to change(Doorkeeper::AccessGrant, :count)
+
+        expect_consent_required!
+      end
+
+      it "requires consent when the request names another resource and fewer scopes" do
+        expect { authorize(scope: "openid", resource: "https://other.example.com") }
+          .not_to change(Doorkeeper::AccessGrant, :count)
+
+        expect_consent_required!
+      end
+
+      it "requires consent when the request names no resource and fewer scopes" do
+        expect { authorize(scope: "openid") }.not_to change(Doorkeeper::AccessGrant, :count)
+
+        expect_consent_required!
+      end
+    end
   end
 end
