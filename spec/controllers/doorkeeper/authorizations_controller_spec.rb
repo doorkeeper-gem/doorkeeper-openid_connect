@@ -432,6 +432,61 @@ describe Doorkeeper::AuthorizationsController, type: :controller do
           expect(response).to redirect_to build_redirect_uri(error_params)
         end
       end
+
+      # Whether an earlier token can stand in for the resource owner's consent
+      # is Doorkeeper's decision (AuthorizationsController#can_authorize_response?,
+      # since 5.7), and `prompt=none` must follow it whatever the reason for a
+      # refusal — the client type, custom token attributes, or a condition a
+      # later Doorkeeper adds. See spec/requests/prompt_none_consent_spec.rb for
+      # the end-to-end cases.
+      context "when Doorkeeper does not accept an earlier token in place of consent",
+              if: described_class.private_method_defined?(:can_authorize_response?) do
+        let(:error_params) do
+          {
+            "error" => "consent_required",
+            "error_description" => "The authorization server requires end-user consent",
+          }
+        end
+
+        before do
+          create :access_token, token_attributes
+          allow(controller).to receive(:can_authorize_response?).and_return(false)
+        end
+
+        it "returns a consent_required error for the scopes of the earlier token" do
+          authorize! prompt: "none"
+
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+
+        it "returns a consent_required error for a narrower scope" do
+          authorize! prompt: "none", scope: "openid"
+
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+      end
+
+      # RFC 8707 (Doorkeeper >= 6.0): Doorkeeper leaves out a token issued for
+      # another audience when it looks for a matching one. The wider-scope
+      # match of issue #63 is this gem's own, so it has to leave it out too.
+      context "with a wider-scoped token Doorkeeper holds to another audience",
+              if: Doorkeeper.config.access_token_model.respond_to?(:resource_indicators_match?) do
+        before do
+          create :access_token, token_attributes
+          allow(Doorkeeper.config.access_token_model)
+            .to receive(:resource_indicators_match?).and_return(false)
+        end
+
+        it "returns a consent_required error" do
+          authorize! prompt: "none", scope: "openid"
+
+          error_params = {
+            "error" => "consent_required",
+            "error_description" => "The authorization server requires end-user consent",
+          }
+          expect(response).to redirect_to build_redirect_uri(error_params)
+        end
+      end
     end
 
     context "with a prompt=login parameter" do
