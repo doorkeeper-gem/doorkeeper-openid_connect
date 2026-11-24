@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 Doorkeeper.configure do
+  # Lets CI run the suite in API mode too.
+  api_only if ENV["DOORKEEPER_API_ONLY"].present?
   allow_oob_redirect_uris true if respond_to?(:allow_oob_redirect_uris)
   optional_scopes :openid
 

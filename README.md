@@ -54,7 +54,7 @@ Take a look at the [DiscoveryController](https://github.com/doorkeeper-gem/doork
 | Doorkeeper | 5.5 or newer, below 7.0 |
 | ORM | Active Record only |
 
-The [CI matrix](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/.github/workflows/ci.yml) is the authoritative statement of what is tested: each Rails series above against Ruby 3.2 through 4.0 and — except for Rails 7.0 — against `ruby-head`, plus one build per supported Doorkeeper series and one against Doorkeeper's `main` branch.
+The [CI matrix](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/blob/master/.github/workflows/ci.yml) is the authoritative statement of what is tested: each Rails series above against Ruby 3.2 through 4.0 and — except for Rails 7.0 — against `ruby-head`, plus one build per supported Doorkeeper series and one against Doorkeeper's `main` branch. Two further builds run the suite with Doorkeeper in `api_only` mode, on the newest Rails and the oldest supported Doorkeeper.
 
 ## Installation
 
@@ -101,6 +101,13 @@ To run all specs:
 
 ```sh
 bundle exec rake spec
+```
+
+To run them with Doorkeeper in `api_only` mode, where its controllers answer
+with JSON instead of templates and redirects:
+
+```sh
+DOORKEEPER_API_ONLY=1 bundle exec rake spec
 ```
 
 To generate and run migrations in the test application:
