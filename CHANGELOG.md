@@ -2,9 +2,12 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 
 ## Unreleased
 
+- Add entry here
+
+## v2.1.1 (2026-11-24))
+
 - **Security:** Leave it to Doorkeeper whether an earlier access token can stand in for the resource owner's consent on a `prompt=none` request. Since v1.10.0 such a request was answered with an authorization code (or, on the implicit flow, with tokens) for any client with a matching earlier token, public clients included — which Doorkeeper itself has refused since 5.6.6 (CVE-2023-34246). It now fails with `consent_required` for a public client, and wherever else Doorkeeper asks for consent again: when `custom_access_token_attributes` is configured (Doorkeeper >= 5.7), and on Doorkeeper 6.0 for a client known only from its metadata document or an earlier token issued for another `resource` (RFC 8707). Confidential clients are otherwise unaffected
   - A public client that relies on `prompt=none` for silent re-authentication now receives `consent_required`. To keep such a client silent, exempt it from consent with Doorkeeper's `skip_authorization`
-- Add entry here
 
 ## v2.1.0 (2026-10-20)
 
