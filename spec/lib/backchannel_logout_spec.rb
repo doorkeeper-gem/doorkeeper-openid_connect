@@ -10,15 +10,16 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
 
   # Captures every request the module would send instead of performing real
   # HTTP: `Net::HTTP.new` returns a double whose `start` yields a session
-  # recording each `request` call into `sent_requests`.
+  # recording each `request` call into `sent_requests`. Like Net::HTTP, the
+  # session hands the response to the block it is given.
   let(:sent_requests) { [] }
   let(:response_code) { "200" }
 
   before do
     http_session = instance_double(Net::HTTP)
-    allow(http_session).to receive(:request) do |request|
+    allow(http_session).to receive(:request) do |request, &block|
       sent_requests << request
-      instance_double(Net::HTTPResponse, code: response_code)
+      block.call(instance_double(Net::HTTPResponse, code: response_code))
     end
 
     http = instance_double(Net::HTTP, "use_ssl=": nil, "open_timeout=": nil, "read_timeout=": nil)
@@ -53,6 +54,7 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
         expect(request).to be_a(Net::HTTP::Post)
         expect(request.path).to eq "/backchannel-logout"
         expect(request["Content-Type"]).to eq "application/x-www-form-urlencoded"
+        expect(request["Connection"]).to eq "close"
 
         claims, headers = logout_token_from(request)
         expect(headers["typ"]).to eq "logout+jwt"
@@ -256,6 +258,75 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
       expect(result).to be_delivered
       expect(result.uri).to eq "https://[2001:db8::1]:8443/logout"
       expect(Net::HTTP).to have_received(:new).with("2001:db8::1", 8443)
+    end
+
+    # The client picks its logout endpoint, so its answer cannot be trusted to
+    # be prompt or small. These examples talk to a loopback server rather
+    # than a double: what they pin down is how Net::HTTP is driven.
+    context "with a client answering over a real connection" do
+      let(:server) { TCPServer.new("127.0.0.1", 0) }
+      let(:responders) { [] }
+
+      before do
+        allow(Net::HTTP).to receive(:new).and_call_original
+        allow(Rails.logger).to receive(:warn)
+
+        # Assigned, not saved: the dummy application requires https.
+        application.backchannel_logout_uri = "http://127.0.0.1:#{server.addr[1]}/logout"
+      end
+
+      after do
+        responders.each(&:kill)
+        server.close
+      end
+
+      # Accepts one connection, reads the request and lets the block answer.
+      def answer_with
+        responders << Thread.new do
+          client = server.accept
+          head = client.gets("\r\n\r\n")
+          client.read(head[/^Content-Length: (\d+)/i, 1].to_i)
+          yield client
+        rescue IOError, SystemCallError
+          nil # the OP hung up, as these examples expect
+        ensure
+          client&.close
+        end
+      end
+
+      it "takes the status without waiting for the response body" do
+        # A body is announced but never sent: reading it would run into
+        # READ_TIMEOUT and report a failure.
+        answer_with do |client|
+          client.write("HTTP/1.1 200 OK\r\nContent-Length: 1000000\r\n\r\n")
+          sleep
+        end
+
+        result = described_class.deliver(user, application)
+
+        expect(result).to be_delivered
+        expect(result.status).to eq 200
+      end
+
+      it "gives up after DELIVERY_TIMEOUT although the client keeps sending" do
+        stub_const("#{described_class}::DELIVERY_TIMEOUT", 0.3)
+
+        # One byte every 50 ms for some three seconds: no single read comes
+        # anywhere near READ_TIMEOUT, so only the overall deadline ends it.
+        answer_with do |client|
+          "HTTP/1.1 200 OK\r\nX-Padding: #{"x" * 40}\r\n\r\n".each_char do |char|
+            client.write(char)
+            sleep 0.05
+          end
+        end
+
+        result = described_class.deliver(user, application)
+
+        expect(result).not_to be_delivered
+        expect(result.status).to be_nil
+        expect(result.error).to be_a(Timeout::Error)
+        expect(result.error.message).to eq "no response status within 0.3 seconds"
+      end
     end
   end
 end

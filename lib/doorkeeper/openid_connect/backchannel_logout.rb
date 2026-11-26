@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "net/http"
+require "timeout"
 require "uri"
 
 module Doorkeeper
@@ -33,6 +34,11 @@ module Doorkeeper
     # warning. Redirect responses are not followed (Net::HTTP does not
     # follow them), which keeps the POST from being replayed at locations
     # the client never registered.
+    #
+    # The logout endpoint is whatever the client registered, so its answer
+    # is not trusted to be prompt or small: a delivery is given up after
+    # DELIVERY_TIMEOUT seconds as a whole, and only the status of the answer
+    # is read — its body never is.
     module BackchannelLogout
       # The outcome of one delivery attempt. `status` is the HTTP status
       # (§2.8: 200 marks success, 400 a rejected Logout Token) unless the
@@ -45,6 +51,12 @@ module Doorkeeper
 
       OPEN_TIMEOUT = 5
       READ_TIMEOUT = 5
+
+      # Seconds one delivery may take, from connecting to receiving the
+      # status. OPEN_TIMEOUT and READ_TIMEOUT each limit a single wait — an
+      # answer arriving a byte at a time never trips READ_TIMEOUT — so this
+      # bounds the exchange as a whole.
+      DELIVERY_TIMEOUT = 10
 
       module_function
 
@@ -79,16 +91,17 @@ module Doorkeeper
         token_class = ::Doorkeeper::OpenidConnect.configuration.logout_token_model
         token = token_class.new(resource_owner, application).as_jws_token
 
-        response = post_logout_token(uri, token)
-        build_result(application, uri, response)
+        status = post_logout_token(uri, token)
+        build_result(application, uri, status)
       rescue StandardError => e
         log_delivery_failure(application, "#{e.class}: #{e.message}")
         Result.new(application: application, uri: application.backchannel_logout_uri, error: e)
       end
 
-      # Wraps the RP's response in a Result, warning about any non-2xx status.
-      def build_result(application, uri, response)
-        result = Result.new(application: application, uri: uri.to_s, status: response.code.to_i)
+      # Wraps the status of the RP's response in a Result, warning about any
+      # non-2xx one.
+      def build_result(application, uri, status)
+        result = Result.new(application: application, uri: uri.to_s, status: status)
         log_delivery_failure(application, "HTTP #{result.status}") unless result.delivered?
         result
       end
@@ -142,7 +155,28 @@ module Doorkeeper
       end
       private_class_method :owner_scope
 
+      # POSTs the Logout Token and returns the HTTP status of the answer.
+      #
+      # Only the status is of interest (§2.8), so the body is not read:
+      # `Net::HTTP#request` reads it once its block returns, and `break`
+      # leaves the block before that. `start` then closes the connection on
+      # whatever the client is still sending.
       def post_logout_token(uri, token)
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data("logout_token" => token)
+        # The connection serves this one request.
+        request["Connection"] = "close"
+
+        expired = "no response status within #{DELIVERY_TIMEOUT} seconds"
+        Timeout.timeout(DELIVERY_TIMEOUT, nil, expired) do
+          connection_to(uri).start do |session|
+            session.request(request) { |response| break response.code.to_i }
+          end
+        end
+      end
+      private_class_method :post_logout_token
+
+      def connection_to(uri)
         # `hostname`, not `host`: for an IPv6 literal `host` keeps the
         # brackets a URI needs (`[2001:db8::1]`), and Net::HTTP cannot
         # connect to that.
@@ -150,13 +184,9 @@ module Doorkeeper
         http.use_ssl = uri.scheme == "https"
         http.open_timeout = OPEN_TIMEOUT
         http.read_timeout = READ_TIMEOUT
-
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data("logout_token" => token)
-
-        http.start { |session| session.request(request) }
+        http
       end
-      private_class_method :post_logout_token
+      private_class_method :connection_to
     end
   end
 end
