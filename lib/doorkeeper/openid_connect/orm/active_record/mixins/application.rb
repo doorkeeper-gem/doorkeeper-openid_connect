@@ -14,13 +14,21 @@ module Doorkeeper
               "and `rails db:migrate`"
 
             # The client's Back-Channel Logout URI (Back-Channel Logout 1.0
-            # §2.2), validated with the same `Doorkeeper::RedirectUriValidator`
-            # rules as `redirect_uri` — which enforces exactly what §2.2
-            # requires (absolute URI, no fragment, forbidden schemes) and
-            # keeps the https requirement in lockstep with
-            # `force_ssl_in_redirect_uri`. Registration is optional, so a
-            # blank value is allowed (the client then receives no Logout
-            # Tokens).
+            # §2.2): the one endpoint the OP POSTs Logout Tokens to.
+            # Registration is optional, so a blank value is allowed (the
+            # client then receives no Logout Tokens). Anything else is
+            # validated in two steps:
+            #
+            # 1. The whole value has to parse as a single absolute http(s)
+            #    URI. `Doorkeeper::RedirectUriValidator` cannot ensure that on
+            #    its own: it is written for `redirect_uri`, so it splits the
+            #    value on whitespace and checks each entry, and it accepts
+            #    custom schemes (`myapp://logout`) and the out-of-band URN —
+            #    none of which can receive an HTTP POST.
+            # 2. `Doorkeeper::RedirectUriValidator` then applies the rules
+            #    the server configures for `redirect_uri`: no fragment (which
+            #    §2.2 forbids too), `forbid_redirect_uri`, and the https
+            #    requirement of `force_ssl_in_redirect_uri`.
             #
             # As with the `post_logout_redirect_uris` handling below, all
             # paths degrade gracefully when the column has not been added yet
@@ -38,16 +46,7 @@ module Doorkeeper
                 "and `rails db:migrate`"
 
               included do
-                validate do
-                  next unless has_attribute?(:backchannel_logout_uri)
-
-                  raw_value = read_attribute(:backchannel_logout_uri)
-                  next if raw_value.blank?
-
-                  Doorkeeper::RedirectUriValidator
-                    .new(attributes: [:backchannel_logout_uri])
-                    .validate_each(self, :backchannel_logout_uri, raw_value)
-                end
+                validate :validate_backchannel_logout_uri
 
                 def backchannel_logout_uri=(uri)
                   unless has_attribute?(:backchannel_logout_uri)
@@ -66,6 +65,34 @@ module Doorkeeper
 
                   super.presence
                 end
+              end
+
+              private
+
+              def validate_backchannel_logout_uri
+                return unless has_attribute?(:backchannel_logout_uri)
+
+                raw_value = read_attribute(:backchannel_logout_uri)
+                return if raw_value.blank?
+
+                if backchannel_logout_http_uri(raw_value).nil?
+                  errors.add(:backchannel_logout_uri, :not_http_uri)
+                  return
+                end
+
+                Doorkeeper::RedirectUriValidator
+                  .new(attributes: [:backchannel_logout_uri])
+                  .validate_each(self, :backchannel_logout_uri, raw_value)
+              end
+
+              # The value parsed as one absolute http(s) URI naming a host, or
+              # nil for anything else: several URIs, surrounding whitespace,
+              # another scheme, a relative reference.
+              def backchannel_logout_http_uri(value)
+                uri = ::URI.parse(value)
+                uri if uri.is_a?(::URI::HTTP) && uri.host.present?
+              rescue ::URI::InvalidURIError
+                nil
               end
             end
 

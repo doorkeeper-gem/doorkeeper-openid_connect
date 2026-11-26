@@ -239,6 +239,33 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    # Values Doorkeeper accepts as `redirect_uris` entries but that do not
+    # name one endpoint able to receive the back-channel HTTP POST.
+    {
+      "several URIs" => "https://test.host/backchannel_logout https://other.host/backchannel_logout",
+      "a custom scheme" => "myapp://backchannel_logout",
+    }.each do |description, value|
+      context "when backchannel_logout_uri is #{description}" do
+        it "rejects the request with invalid_client_metadata and does not create a client" do
+          expect do
+            post :register, params: {
+              client_name: "dummy_client",
+              redirect_uris: redirect_uris,
+              backchannel_logout_uri: value,
+              scope: "public",
+            }
+          end.not_to change(Doorkeeper::Application, :count)
+
+          expect(response.status).to eq 400
+
+          body = JSON.parse(response.body)
+          expect(body["error"]).to eq("invalid_client_metadata")
+          expect(body["error_description"])
+            .to eq("Back-Channel Logout URI must be a single absolute HTTP or HTTPS URI.")
+        end
+      end
+    end
+
     context "when backchannel_logout_session_required is true" do
       it "rejects the registration — this server issues sub-only Logout Tokens" do
         expect do

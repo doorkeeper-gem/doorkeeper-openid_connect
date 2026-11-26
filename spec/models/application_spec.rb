@@ -164,8 +164,9 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
   # rubocop:enable RSpec/SubjectStub
 
   describe "backchannel_logout_uri validation" do
-    # The attribute is validated by delegating to Doorkeeper's own
-    # RedirectUriValidator, so the rules match `redirect_uri` exactly.
+    # The value has to be a single absolute http(s) URI; beyond that the
+    # attribute is validated by delegating to Doorkeeper's own
+    # RedirectUriValidator, so the configurable rules match `redirect_uri`.
     it "is valid when blank (registration is optional)" do
       subject.backchannel_logout_uri = nil
       expect(subject).to be_valid
@@ -196,6 +197,26 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
       subject.backchannel_logout_uri = "/relative/path"
       expect(subject).not_to be_valid
       expect(subject.errors[:backchannel_logout_uri]).to be_present
+    end
+
+    # Each of these passes Doorkeeper's RedirectUriValidator — it validates a
+    # whitespace-separated list and allows custom schemes and (in the dummy
+    # application) the out-of-band URN — yet none is an endpoint the OP can
+    # POST a Logout Token to.
+    {
+      "several whitespace-separated URIs" => "https://rp.example/logout https://other.example/logout",
+      "a URI with surrounding whitespace" => " https://rp.example/logout\n",
+      "a custom scheme" => "myapp://logout",
+      "the out-of-band URN" => "urn:ietf:wg:oauth:2.0:oob",
+      "an http(s) URI without a host" => "https:///logout",
+    }.each do |description, value|
+      it "rejects #{description}" do
+        subject.backchannel_logout_uri = value
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri])
+          .to eq ["must be a single absolute HTTP or HTTPS URI."]
+      end
     end
 
     context "when force_ssl_in_redirect_uri is enabled" do
