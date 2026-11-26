@@ -247,5 +247,15 @@ describe Doorkeeper::OpenidConnect::BackchannelLogout do
       request = sent_requests.sole
       expect(request.path).to eq "/logout?tenant=42"
     end
+
+    it "connects to an IPv6 literal without the brackets of its URI form" do
+      application.update!(backchannel_logout_uri: "https://[2001:db8::1]:8443/logout")
+
+      result = described_class.deliver(user, application)
+
+      expect(result).to be_delivered
+      expect(result.uri).to eq "https://[2001:db8::1]:8443/logout"
+      expect(Net::HTTP).to have_received(:new).with("2001:db8::1", 8443)
+    end
   end
 end

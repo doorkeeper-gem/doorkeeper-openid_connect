@@ -143,7 +143,10 @@ module Doorkeeper
       private_class_method :owner_scope
 
       def post_logout_token(uri, token)
-        http = Net::HTTP.new(uri.host, uri.port)
+        # `hostname`, not `host`: for an IPv6 literal `host` keeps the
+        # brackets a URI needs (`[2001:db8::1]`), and Net::HTTP cannot
+        # connect to that.
+        http = Net::HTTP.new(uri.hostname, uri.port)
         http.use_ssl = uri.scheme == "https"
         http.open_timeout = OPEN_TIMEOUT
         http.read_timeout = READ_TIMEOUT
