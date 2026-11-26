@@ -24,6 +24,7 @@ module Doorkeeper
     autoload :Errors, "doorkeeper/openid_connect/errors"
     autoload :GrantTypesSupportedMixin, "doorkeeper/openid_connect/grant_types_supported_mixin"
     autoload :IdToken, "doorkeeper/openid_connect/id_token"
+    autoload :JwkAlgorithm, "doorkeeper/openid_connect/jwk_algorithm"
     autoload :TokenEndpointAuthMethodsSupportedMixin,
              "doorkeeper/openid_connect/token_endpoint_auth_methods_supported_mixin"
     autoload :UserInfo, "doorkeeper/openid_connect/user_info"
@@ -169,6 +170,13 @@ module Doorkeeper
     # response, with `use` and `alg` already merged. The discovery
     # controller renders this verbatim inside `keys: [...]`.
     #
+    # `alg` names the algorithm intended for use with the key (RFC 7517
+    # §4.4), so each key gets its own rather than the one configured
+    # `signing_algorithm`: `signing_key` can hold keys of several types — a
+    # retired RSA key next to the EC key that replaced it — and a verifier
+    # that honors `alg` would not use a key labeled with another key's
+    # algorithm. See `JwkAlgorithm` for which key gets which.
+    #
     # Symmetric (`kty: "oct"`) keys are dropped: a JWKS is meant to publish
     # verification keys, but an HMAC JWK *is* the shared secret and cannot
     # serve as a public verification key, so it does not belong in a public
@@ -177,7 +185,7 @@ module Doorkeeper
     def self.signing_keys_normalized
       alg = signing_algorithm
       exported = signing_keys.map(&:export).reject { |jwk| jwk[:kty] == "oct" }
-      exported.map { |jwk| jwk.merge(use: "sig", alg: alg) }
+      exported.map { |jwk| jwk.merge(use: "sig", alg: JwkAlgorithm.resolve(jwk, alg)).compact }
     end
 
     def self.unwrap_callable(value)
