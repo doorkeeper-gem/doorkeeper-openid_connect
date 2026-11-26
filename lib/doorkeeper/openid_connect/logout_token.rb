@@ -61,15 +61,21 @@ module Doorkeeper
         }
       end
 
+      # The claims are built exactly once and that very hash is both validated
+      # and returned: `subject` and a callable expiration run host-application
+      # code, so a second evaluation could hand the signer values that differ
+      # from the ones just checked.
       def as_json(*_)
-        claims.each do |key, value|
+        payload = claims
+
+        payload.each do |key, value|
           # Every claim this token emits is REQUIRED (see REQUIRED_CLAIMS), so
           # a blank value must surface as a misconfiguration instead of being
           # dropped and producing a Logout Token conforming RPs reject.
           raise Errors::MissingRequiredClaim, key if value.nil? || value == ""
         end
 
-        claims
+        payload
       end
 
       def as_jws_token

@@ -86,6 +86,17 @@ describe Doorkeeper::OpenidConnect::LogoutToken do
       expect(subject.as_json).to eq subject.claims
     end
 
+    it "returns the very claims it validated, evaluating the subject block once" do
+      # A block that answers differently on a second call: were the claims
+      # built again after validation, the returned `sub` would be blank.
+      answers = [user.id, nil]
+      allow(Doorkeeper::OpenidConnect.configuration)
+        .to receive(:subject).and_return(->(*) { answers.shift })
+
+      expect(subject.as_json[:sub]).to eq user.id.to_s
+      expect(answers).to eq [nil]
+    end
+
     described_class::REQUIRED_CLAIMS.each do |claim|
       it "raises MissingRequiredClaim when the REQUIRED #{claim} claim is blank" do
         allow(subject).to receive(:claims).and_return(subject.claims.merge(claim => nil))
