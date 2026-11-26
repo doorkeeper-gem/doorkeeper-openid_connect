@@ -130,6 +130,24 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       expect(data["claims_supported"]).to eq %w[iss sub aud exp iat]
     end
 
+    context "when a retired key of another type is still published" do
+      before do
+        keys = [OpenSSL::PKey::EC.generate("prime256v1").to_pem, OpenSSL::PKey::RSA.generate(2048).to_pem]
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          signing_algorithm :es256
+          signing_key keys
+        end
+      end
+
+      it "advertises only the algorithm ID tokens are signed with" do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data["id_token_signing_alg_values_supported"]).to eq ["ES256"]
+      end
+    end
+
     context "when Doorkeeper is configured with an issuer (RFC 9207)" do
       before do
         allow(Doorkeeper::OpenidConnect).to receive(:doorkeeper_issuer)
@@ -555,6 +573,49 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
 
         kids = data["keys"].map { |k| k["kid"] }
         expect(kids.uniq).to eq kids
+      end
+    end
+
+    context "when the signing key replaced a key of another type" do
+      let(:rsa_pem) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:ec_pem) { OpenSSL::PKey::EC.generate("prime256v1").to_pem }
+      let(:access_token) { create :access_token, resource_owner_id: create(:user).id, scopes: "openid" }
+
+      # Issued while the RSA key was still the signing key.
+      let!(:id_token) do
+        configure_doorkeeper(rsa_pem, :RS256)
+        Doorkeeper::OpenidConnect::IdToken.new(access_token).as_jws_token
+      end
+      let(:header) { JWT.decode(id_token, nil, false).last }
+      let(:keys) { JSON.parse(response.body, symbolize_names: true)[:keys] }
+
+      before do
+        configure_doorkeeper([ec_pem, rsa_pem], :ES256)
+        subject
+      end
+
+      def verify(jwk)
+        JWT.decode(id_token, JWT::JWK.import(jwk).public_key, true, { algorithms: [header["alg"]] })
+      end
+
+      it "publishes alg only for the key the signing algorithm can be used with" do
+        expect(keys.map { |key| key.slice(:kty, :use, :alg) }).to eq [
+          { kty: "EC", use: "sig", alg: "ES256" },
+          { kty: "RSA", use: "sig" },
+        ]
+      end
+
+      it "lets a verifier that selects the key by kid verify a token signed by the retired key" do
+        jwk = keys.find { |key| key[:kid] == header["kid"] }
+
+        expect { verify(jwk) }.not_to raise_error
+      end
+
+      it "lets a verifier that skips keys published for another alg verify a token signed by the retired key" do
+        candidates = keys.reject { |key| key.key?(:alg) && key[:alg] != header["alg"] }
+
+        expect(candidates.size).to eq 1
+        expect { verify(candidates.first) }.not_to raise_error
       end
     end
   end

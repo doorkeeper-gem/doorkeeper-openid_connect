@@ -3,6 +3,7 @@ Upgrading? [Migration from Old Versions](https://github.com/doorkeeper-gem/doork
 ## Unreleased
 
 - Add entry here
+- [#422] Fix the JWKS labeling every key with the configured `signing_algorithm`, including keys that cannot be used with it ([#421](https://github.com/doorkeeper-gem/doorkeeper-openid_connect/issues/421)). With an EC signing key and a retired RSA key in `signing_key`, the RSA key was published as `"alg": "ES256"`, so a verifier that honors `alg` would not use it for the RS256 tokens it signed. Each key now gets its own `alg`: the algorithm of its curve for an EC key, and `signing_algorithm` for an RSA key, which is published without `alg` (optional per RFC 7517 §4.4) when that is not an RSA algorithm. Output is unchanged when every key can be used with `signing_algorithm`
 
 ## v2.1.1 (2026-11-24))
 

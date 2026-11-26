@@ -238,6 +238,15 @@ describe Doorkeeper::OpenidConnect do
   end
 
   describe ".signing_keys_normalized" do
+    def published(algorithm, keys)
+      described_class.configure do
+        signing_algorithm algorithm
+        signing_key keys
+      end
+
+      subject.signing_keys_normalized.map { |jwk| jwk.slice(:kty, :crv, :use, :alg) }
+    end
+
     it "merges use and alg into each exported key" do
       expect(subject.signing_keys_normalized).to eq [
         subject.signing_key_normalized.merge(use: "sig", alg: :RS256),
@@ -259,6 +268,43 @@ describe Doorkeeper::OpenidConnect do
         normalized = subject.signing_keys_normalized
         expect(normalized.size).to eq 2
         expect(normalized).to all(include(use: "sig", alg: :RS256))
+      end
+    end
+
+    context "with keys of different types configured" do
+      let(:rsa_pem) { OpenSSL::PKey::RSA.generate(2048).to_pem }
+      let(:p256_pem) { OpenSSL::PKey::EC.generate("prime256v1").to_pem }
+      let(:p384_pem) { OpenSSL::PKey::EC.generate("secp384r1").to_pem }
+
+      it "leaves alg out of an RSA key published next to an EC signing key" do
+        expect(published(:es256, [p256_pem, rsa_pem])).to eq [
+          { kty: "EC", crv: "P-256", use: "sig", alg: :ES256 },
+          { kty: "RSA", use: "sig" },
+        ]
+      end
+
+      it "publishes an EC key next to an RSA signing key with the algorithm of its curve" do
+        expect(published(:rs256, [rsa_pem, p256_pem])).to eq [
+          { kty: "RSA", use: "sig", alg: :RS256 },
+          { kty: "EC", crv: "P-256", use: "sig", alg: :ES256 },
+        ]
+      end
+
+      it "publishes EC keys on different curves each with the algorithm of its curve" do
+        expect(published(:es384, [p384_pem, p256_pem])).to eq [
+          { kty: "EC", crv: "P-384", use: "sig", alg: :ES384 },
+          { kty: "EC", crv: "P-256", use: "sig", alg: :ES256 },
+        ]
+      end
+    end
+
+    context "with an EC key on the curve of the signing algorithm" do
+      { "prime256v1" => :ES256, "secp384r1" => :ES384, "secp521r1" => :ES512, "secp256k1" => :ES256K }.each do |curve, algorithm|
+        it "publishes alg #{algorithm} for a #{curve} key" do
+          pem = OpenSSL::PKey::EC.generate(curve).to_pem
+
+          expect(published(algorithm, pem)).to match [include(kty: "EC", use: "sig", alg: algorithm)]
+        end
       end
     end
 

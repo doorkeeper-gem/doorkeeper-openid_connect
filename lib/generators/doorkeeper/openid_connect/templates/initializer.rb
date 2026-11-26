@@ -31,6 +31,11 @@ Doorkeeper::OpenidConnect.configure do
   # are published in the JWKS so clients can still validate tokens signed
   # with a retired key during a rotation window.
   #
+  # The keys may be of different types. In the JWKS an EC key is published
+  # with the algorithm of its curve as `alg`, and an RSA key with
+  # `signing_algorithm`, or without `alg` when that is not an RSA algorithm
+  # (a retired RSA key next to an EC signing key, for example).
+  #
   # signing_key [
   #   File.read("config/keys/current.pem"),  # active
   #   File.read("config/keys/previous.pem"), # retired but still in JWKS
