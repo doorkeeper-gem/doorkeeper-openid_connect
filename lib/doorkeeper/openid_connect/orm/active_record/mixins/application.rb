@@ -30,6 +30,9 @@ module Doorkeeper
             #    §2.2 forbids too), `forbid_redirect_uri`, and the https
             #    requirement of `force_ssl_in_redirect_uri`.
             #
+            # Where the server does allow http, it is still limited to
+            # confidential clients, as §2.2 requires.
+            #
             # As with the `post_logout_redirect_uris` handling below, all
             # paths degrade gracefully when the column has not been added yet
             # (an existing installation that has not run the upgrade
@@ -75,7 +78,8 @@ module Doorkeeper
                 raw_value = read_attribute(:backchannel_logout_uri)
                 return if raw_value.blank?
 
-                if backchannel_logout_http_uri(raw_value).nil?
+                uri = backchannel_logout_http_uri(raw_value)
+                if uri.nil?
                   errors.add(:backchannel_logout_uri, :not_http_uri)
                   return
                 end
@@ -83,6 +87,23 @@ module Doorkeeper
                 Doorkeeper::RedirectUriValidator
                   .new(attributes: [:backchannel_logout_uri])
                   .validate_each(self, :backchannel_logout_uri, raw_value)
+
+                validate_backchannel_logout_uri_client_type(uri)
+              end
+
+              # §2.2: the URI "MAY use the http scheme, provided that the
+              # Client Type is confidential" and "provided the OP allows the
+              # use of http RP URIs". The OP's side of that is
+              # `force_ssl_in_redirect_uri`, which RedirectUriValidator has
+              # just applied; the client's side holds whatever the server
+              # allows, so a public client always needs https. Nothing is
+              # added when the server already asked for https.
+              def validate_backchannel_logout_uri_client_type(uri)
+                return unless uri.scheme == "http"
+                return if confidential?
+                return if errors.added?(:backchannel_logout_uri, :secured_uri)
+
+                errors.add(:backchannel_logout_uri, :public_client_http_uri)
               end
 
               # The value parsed as one absolute http(s) URI naming a host, or

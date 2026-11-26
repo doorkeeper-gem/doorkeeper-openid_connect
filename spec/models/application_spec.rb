@@ -232,6 +232,49 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
         expect(subject).not_to be_valid
         expect(subject.errors[:backchannel_logout_uri]).to be_present
       end
+
+      it "reports a public client's http URI once, as the server's https requirement" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri]).to eq ["must be an HTTPS/SSL URI."]
+      end
+    end
+
+    # Back-Channel Logout 1.0 §2.2: the URI "MAY use the http scheme, provided
+    # that the Client Type is confidential" — the server allowing http is not
+    # enough on its own.
+    context "when force_ssl_in_redirect_uri is disabled" do
+      before do
+        Doorkeeper.configure do
+          orm :active_record
+          force_ssl_in_redirect_uri false
+        end
+      end
+
+      it "accepts a plaintext http URI for a confidential client" do
+        subject.confidential = true
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).to be_valid
+      end
+
+      it "rejects a plaintext http URI for a public client" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri])
+          .to eq ["must be an HTTPS/SSL URI for a public client."]
+      end
+
+      it "accepts an https URI for a public client" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "https://example.com/backchannel-logout"
+
+        expect(subject).to be_valid
+      end
     end
   end
 

@@ -266,6 +266,50 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
       end
     end
 
+    # Back-Channel Logout 1.0 §2.2 limits an http logout URI to confidential
+    # clients, even on a server that accepts http redirect URIs.
+    context "when backchannel_logout_uri uses http and the server allows http URIs" do
+      let(:http_redirect_uris) { ["http://test.host/registration_success"] }
+
+      before do
+        allow(Doorkeeper.config).to receive(:force_ssl_in_redirect_uri).and_return(false)
+      end
+
+      it "registers a confidential client" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: http_redirect_uris,
+            backchannel_logout_uri: "http://test.host/backchannel_logout",
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)["backchannel_logout_uri"])
+          .to eq("http://test.host/backchannel_logout")
+      end
+
+      it "rejects a public client with invalid_client_metadata and does not create it" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: http_redirect_uris,
+            backchannel_logout_uri: "http://test.host/backchannel_logout",
+            token_endpoint_auth_method: "none",
+            scope: "public",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
+
+        expect(response.status).to eq 400
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+        expect(body["error_description"])
+          .to eq("Back-Channel Logout URI must be an HTTPS/SSL URI for a public client.")
+      end
+    end
+
     context "when backchannel_logout_session_required is true" do
       it "rejects the registration — this server issues sub-only Logout Tokens" do
         expect do

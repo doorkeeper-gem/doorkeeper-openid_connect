@@ -20,6 +20,7 @@ en:
               forbidden_uri: 'is forbidden by the server.'
             backchannel_logout_uri:
               not_http_uri: 'must be a single absolute HTTP or HTTPS URI.'
+              public_client_http_uri: 'must be an HTTPS/SSL URI for a public client.'
               fragment_present: 'cannot contain a fragment.'
               invalid_uri: 'must be a valid URI.'
               unspecified_scheme: 'must specify a scheme.'
