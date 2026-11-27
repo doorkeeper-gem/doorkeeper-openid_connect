@@ -192,6 +192,10 @@ Doorkeeper::OpenidConnect.configure do
   # Delivery is sequential and synchronous, and a client is given up to 10
   # seconds to answer, so consider calling `notify` from a background job
   # to avoid blocking the logout request on slow or unresponsive clients.
+  #
+  # With that call in place, enable `backchannel_logout_supported` above: it
+  # is what makes the discovery document advertise back-channel logout and
+  # lets clients register a logout URI. `notify` works with or without it.
 
   # Per-endpoint overrides for the URLs generated in the discovery document
   # (e.g. to advertise a different host or force HTTPS). The block receives the

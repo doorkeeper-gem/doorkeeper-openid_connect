@@ -20,6 +20,11 @@ module Doorkeeper
     #
     #   Doorkeeper::OpenidConnect::BackchannelLogout.notify(user)
     #
+    # An application that has wired this in declares it with the
+    # `backchannel_logout_supported` option, which is what makes the provider
+    # metadata advertise back-channel logout and Dynamic Client Registration
+    # accept a logout URI. Delivery itself does not depend on the option.
+    #
     # Which clients are notified: every application with a registered
     # `backchannel_logout_uri` that has ever been issued an access token or
     # grant for this resource owner. The OP cannot observe RP sessions, so
