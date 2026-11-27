@@ -53,7 +53,7 @@ ActiveRecord::Schema.define(version: 2026_08_16_000000) do
     t.string "owner_type"
     t.boolean "confidential", default: true, null: false
     t.text "post_logout_redirect_uris"
-    t.string "backchannel_logout_uri"
+    t.text "backchannel_logout_uri"
     t.index ["owner_id", "owner_type"], name: "index_oauth_applications_on_owner_id_and_owner_type"
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
