@@ -122,6 +122,12 @@ Doorkeeper::OpenidConnect.configure do
   # Expiration time on or after which the ID Token MUST NOT be accepted for processing. (default 120 seconds).
   # expiration 600
 
+  # Lifetime of the Logout Tokens issued for OpenID Connect Back-Channel Logout (default 120
+  # seconds). It does not follow `expiration` above: a Logout Token only has to outlive its
+  # delivery, and Back-Channel Logout 1.0 §4 encourages a lifetime of two minutes at most, so
+  # that a captured one cannot be replayed for long.
+  # logout_token_expiration 60
+
   # Enable dynamic client registration (default false)
   # dynamic_client_registration true
 

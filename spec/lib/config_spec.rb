@@ -319,6 +319,30 @@ describe Doorkeeper::OpenidConnect, ".configuration" do
     end
   end
 
+  describe "logout_token_expiration" do
+    it "defaults to 120 seconds" do
+      described_class.configure {}
+
+      expect(subject.logout_token_expiration).to eq(120)
+    end
+
+    it "does not follow the ID Token expiration" do
+      described_class.configure do
+        expiration 600
+      end
+
+      expect(subject.logout_token_expiration).to eq(120)
+    end
+
+    it "sets the value that is accessible via logout_token_expiration" do
+      described_class.configure do
+        logout_token_expiration 60
+      end
+
+      expect(subject.logout_token_expiration).to eq(60)
+    end
+  end
+
   describe "id_token_class" do
     before do
       stub_const("CustomIdToken", Class.new(Doorkeeper::OpenidConnect::IdToken))

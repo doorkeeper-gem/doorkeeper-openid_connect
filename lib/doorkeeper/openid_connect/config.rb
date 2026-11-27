@@ -110,6 +110,15 @@ module Doorkeeper
 
       option :expiration, default: 120
 
+      # Lifetime of a Logout Token: a number of seconds, or a callable that is
+      # given the resource owner and the application. It is kept apart from
+      # `expiration`, the ID Token lifetime, which is often raised well beyond
+      # what suits a Logout Token: Back-Channel Logout 1.0 §4 encourages OPs
+      # "to use short expiration times in Logout Tokens, preferably at most
+      # two minutes in the future, to prevent captured Logout Tokens from
+      # being replayable".
+      option :logout_token_expiration, default: 120
+
       option :claims, builder_class: ClaimsBuilder
 
       option :protocol, default: lambda { |*_|

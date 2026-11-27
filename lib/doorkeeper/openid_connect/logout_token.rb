@@ -36,7 +36,12 @@ module Doorkeeper
 
       attr_reader :resource_owner, :application
 
-      def initialize(resource_owner, application, expires_in = Doorkeeper::OpenidConnect.configuration.expiration)
+      # `expires_in` defaults to `logout_token_expiration`, not to the ID
+      # Token's `expiration`: a Logout Token only has to outlive its delivery,
+      # and §4 encourages a lifetime of "at most two minutes" so that a
+      # captured one cannot be replayed for long.
+      def initialize(resource_owner, application,
+                     expires_in = Doorkeeper::OpenidConnect.configuration.logout_token_expiration)
         @resource_owner = resource_owner
         @application = application
         @issued_at = Time.zone.now

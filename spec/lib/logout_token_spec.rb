@@ -36,6 +36,27 @@ describe Doorkeeper::OpenidConnect::LogoutToken do
       expect(subject.claims.keys).to match_array(described_class::REQUIRED_CLAIMS)
     end
 
+    context "when the ID Token expiration is raised" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration).to receive(:expiration).and_return(600)
+      end
+
+      it "keeps the exp claim at the Logout Token's own 120-second default" do
+        expect(subject.claims[:exp]).to eq(subject.claims[:iat] + 120)
+      end
+    end
+
+    context "when logout_token_expiration is configured" do
+      before do
+        allow(Doorkeeper::OpenidConnect.configuration)
+          .to receive(:logout_token_expiration).and_return(30)
+      end
+
+      it "returns the exp claim relative to iat" do
+        expect(subject.claims[:exp]).to eq(subject.claims[:iat] + 30)
+      end
+    end
+
     context "when expires_in is specified" do
       subject { described_class.new(user, application, expires_in) }
 
