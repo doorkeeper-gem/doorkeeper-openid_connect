@@ -31,6 +31,22 @@ module Doorkeeper
       !@config.nil?
     end
 
+    # Whether this server offers OpenID Connect Back-Channel Logout 1.0 to
+    # relying parties, i.e. advertises it in the provider metadata and lets
+    # Dynamic Client Registration store a client's `backchannel_logout_uri`.
+    # Both answer through this one method so that they cannot disagree.
+    #
+    # Two things have to hold: the application has declared support with the
+    # `backchannel_logout_supported` option, and the application model has
+    # the `backchannel_logout_uri` column to keep the logout URI in. The
+    # column alone says nothing about delivery — every new installation gets
+    # it from the install migration.
+    def self.backchannel_logout_enabled?
+      return false unless configuration.backchannel_logout_supported
+
+      ::Doorkeeper.config.application_model.column_names.include?("backchannel_logout_uri")
+    end
+
     # Warn when Doorkeeper's `issuer` and the OpenID Connect `issuer` are both
     # statically configured with different values. Clients validate the
     # RFC 9207 `iss` authorization response parameter (emitted by Doorkeeper
@@ -134,6 +150,17 @@ module Doorkeeper
       }
 
       option :dynamic_client_registration, default: false
+
+      # Declares that the application supports OpenID Connect Back-Channel
+      # Logout 1.0: that it sends a Logout Token to the registered clients
+      # when a user's session ends. This gem tracks no sessions, so it cannot
+      # tell that on its own, and the declaration is what the provider
+      # metadata passes on as `backchannel_logout_supported` — a relying
+      # party reading `true` there counts on being notified. Hence off by
+      # default: without it nothing is advertised, which §2.1 defines to mean
+      # `false`, and Dynamic Client Registration ignores a client's
+      # `backchannel_logout_uri`.
+      option :backchannel_logout_supported, default: false
 
       # When enabled, the `prompt` authorization parameter (`none`, `login`,
       # `consent`, `select_account`) is honored even on non-OIDC requests,

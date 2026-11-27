@@ -319,6 +319,22 @@ describe Doorkeeper::OpenidConnect, ".configuration" do
     end
   end
 
+  describe "backchannel_logout_supported" do
+    it "defaults to false" do
+      described_class.configure {}
+
+      expect(subject.backchannel_logout_supported).to be false
+    end
+
+    it "sets the value that is accessible via backchannel_logout_supported" do
+      described_class.configure do
+        backchannel_logout_supported true
+      end
+
+      expect(subject.backchannel_logout_supported).to be true
+    end
+  end
+
   describe "logout_token_expiration" do
     it "defaults to 120 seconds" do
       described_class.configure {}

@@ -21,6 +21,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
     Doorkeeper::OpenidConnect.configure do
       issuer "dummy"
       dynamic_client_registration true
+      backchannel_logout_supported true
     end
 
     Rails.application.reload_routes!
@@ -217,6 +218,36 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
 
         expect(response.status).to eq 201
         expect(JSON.parse(response.body)).not_to have_key("backchannel_logout_uri")
+      end
+    end
+
+    context "when back-channel logout support is not declared" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          dynamic_client_registration true
+        end
+      end
+
+      it "ignores the logout metadata instead of registering it (RFC 7591 §2)" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "https://test.host/backchannel_logout",
+            backchannel_logout_session_required: true,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        expect(body).not_to have_key("backchannel_logout_uri")
+        expect(body).not_to have_key("backchannel_logout_session_required")
+
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application.backchannel_logout_uri).to be_nil
       end
     end
 

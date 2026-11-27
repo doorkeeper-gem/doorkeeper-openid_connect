@@ -68,11 +68,12 @@ module Doorkeeper
         }.merge(optional_column_params)
       end
 
-      # Client metadata backed by a column that an existing installation may
-      # not have migrated in yet. RFC 7591 §2 allows the server to ignore
-      # client metadata it does not understand, so each parameter is simply
-      # dropped when its column is missing instead of failing the
-      # registration.
+      # Client metadata this server may not be in a position to honor: it is
+      # backed by a column that an existing installation may not have
+      # migrated in yet, and the logout URI in addition needs the server to
+      # offer back-channel logout. RFC 7591 §2 allows the server to ignore
+      # client metadata it does not understand, so such a parameter is simply
+      # dropped instead of failing the registration.
       def optional_column_params
         optional = {}
 
@@ -80,8 +81,10 @@ module Doorkeeper
           optional[:post_logout_redirect_uris] = params[:post_logout_redirect_uris] || []
         end
 
-        # Back-Channel Logout 1.0 §2.2 registration metadata.
-        if backchannel_logout_uri_supported? && params[:backchannel_logout_uri].present?
+        # Back-Channel Logout 1.0 §2.2 registration metadata. Dropped unless
+        # the server offers back-channel logout: storing the URI would echo
+        # it back as registered to a client that will never be notified.
+        if backchannel_logout_enabled? && params[:backchannel_logout_uri].present?
           optional[:backchannel_logout_uri] = params[:backchannel_logout_uri]
         end
 
@@ -92,8 +95,8 @@ module Doorkeeper
         Doorkeeper.config.application_model.column_names.include?("post_logout_redirect_uris")
       end
 
-      def backchannel_logout_uri_supported?
-        Doorkeeper.config.application_model.column_names.include?("backchannel_logout_uri")
+      def backchannel_logout_enabled?
+        Doorkeeper::OpenidConnect.backchannel_logout_enabled?
       end
 
       # One method per metadata document: the registration response echoes

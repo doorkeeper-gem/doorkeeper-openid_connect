@@ -24,14 +24,13 @@ module Doorkeeper
       # registration would guarantee that every Logout Token the RP later
       # receives fails its validation — reject it up front instead.
       #
-      # When back-channel logout is not enabled at all (the
-      # `backchannel_logout_uri` column is missing, so nothing is advertised
-      # in the discovery document and no Logout Tokens are ever issued), the
-      # parameter is ignored like any other unknown client metadata
-      # (RFC 7591 §2) — matching how the controller drops
-      # `backchannel_logout_uri` itself in that case.
+      # When the server does not offer back-channel logout at all (see
+      # `Doorkeeper::OpenidConnect.backchannel_logout_enabled?` — nothing is
+      # advertised in the discovery document then), the parameter is ignored
+      # like any other unknown client metadata (RFC 7591 §2) — matching how
+      # the controller drops `backchannel_logout_uri` itself in that case.
       def validate_backchannel_logout_session_required
-        return true unless backchannel_logout_supported?
+        return true unless Doorkeeper::OpenidConnect.backchannel_logout_enabled?
         return true unless backchannel_logout_session_required?
 
         @error_description =
@@ -39,10 +38,6 @@ module Doorkeeper
           "Logout Tokens identifying the user via sub only, without a sid claim " \
           "(backchannel_logout_session_supported is false)"
         false
-      end
-
-      def backchannel_logout_supported?
-        server.application_model.column_names.include?("backchannel_logout_uri")
       end
     end
   end

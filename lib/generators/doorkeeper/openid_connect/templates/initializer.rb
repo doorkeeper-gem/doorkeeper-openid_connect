@@ -170,6 +170,17 @@ Doorkeeper::OpenidConnect.configure do
   #   end_session_url
   # end
 
+  # OpenID Connect Back-Channel Logout 1.0 (default false). Enable this once
+  # your application sends a Logout Token to the registered clients whenever
+  # a user's session ends: this gem tracks no sessions, so it cannot tell on
+  # its own, and a relying party that reads `backchannel_logout_supported` in
+  # the discovery document counts on being notified. While it is off nothing
+  # is advertised and Dynamic Client Registration ignores a client's
+  # `backchannel_logout_uri`. It also needs the `backchannel_logout_uri`
+  # column on the applications table.
+  #
+  # backchannel_logout_supported true
+
   # Per-endpoint overrides for the URLs generated in the discovery document
   # (e.g. to advertise a different host or force HTTPS). The block receives the
   # current `request` and returns a hash keyed by endpoint name.

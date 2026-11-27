@@ -62,6 +62,28 @@ describe "RFC 8414 authorization server metadata", type: :request do
     end
   end
 
+  context "when back-channel logout support is declared" do
+    before do
+      allow(Doorkeeper::OpenidConnect.configuration)
+        .to receive(:backchannel_logout_supported).and_return(true)
+    end
+
+    it "advertises it in both documents" do
+      get "/.well-known/oauth-authorization-server"
+      rfc8414 = JSON.parse(response.body)
+
+      get "/.well-known/openid-configuration"
+      oidc = JSON.parse(response.body)
+
+      expect([rfc8414, oidc]).to all(
+        include(
+          "backchannel_logout_supported" => true,
+          "backchannel_logout_session_supported" => false,
+        ),
+      )
+    end
+  end
+
   it "serves the scoped mount with the OIDC issuer" do
     get "/admins/.well-known/oauth-authorization-server"
 

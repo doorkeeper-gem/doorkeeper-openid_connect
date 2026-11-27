@@ -690,6 +690,32 @@ describe Doorkeeper::OpenidConnect do
     end
   end
 
+  describe ".backchannel_logout_enabled?" do
+    it "is false as long as support is not declared, even with the column in place" do
+      expect(Doorkeeper::Application.column_names).to include("backchannel_logout_uri")
+
+      expect(described_class.backchannel_logout_enabled?).to be false
+    end
+
+    context "when backchannel_logout_supported is set" do
+      before do
+        allow(described_class.configuration)
+          .to receive(:backchannel_logout_supported).and_return(true)
+      end
+
+      it "is true" do
+        expect(described_class.backchannel_logout_enabled?).to be true
+      end
+
+      it "is false while the application model lacks the backchannel_logout_uri column" do
+        allow(Doorkeeper.config.application_model).to receive(:column_names)
+          .and_return(Doorkeeper::Application.column_names - ["backchannel_logout_uri"])
+
+        expect(described_class.backchannel_logout_enabled?).to be false
+      end
+    end
+  end
+
   describe ".doorkeeper_metadata_endpoint?" do
     # The predicate decides whether the gem loads its RFC 8414 response subclass
     # and prepends MetadataExtension onto Doorkeeper::MetadataController, both of
