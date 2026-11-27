@@ -31,6 +31,22 @@ module Doorkeeper
       !@config.nil?
     end
 
+    # Whether this server offers OpenID Connect Back-Channel Logout 1.0 to
+    # relying parties, i.e. advertises it in the provider metadata and lets
+    # Dynamic Client Registration store a client's `backchannel_logout_uri`.
+    # Both answer through this one method so that they cannot disagree.
+    #
+    # Two things have to hold: the application has declared support with the
+    # `backchannel_logout_supported` option, and the application model has
+    # the `backchannel_logout_uri` column to keep the logout URI in. The
+    # column alone says nothing about delivery — every new installation gets
+    # it from the install migration.
+    def self.backchannel_logout_enabled?
+      return false unless configuration.backchannel_logout_supported
+
+      ::Doorkeeper.config.application_model.column_names.include?("backchannel_logout_uri")
+    end
+
     # Warn when Doorkeeper's `issuer` and the OpenID Connect `issuer` are both
     # statically configured with different values. Clients validate the
     # RFC 9207 `iss` authorization response parameter (emitted by Doorkeeper
@@ -110,6 +126,15 @@ module Doorkeeper
 
       option :expiration, default: 120
 
+      # Lifetime of a Logout Token: a number of seconds, or a callable that is
+      # given the resource owner and the application. It is kept apart from
+      # `expiration`, the ID Token lifetime, which is often raised well beyond
+      # what suits a Logout Token: Back-Channel Logout 1.0 §4 encourages OPs
+      # "to use short expiration times in Logout Tokens, preferably at most
+      # two minutes in the future, to prevent captured Logout Tokens from
+      # being replayable".
+      option :logout_token_expiration, default: 120
+
       option :claims, builder_class: ClaimsBuilder
 
       option :protocol, default: lambda { |*_|
@@ -125,6 +150,17 @@ module Doorkeeper
       }
 
       option :dynamic_client_registration, default: false
+
+      # Declares that the application supports OpenID Connect Back-Channel
+      # Logout 1.0: that it sends a Logout Token to the registered clients
+      # when a user's session ends. This gem tracks no sessions, so it cannot
+      # tell that on its own, and the declaration is what the provider
+      # metadata passes on as `backchannel_logout_supported` — a relying
+      # party reading `true` there counts on being notified. Hence off by
+      # default: without it nothing is advertised, which §2.1 defines to mean
+      # `false`, and Dynamic Client Registration ignores a client's
+      # `backchannel_logout_uri`.
+      option :backchannel_logout_supported, default: false
 
       # When enabled, the `prompt` authorization parameter (`none`, `login`,
       # `consent`, `select_account`) is honored even on non-OIDC requests,
@@ -152,6 +188,17 @@ module Doorkeeper
       # replacing the canonical subject identifier is what you mean).
       option :user_info_class, default: "Doorkeeper::OpenidConnect::UserInfo"
 
+      # A class that provides custom behavior for generating Logout Tokens.
+      # Must inherit from `Doorkeeper::OpenidConnect::LogoutToken`, which carries the
+      # Back-Channel Logout 1.0 §2.4 invariants — every emitted claim is REQUIRED and
+      # enforced, the End-User is identified by `sub` alone (matching the
+      # `backchannel_logout_session_supported: false` the discovery document
+      # advertises), and no `nonce` claim is ever emitted, which §2.4 prohibits. A
+      # subclass typically only overrides `select_key`, and then only alongside the
+      # same override on `id_token_class`: §2.4 has both token types signed with the
+      # same key so an RP can validate them against one JWKS.
+      option :logout_token_class, default: "Doorkeeper::OpenidConnect::LogoutToken"
+
       # Doorkeeper OpenID Request model class.
       #
       # @return [ActiveRecord::Base, Mongoid::Document, Sequel::Model]
@@ -168,9 +215,14 @@ module Doorkeeper
         resolve_validated_model(:user_info, user_info_class, UserInfo)
       end
 
+      def logout_token_model
+        resolve_validated_model(:logout_token, logout_token_class, LogoutToken)
+      end
+
       private
 
-      # Resolves an `id_token_class` / `user_info_class` override to its class
+      # Resolves an `id_token_class` / `user_info_class` / `logout_token_class`
+      # override to its class
       # and validates that it inherits from the corresponding default. The
       # ancestry check replaced the earlier method-presence list: presence
       # could be satisfied by any class (ActiveSupport defines `as_json` on

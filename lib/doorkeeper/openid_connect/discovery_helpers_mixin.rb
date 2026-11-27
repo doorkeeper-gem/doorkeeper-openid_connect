@@ -26,6 +26,23 @@ module Doorkeeper
         BASE_CLAIMS | openid_connect.claims.to_h.keys.map(&:to_s)
       end
 
+      # Back-Channel Logout 1.0 §2.1 OP metadata. Advertised only when the
+      # server offers back-channel logout (see
+      # `Doorkeeper::OpenidConnect.backchannel_logout_enabled?`): the
+      # application has declared that it delivers Logout Tokens, and RPs can
+      # actually register a logout URI. Otherwise both members are left out,
+      # which §2.1 defines to mean `false`. `sid` is never issued (no OP-side
+      # session tracking), so `backchannel_logout_session_supported` is an
+      # explicit `false`; both keys survive the callers' `.compact`.
+      def backchannel_logout_metadata
+        return {} unless Doorkeeper::OpenidConnect.backchannel_logout_enabled?
+
+        {
+          backchannel_logout_supported: true,
+          backchannel_logout_session_supported: false,
+        }
+      end
+
       def protocol
         configured = Doorkeeper::OpenidConnect.configuration.protocol
         configured.respond_to?(:call) ? configured.call : configured

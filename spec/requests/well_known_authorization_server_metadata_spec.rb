@@ -50,6 +50,8 @@ describe "RFC 8414 authorization server metadata", type: :request do
       id_token_signing_alg_values_supported
       claim_types_supported
       claims_supported
+      backchannel_logout_supported
+      backchannel_logout_session_supported
     ].each do |field|
       rfc8414_value = rfc8414.fetch(field, absent)
       oidc_value = oidc.fetch(field, absent)
@@ -57,6 +59,28 @@ describe "RFC 8414 authorization server metadata", type: :request do
       expect(rfc8414_value).to eq(oidc_value),
                                "#{field} diverged: RFC 8414 document has #{describe_value.call(rfc8414_value)}, " \
                                "OIDC discovery has #{describe_value.call(oidc_value)}"
+    end
+  end
+
+  context "when back-channel logout support is declared" do
+    before do
+      allow(Doorkeeper::OpenidConnect.configuration)
+        .to receive(:backchannel_logout_supported).and_return(true)
+    end
+
+    it "advertises it in both documents" do
+      get "/.well-known/oauth-authorization-server"
+      rfc8414 = JSON.parse(response.body)
+
+      get "/.well-known/openid-configuration"
+      oidc = JSON.parse(response.body)
+
+      expect([rfc8414, oidc]).to all(
+        include(
+          "backchannel_logout_supported" => true,
+          "backchannel_logout_session_supported" => false,
+        ),
+      )
     end
   end
 

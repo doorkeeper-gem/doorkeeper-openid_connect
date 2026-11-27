@@ -119,6 +119,165 @@ describe Doorkeeper::OpenidConnect::Orm::ActiveRecord::Mixins::Application do
     end
   end
 
+  # Stubs has_attribute? to emulate an installation that has not run the migration yet.
+  # rubocop:disable RSpec/SubjectStub
+  describe "#backchannel_logout_uri" do
+    it "returns nil when not set" do
+      expect(subject.backchannel_logout_uri).to be_nil
+    end
+
+    it "returns nil when set to a blank string" do
+      subject.update!(backchannel_logout_uri: "")
+      expect(subject.backchannel_logout_uri).to be_nil
+    end
+
+    it "returns the stored URI when set" do
+      subject.update!(backchannel_logout_uri: "https://example.com/backchannel-logout")
+      expect(subject.backchannel_logout_uri).to eq "https://example.com/backchannel-logout"
+    end
+
+    it "returns nil when the column has not been added yet" do
+      # An existing installation that upgraded the gem without running the
+      # add_backchannel_logout_uri migration.
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:backchannel_logout_uri).and_return(false)
+
+      expect(subject.backchannel_logout_uri).to be_nil
+    end
+
+    it "still validates and saves when the column has not been added yet" do
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:backchannel_logout_uri).and_return(false)
+
+      expect(subject).to be_valid
+      expect(subject.errors[:backchannel_logout_uri]).to be_empty
+    end
+
+    it "raises a descriptive error when writing without the column" do
+      allow(subject).to receive(:has_attribute?).and_call_original
+      allow(subject).to receive(:has_attribute?).with(:backchannel_logout_uri).and_return(false)
+
+      expect { subject.backchannel_logout_uri = "https://example.com/backchannel-logout" }
+        .to raise_error(ActiveModel::MissingAttributeError, /add_backchannel_logout_uri/)
+    end
+  end
+  # rubocop:enable RSpec/SubjectStub
+
+  describe "backchannel_logout_uri validation" do
+    # The value has to be a single absolute http(s) URI; beyond that the
+    # attribute is validated by delegating to Doorkeeper's own
+    # RedirectUriValidator, so the configurable rules match `redirect_uri`.
+    it "is valid when blank (registration is optional)" do
+      subject.backchannel_logout_uri = nil
+      expect(subject).to be_valid
+      subject.backchannel_logout_uri = ""
+      expect(subject).to be_valid
+    end
+
+    it "is valid for an absolute https URI, with or without a query" do
+      subject.backchannel_logout_uri = "https://example.com/backchannel-logout"
+      expect(subject).to be_valid
+      subject.backchannel_logout_uri = "https://example.com/backchannel-logout?tenant=1"
+      expect(subject).to be_valid
+    end
+
+    it "rejects a forbidden/opaque scheme such as javascript:" do
+      subject.backchannel_logout_uri = "javascript:alert(1)"
+      expect(subject).not_to be_valid
+      expect(subject.errors[:backchannel_logout_uri]).to be_present
+    end
+
+    it "rejects a URI containing a fragment (Back-Channel Logout 1.0 §2.2)" do
+      subject.backchannel_logout_uri = "https://example.com/backchannel-logout#section"
+      expect(subject).not_to be_valid
+      expect(subject.errors[:backchannel_logout_uri]).to be_present
+    end
+
+    it "rejects a relative URI (Back-Channel Logout 1.0 §2.2)" do
+      subject.backchannel_logout_uri = "/relative/path"
+      expect(subject).not_to be_valid
+      expect(subject.errors[:backchannel_logout_uri]).to be_present
+    end
+
+    # Each of these passes Doorkeeper's RedirectUriValidator — it validates a
+    # whitespace-separated list and allows custom schemes and (in the dummy
+    # application) the out-of-band URN — yet none is an endpoint the OP can
+    # POST a Logout Token to.
+    {
+      "several whitespace-separated URIs" => "https://rp.example/logout https://other.example/logout",
+      "a URI with surrounding whitespace" => " https://rp.example/logout\n",
+      "a custom scheme" => "myapp://logout",
+      "the out-of-band URN" => "urn:ietf:wg:oauth:2.0:oob",
+      "an http(s) URI without a host" => "https:///logout",
+    }.each do |description, value|
+      it "rejects #{description}" do
+        subject.backchannel_logout_uri = value
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri])
+          .to eq ["must be a single absolute HTTP or HTTPS URI."]
+      end
+    end
+
+    context "when force_ssl_in_redirect_uri is enabled" do
+      before do
+        Doorkeeper.configure do
+          orm :active_record
+          force_ssl_in_redirect_uri true
+        end
+      end
+
+      it "rejects a plaintext http URI" do
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri]).to be_present
+      end
+
+      it "reports a public client's http URI once, as the server's https requirement" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri]).to eq ["must be an HTTPS/SSL URI."]
+      end
+    end
+
+    # Back-Channel Logout 1.0 §2.2: the URI "MAY use the http scheme, provided
+    # that the Client Type is confidential" — the server allowing http is not
+    # enough on its own.
+    context "when force_ssl_in_redirect_uri is disabled" do
+      before do
+        Doorkeeper.configure do
+          orm :active_record
+          force_ssl_in_redirect_uri false
+        end
+      end
+
+      it "accepts a plaintext http URI for a confidential client" do
+        subject.confidential = true
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).to be_valid
+      end
+
+      it "rejects a plaintext http URI for a public client" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "http://example.com/backchannel-logout"
+
+        expect(subject).not_to be_valid
+        expect(subject.errors[:backchannel_logout_uri])
+          .to eq ["must be an HTTPS/SSL URI for a public client."]
+      end
+
+      it "accepts an https URI for a public client" do
+        subject.confidential = false
+        subject.backchannel_logout_uri = "https://example.com/backchannel-logout"
+
+        expect(subject).to be_valid
+      end
+    end
+  end
+
   describe "#valid_post_logout_redirect_uri?" do
     context "when no post_logout_redirect_uris are registered" do
       it "returns false for any URI" do

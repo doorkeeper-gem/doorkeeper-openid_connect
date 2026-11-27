@@ -116,6 +116,46 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
       }.sort)
     end
 
+    it "does not advertise back-channel logout support unless it is declared" do
+      get :provider
+      data = JSON.parse(response.body)
+
+      expect(data).not_to have_key("backchannel_logout_supported")
+      expect(data).not_to have_key("backchannel_logout_session_supported")
+    end
+
+    context "when back-channel logout support is declared" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          backchannel_logout_supported true
+        end
+      end
+
+      it "advertises back-channel logout without session (sid) support" do
+        get :provider
+        data = JSON.parse(response.body)
+
+        expect(data["backchannel_logout_supported"]).to be true
+        expect(data["backchannel_logout_session_supported"]).to be false
+      end
+
+      context "when the application model does not have the backchannel_logout_uri column" do
+        before do
+          allow(Doorkeeper.config.application_model).to receive(:column_names)
+            .and_return(Doorkeeper::Application.column_names - ["backchannel_logout_uri"])
+        end
+
+        it "does not advertise back-channel logout support" do
+          get :provider
+          data = JSON.parse(response.body)
+
+          expect(data).not_to have_key("backchannel_logout_supported")
+          expect(data).not_to have_key("backchannel_logout_session_supported")
+        end
+      end
+    end
+
     it "does not duplicate a base claim redefined as a custom claim" do
       Doorkeeper::OpenidConnect.configure do
         issuer "dummy"

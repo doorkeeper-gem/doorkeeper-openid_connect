@@ -21,6 +21,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
     Doorkeeper::OpenidConnect.configure do
       issuer "dummy"
       dynamic_client_registration true
+      backchannel_logout_supported true
     end
 
     Rails.application.reload_routes!
@@ -155,6 +156,224 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         body = JSON.parse(response.body)
         expect(body["error"]).to eq("invalid_client_metadata")
         expect(body["error_description"]).to be_present
+      end
+    end
+
+    context "when backchannel_logout_uri is provided" do
+      it "registers and echoes it back with backchannel_logout_session_required false" do
+        backchannel_logout_uri = "https://test.host/backchannel_logout"
+
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: backchannel_logout_uri,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application.backchannel_logout_uri).to eq(backchannel_logout_uri)
+
+        expect(body["backchannel_logout_uri"]).to eq(backchannel_logout_uri)
+        expect(body["backchannel_logout_session_required"]).to be false
+      end
+    end
+
+    context "when backchannel_logout_uri is omitted" do
+      it "omits the backchannel logout metadata from the response (registration is optional)" do
+        post :register, params: {
+          client_name: "dummy_client",
+          redirect_uris: redirect_uris,
+          scope: "public",
+        }
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        expect(body).not_to have_key("backchannel_logout_uri")
+        expect(body).not_to have_key("backchannel_logout_session_required")
+      end
+    end
+
+    context "when the application model does not have the backchannel_logout_uri column" do
+      before do
+        allow(Doorkeeper.config.application_model).to receive(:column_names)
+          .and_return(Doorkeeper::Application.column_names - ["backchannel_logout_uri"])
+      end
+
+      it "ignores the parameter instead of failing the registration (RFC 7591 §2)" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "https://test.host/backchannel_logout",
+            backchannel_logout_session_required: true,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)).not_to have_key("backchannel_logout_uri")
+      end
+    end
+
+    context "when back-channel logout support is not declared" do
+      before do
+        Doorkeeper::OpenidConnect.configure do
+          issuer "dummy"
+          dynamic_client_registration true
+        end
+      end
+
+      it "ignores the logout metadata instead of registering it (RFC 7591 §2)" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "https://test.host/backchannel_logout",
+            backchannel_logout_session_required: true,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+
+        body = JSON.parse(response.body)
+        expect(body).not_to have_key("backchannel_logout_uri")
+        expect(body).not_to have_key("backchannel_logout_session_required")
+
+        doorkeeper_application = Doorkeeper::Application.find_by(uid: body["client_id"])
+        expect(doorkeeper_application.backchannel_logout_uri).to be_nil
+      end
+    end
+
+    context "when backchannel_logout_uri is an invalid URI" do
+      it "rejects the request with invalid_client_metadata and does not create a client" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "javascript:alert(1)",
+            scope: "public",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
+
+        expect(response.status).to eq 400
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+        expect(body["error_description"]).to be_present
+      end
+    end
+
+    # Values Doorkeeper accepts as `redirect_uris` entries but that do not
+    # name one endpoint able to receive the back-channel HTTP POST.
+    {
+      "several URIs" => "https://test.host/backchannel_logout https://other.host/backchannel_logout",
+      "a custom scheme" => "myapp://backchannel_logout",
+    }.each do |description, value|
+      context "when backchannel_logout_uri is #{description}" do
+        it "rejects the request with invalid_client_metadata and does not create a client" do
+          expect do
+            post :register, params: {
+              client_name: "dummy_client",
+              redirect_uris: redirect_uris,
+              backchannel_logout_uri: value,
+              scope: "public",
+            }
+          end.not_to change(Doorkeeper::Application, :count)
+
+          expect(response.status).to eq 400
+
+          body = JSON.parse(response.body)
+          expect(body["error"]).to eq("invalid_client_metadata")
+          expect(body["error_description"])
+            .to eq("Back-Channel Logout URI must be a single absolute HTTP or HTTPS URI.")
+        end
+      end
+    end
+
+    # Back-Channel Logout 1.0 §2.2 limits an http logout URI to confidential
+    # clients, even on a server that accepts http redirect URIs.
+    context "when backchannel_logout_uri uses http and the server allows http URIs" do
+      let(:http_redirect_uris) { ["http://test.host/registration_success"] }
+
+      before do
+        allow(Doorkeeper.config).to receive(:force_ssl_in_redirect_uri).and_return(false)
+      end
+
+      it "registers a confidential client" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: http_redirect_uris,
+            backchannel_logout_uri: "http://test.host/backchannel_logout",
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
+        expect(JSON.parse(response.body)["backchannel_logout_uri"])
+          .to eq("http://test.host/backchannel_logout")
+      end
+
+      it "rejects a public client with invalid_client_metadata and does not create it" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: http_redirect_uris,
+            backchannel_logout_uri: "http://test.host/backchannel_logout",
+            token_endpoint_auth_method: "none",
+            scope: "public",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
+
+        expect(response.status).to eq 400
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+        expect(body["error_description"])
+          .to eq("Back-Channel Logout URI must be an HTTPS/SSL URI for a public client.")
+      end
+    end
+
+    context "when backchannel_logout_session_required is true" do
+      it "rejects the registration — this server issues sub-only Logout Tokens" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "https://test.host/backchannel_logout",
+            backchannel_logout_session_required: true,
+            scope: "public",
+          }
+        end.not_to change(Doorkeeper::Application, :count)
+
+        expect(response.status).to eq 400
+
+        body = JSON.parse(response.body)
+        expect(body["error"]).to eq("invalid_client_metadata")
+        expect(body["error_description"]).to include("backchannel_logout_session_required")
+      end
+    end
+
+    context "when backchannel_logout_session_required is false" do
+      it "accepts the registration" do
+        expect do
+          post :register, params: {
+            client_name: "dummy_client",
+            redirect_uris: redirect_uris,
+            backchannel_logout_uri: "https://test.host/backchannel_logout",
+            backchannel_logout_session_required: false,
+            scope: "public",
+          }
+        end.to change(Doorkeeper::Application, :count).by(1)
+
+        expect(response.status).to eq 201
       end
     end
 
